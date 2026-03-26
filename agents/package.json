@@ -1,0 +1,19 @@
+{
+  "name": "claimit-agents",
+  "version": "1.0.0",
+  "description": "ClaimIt scheme finder and social media agents",
+  "main": "findSchemes.js",
+  "scripts": {
+    "find": "node findSchemes.js",
+    "post": "node postSocial.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.3.0",
+    "@supabase/supabase-js": "^2.39.0",
+    "axios": "^1.6.0",
+    "rss-parser": "^3.13.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
