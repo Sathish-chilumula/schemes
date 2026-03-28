@@ -204,10 +204,34 @@ function createSlug(name, country) {
 }
 
 // ============================================
+// UNSPLASH INTEGRATION
+// ============================================
+const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY || 'mRrS9UjMl45wy4Hy-Pm6oMv7TGG55Sb-o6VLDxcJQOA';
+
+async function fetchUnsplashImage(keyword) {
+  if (!keyword) return null;
+  try {
+    const res = await axios.get(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(keyword)}&client_id=${UNSPLASH_ACCESS_KEY}&per_page=1&orientation=landscape`);
+    if (res.data && res.data.results && res.data.results.length > 0) {
+      return res.data.results[0].urls.regular;
+    }
+    return null;
+  } catch (error) {
+    console.error('Unsplash API error:', error.message);
+    return null;
+  }
+}
+
+
+// ============================================
 // STEP 6: SAVE TO SUPABASE
 // ============================================
 async function saveScheme(schemeData, country, sourceUrl) {
   const slug = createSlug(schemeData.name, country);
+  
+  const searchKeyword = schemeData.image_keyword || schemeData.category;
+  console.log(`📸 Fetching Unsplash image for: ${searchKeyword}`);
+  const imageUrl = await fetchUnsplashImage(`${searchKeyword} photograph`);
 
   const { data: scheme, error } = await supabase
     .from('schemes')
@@ -223,6 +247,7 @@ async function saveScheme(schemeData, country, sourceUrl) {
       documents: schemeData.documents,
       official_url: schemeData.official_url || sourceUrl,
       image_keyword: schemeData.image_keyword,
+      image_url: imageUrl,
       is_published: true,
       source: 'agent'
     })
