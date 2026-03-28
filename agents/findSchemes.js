@@ -55,11 +55,12 @@ async function generateAICompletion(prompt) {
   // --- TIER 2: OPENROUTER ---
   if (openRouterKey) {
     try {
-      console.log('🤖 Attempting Tier 2: OpenRouter (Gemini 2.0 Flash Lite)...');
+      console.log('🤖 Attempting Tier 2: OpenRouter (Gemini 2.0 Flash Exp)...');
       const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-        model: 'google/gemini-2.0-flash-lite-preview-0.1:free',
+        model: 'google/gemini-2.0-flash-exp:free',
         messages: [{ role: 'user', content: prompt }]
       }, {
+
         headers: { 
           'Authorization': `Bearer ${openRouterKey}`,
           'HTTP-Referer': 'https://claimit.pages.dev',
