@@ -12,23 +12,87 @@ const axios = require('axios');
 const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.SUPABASE_SERVICE_KEY;
 const geminiKey = process.env.GEMINI_API_KEY;
+const openRouterKey = process.env.OPENROUTER_API_KEY;
+const groqKey = process.env.GROQ_API_KEY;
 
-if (!url || !key || !geminiKey) {
+if (!url || !key) {
   console.error('\n❌ CRITICAL STARTUP ERROR ❌');
-  console.error('One or more required environment variables are missing:');
-  console.error(`- SUPABASE_URL: ${url ? '✅ Found' : '❌ Missing'}`);
-  console.error(`- SUPABASE_SERVICE_KEY: ${key ? '✅ Found' : '❌ Missing'}`);
-  console.error(`- GEMINI_API_KEY: ${geminiKey ? '✅ Found' : '❌ Missing'}`);
-  console.error('\nIf running in GitHub Actions: Ensure these are added to Repository Settings > Secrets and variables > Actions.');
-  console.error('If running locally: Ensure you have exported these variables in your terminal.');
+  console.error('Supabase environment variables are missing!');
   process.exit(1);
 }
 
 const supabase = createClient(url, key);
-const genAI = new GoogleGenerativeAI(geminiKey);
-
-const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 const parser = new Parser();
+
+// Initialize Gemini SDK if key exists
+let genAI = null;
+let geminiModel = null;
+if (geminiKey) {
+  try {
+    genAI = new GoogleGenerativeAI(geminiKey);
+    geminiModel = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  } catch (e) {
+    console.warn('⚠️ Gemini SDK init failed, will use fallbacks.');
+  }
+}
+
+// ============================================
+// UNIFIED AI COMPLETION (3-TIER FALLBACK)
+// ============================================
+async function generateAICompletion(prompt) {
+  // --- TIER 1: GEMINI SDK ---
+  if (geminiModel) {
+    try {
+      console.log('🤖 Attempting Tier 1: Gemini SDK...');
+      const result = await geminiModel.generateContent(prompt);
+      const text = result.response.text().trim();
+      if (text) return text;
+    } catch (err) {
+      console.warn(`⚠️ Tier 1 (Gemini SDK) failed: ${err.message}`);
+    }
+  }
+
+  // --- TIER 2: OPENROUTER ---
+  if (openRouterKey) {
+    try {
+      console.log('🤖 Attempting Tier 2: OpenRouter (Gemini 2.0 Flash Lite)...');
+      const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
+        model: 'google/gemini-2.0-flash-lite-preview-0.1:free',
+        messages: [{ role: 'user', content: prompt }]
+      }, {
+        headers: { 
+          'Authorization': `Bearer ${openRouterKey}`,
+          'HTTP-Referer': 'https://claimit.pages.dev',
+          'X-Title': 'ClaimIt Scheme Atlas'
+        }
+      });
+      const text = response.data?.choices?.[0]?.message?.content?.trim();
+      if (text) return text;
+    } catch (err) {
+      console.warn(`⚠️ Tier 2 (OpenRouter) failed: ${err.response?.data?.error?.message || err.message}`);
+    }
+  }
+
+  // --- TIER 3: GROQ ---
+  if (groqKey) {
+    try {
+      console.log('🤖 Attempting Tier 3: Groq (Llama 3.3 70B)...');
+      const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
+        model: 'llama-3.3-70b-versatile',
+        messages: [{ role: 'user', content: prompt }]
+      }, {
+        headers: { 'Authorization': `Bearer ${groqKey}` }
+      });
+      const text = response.data?.choices?.[0]?.message?.content?.trim();
+      if (text) return text;
+    } catch (err) {
+      console.warn(`⚠️ Tier 3 (Groq) failed: ${err.response?.data?.error?.message || err.message}`);
+    }
+  }
+
+  throw new Error('All AI providers failed to generate a response.');
+}
+
 
 // ============================================
 // RSS FEED SOURCES PER COUNTRY
@@ -140,15 +204,15 @@ Return ONLY valid JSON, nothing else:
 `;
 
   try {
-    const result = await model.generateContent(prompt);
-    const text = result.response.text().trim();
+    const text = await generateAICompletion(prompt);
     const clean = text.replace(/```json|```/g, '').trim();
     return JSON.parse(clean);
   } catch (err) {
-    console.error('Gemini extraction failed:', err.message);
+    console.error('AI extraction failed:', err.message);
     return { is_scheme: false };
   }
 }
+
 
 // ============================================
 // STEP 4: GENERATE TRANSLATIONS
@@ -193,8 +257,7 @@ Return ONLY valid JSON, nothing else:
 `;
 
   try {
-    const result = await model.generateContent(prompt);
-    const text = result.response.text().trim();
+    const text = await generateAICompletion(prompt);
     const clean = text.replace(/```json|```/g, '').trim();
     return JSON.parse(clean);
   } catch (err) {
@@ -202,6 +265,7 @@ Return ONLY valid JSON, nothing else:
     return null;
   }
 }
+
 
 // ============================================
 // STEP 5: CREATE URL SLUG
