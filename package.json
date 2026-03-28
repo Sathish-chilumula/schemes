@@ -1,0 +1,19 @@
+{
+  "name": "claimit-agents",
+  "version": "1.0.0",
+  "description": "ClaimIt automation agents",
+  "scripts": {
+    "find": "node findSchemes.js",
+    "social": "node postSocial.js",
+    "all": "node findSchemes.js && node postSocial.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "@supabase/supabase-js": "^2.45.0",
+    "axios": "^1.7.0",
+    "rss-parser": "^3.13.0",
+    "playwright": "^1.45.0",
+    "cheerio": "^1.0.0-rc.12",
+    "dotenv": "^16.4.5"
+  }
+}
