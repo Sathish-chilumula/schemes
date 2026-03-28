@@ -52,7 +52,7 @@ export default function SignupPage() {
 
       setSuccess(true);
       setTimeout(() => {
-        router.push('/');
+        router.push('/saved');
       }, 3000);
 
     } catch (err: any) {
@@ -70,7 +70,7 @@ export default function SignupPage() {
             ✓
           </div>
           <h1 className="text-2xl font-extrabold text-slate-900 mb-2">Registration Complete!</h1>
-          <p className="text-slate-500 mb-6">Your profile has been built. Redirecting to the dashboard...</p>
+          <p className="text-slate-500 mb-6">Your profile has been saved. Redirecting to your saved schemes...</p>
         </div>
       </div>
     );
