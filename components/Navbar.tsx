@@ -60,7 +60,7 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
         {/* Right Side: Sign In + Country Switcher + CTA + Hamburger */}
         <div className="flex items-center gap-3">
           <Link
-            href="/signin"
+            href="/signup"
             className={`text-sm font-semibold transition-colors hidden sm:block ${
               isDark ? 'text-white hover:text-brand-300' : 'text-slate-700 hover:text-brand-600'
             }`}
@@ -110,7 +110,7 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
         >
           <div className="page-container py-4 space-y-1">
             <Link
-              href="/signin"
+              href="/signup"
               onClick={() => setMobileMenuOpen(false)}
               className={`block px-4 py-3 rounded-xl text-sm font-semibold transition-colors mt-2 border border-slate-200/50 ${
                 isDark
