@@ -3,7 +3,7 @@ const { createClient } = require('@supabase/supabase-js');
 const axios = require('axios');
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
-const SITE = process.env.SITE_URL || 'https://claimit.vercel.app';
+const SITE = process.env.SITE_URL || 'https://schemeatlas.vercel.app';
 
 const SUBREDDITS = {
   IN: ['india', 'IndiaSpeaks', 'LegalAdviceIndia'],
@@ -36,7 +36,7 @@ async function postReddit(scheme) {
     const tokenRes = await axios.post(
       'https://www.reddit.com/api/v1/access_token',
       new URLSearchParams({ grant_type: 'password', username: REDDIT_USERNAME, password: REDDIT_PASSWORD }),
-      { auth: { username: REDDIT_CLIENT_ID, password: REDDIT_CLIENT_SECRET }, headers: { 'User-Agent': 'ClaimIt/1.0' } }
+      { auth: { username: REDDIT_CLIENT_ID, password: REDDIT_CLIENT_SECRET }, headers: { 'User-Agent': 'SchemeAtlas/1.0' } }
     );
     const token = tokenRes.data.access_token;
     const sub = (SUBREDDITS[scheme.country_code] || ['worldnews'])[0];
@@ -44,7 +44,7 @@ async function postReddit(scheme) {
 
     await axios.post('https://oauth.reddit.com/api/submit',
       new URLSearchParams({ sr: sub, kind: 'link', title, url: `${SITE}/schemes/${scheme.slug}`, resubmit: 'true' }),
-      { headers: { Authorization: `Bearer ${token}`, 'User-Agent': 'ClaimIt/1.0' } }
+      { headers: { Authorization: `Bearer ${token}`, 'User-Agent': 'SchemeAtlas/1.0' } }
     );
     console.log(`✅ Reddit r/${sub}: ${scheme.name}`);
   } catch (e) { console.error('Reddit failed:', e.response?.data || e.message); }
@@ -74,7 +74,7 @@ async function postLinkedIn(scheme) {
 }
 
 async function main() {
-  console.log('📱 ClaimIt Social Media Agent');
+  console.log('📱 SchemeAtlas Social Media Agent');
 
   // Get schemes not yet posted to Telegram
   const { data: posted } = await supabase.from('social_posts').select('scheme_id').eq('platform', 'telegram');

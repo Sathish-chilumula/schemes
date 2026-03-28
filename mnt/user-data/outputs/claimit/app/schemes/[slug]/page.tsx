@@ -11,9 +11,9 @@ const db = createClient(
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const { data } = await db.from('schemes').select('name,what_you_get,benefit_amount').eq('slug', params.slug).single();
-  if (!data) return { title: 'Scheme Not Found | ClaimIt' };
+  if (!data) return { title: 'Scheme Not Found | SchemeAtlas' };
   return {
-    title: `${data.name} | ClaimIt`,
+    title: `${data.name} | SchemeAtlas`,
     description: `${data.what_you_get}. Benefit: ${data.benefit_amount}. Check eligibility free.`,
   };
 }
@@ -42,7 +42,7 @@ export default async function SchemePage({ params }: { params: { slug: string } 
   const steps: string[] = scheme.how_to_apply?.steps || [];
   const docs: string[] = scheme.documents || [];
   const elig = scheme.eligibility || {};
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://claimit.vercel.app';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://schemeatlas.vercel.app';
   const schemeUrl = `${siteUrl}/schemes/${scheme.slug}`;
   const waText = `Check out: ${scheme.name} — ${scheme.benefit_amount} → ${schemeUrl}`;
 

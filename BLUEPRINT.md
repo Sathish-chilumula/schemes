@@ -1,10 +1,10 @@
-# ClaimIt — Complete Site Blueprint
+# SchemeAtlas — Complete Site Blueprint
 # ═══════════════════════════════════════════════════════
 
 ## 1. SITE MAP — Every Page
 
 ```
-claimit.vercel.app/
+schemeatlas.vercel.app/
 │
 ├── /                          HOME PAGE
 │   ├── Hero section
@@ -61,7 +61,7 @@ claimit.vercel.app/
 ## 2. USER FLOW — Step by Step
 
 ```
-User lands on claimit.vercel.app
+User lands on schemeatlas.vercel.app
          │
          ▼
 IP auto-detects country (ipapi.co)
@@ -280,12 +280,12 @@ API URL: https://api.myscheme.gov.in/search/v4/schemes?lang=en&q=&keyword=&state
 1. Open Telegram app
 2. Search for @BotFather
 3. Send: /newbot
-4. Choose a name: "ClaimIt Schemes"
-5. Choose a username: "claimit_schemes_bot"
+4. Choose a name: "SchemeAtlas Schemes"
+5. Choose a username: "schemeatlas_schemes_bot"
 6. Copy the token → TELEGRAM_BOT_TOKEN
 7. Create a Telegram Channel
 8. Add your bot as admin to the channel
-9. Channel username → TELEGRAM_CHANNEL_ID (like @claimitschemes)
+9. Channel username → TELEGRAM_CHANNEL_ID (like @schemeatlasschemes)
 Cost: Free, unlimited posts
 ```
 
@@ -293,7 +293,7 @@ Cost: Free, unlimited posts
 ```
 1. Go to: reddit.com/prefs/apps
 2. Click "Create Another App"
-3. Name: ClaimIt
+3. Name: SchemeAtlas
 4. Type: Select "script"
 5. Redirect URI: http://localhost:8080
 6. Click "Create App"
@@ -401,10 +401,10 @@ Loan referral for MUDRA-type schemes
 
 ### URL Structure (Google loves this)
 ```
-claimit.vercel.app/in/schemes          → "India government schemes"
-claimit.vercel.app/in/schemes/pm-kisan → "PM Kisan eligibility"
-claimit.vercel.app/gb/schemes          → "UK benefits checker"
-claimit.vercel.app/us/schemes          → "USA assistance programs"
+schemeatlas.vercel.app/in/schemes          → "India government schemes"
+schemeatlas.vercel.app/in/schemes/pm-kisan → "PM Kisan eligibility"
+schemeatlas.vercel.app/gb/schemes          → "UK benefits checker"
+schemeatlas.vercel.app/us/schemes          → "USA assistance programs"
 ```
 
 ### hreflang Tags (tells Google which country)
@@ -419,7 +419,7 @@ claimit.vercel.app/us/schemes          → "USA assistance programs"
 ```
 Google Search Console: search.google.com/search-console
 Bing Webmaster Tools: bing.com/webmasters
-Submit sitemap: claimit.vercel.app/sitemap.xml
+Submit sitemap: schemeatlas.vercel.app/sitemap.xml
 ```
 
 ---
@@ -504,8 +504,8 @@ Clicks "Share with Family"
 WhatsApp opens with pre-filled message:
 
 "I found 8 government schemes worth ₹84,000/year 
-I qualify for! Check yours free at ClaimIt 
-→ https://claimit.vercel.app"
+I qualify for! Check yours free at SchemeAtlas 
+→ https://schemeatlas.vercel.app"
 
 Family member clicks → Visits site
 They fill their profile → Find their schemes
@@ -520,7 +520,7 @@ WhatsApp sharing in villages and families
 ## 14. COMPLETE FILE LIST
 
 ```
-claimit/
+schemeatlas/
 ├── Frontend (Next.js)
 │   ├── app/page.tsx                    Home page
 │   ├── app/layout.tsx                  Root layout

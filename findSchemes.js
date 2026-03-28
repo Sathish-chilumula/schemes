@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ path: '.env.local' });
 const { createClient } = require('@supabase/supabase-js');
 const Parser = require('rss-parser');
 const axios = require('axios');
@@ -11,13 +11,14 @@ const axios = require('axios');
 //   USA: Benefits.gov API + Federal Register API (free, no key)
 //   Nigeria: Google News RSS (no official API exists)
 //   Kenya: Kenya Open Data API + Google News RSS
-//   All: Gemini AI for extraction + translation
+//   All: OpenRouter AI for extraction + translation
 // ═══════════════════════════════════════════════════════════
 
 const supabase = createClient(
-  process.env.SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
 );
+
 const parser = new Parser({ timeout: 15000 });
 
 const TRANSLATE_LANGS = {
@@ -70,22 +71,27 @@ function mapCategory(raw) {
   return 'cash';
 }
 
-async function callGemini(prompt) {
-  const key = process.env.GEMINI_API_KEY;
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.1, maxOutputTokens: 1000 },
-      }),
-    }
-  );
+async function callOpenRouter(prompt) {
+  const key = process.env.OPENROUTER_API_KEY;
+  if (!key) throw new Error('OPENROUTER_API_KEY not set');
+  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${key}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL || 'https://claimit.pages.dev',
+      'X-Title': 'SchemeAtlas',
+    },
+    body: JSON.stringify({
+      model: 'google/gemini-2.0-flash-exp:free',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.1,
+      max_tokens: 1000,
+    }),
+  });
   const data = await res.json();
   if (!res.ok) throw new Error(JSON.stringify(data));
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+  const text = data?.choices?.[0]?.message?.content || '{}';
   return text.replace(/```json|```/g, '').trim();
 }
 
@@ -309,7 +315,7 @@ If YES, return ONLY this JSON:
   "summary":"2 sentence plain explanation"
 }`;
   try {
-    const text = await callGemini(prompt);
+    const text = await callOpenRouter(prompt);
     return JSON.parse(text);
   } catch (e) { return { is_scheme: false }; }
 }
@@ -334,7 +340,7 @@ Return ONLY JSON:
   "summary":"2 sentence plain language explanation"
 }`;
   try {
-    const text = await callGemini(prompt);
+    const text = await callOpenRouter(prompt);
     const enhanced = JSON.parse(text);
     return { ...scheme, ...enhanced };
   } catch (e) { return scheme; }
@@ -357,7 +363,7 @@ Return ONLY JSON:
   "example":"one sentence story of someone who got this benefit"
 }`;
   try {
-    const text = await callGemini(prompt);
+    const text = await callOpenRouter(prompt);
     return JSON.parse(text);
   } catch (e) { return null; }
 }
@@ -403,22 +409,28 @@ async function saveScheme(scheme) {
   console.log(`  ✅ Saved: ${scheme.name.substring(0, 55)}`);
 
   // English
-  await supabase.from('scheme_translations').insert({
-    scheme_id: saved.id, language: 'en',
-    name: scheme.name,
-    explanation: scheme.summary || scheme.what_you_get,
-    steps: (scheme.how_to_apply?.steps || []).join('\n'),
-    example: null,
-  }).catch(() => {});
+  try {
+    await supabase.from('scheme_translations').insert({
+      scheme_id: saved.id, language: 'en',
+      name: scheme.name,
+      explanation: scheme.summary || scheme.what_you_get,
+      steps: (scheme.how_to_apply?.steps || []).join('\n'),
+      example: null,
+    });
+  } catch (e) { console.error(`Failed to save English translation: ${e.message}`); }
 
   // Local languages
   for (const lang of (TRANSLATE_LANGS[scheme.country] || [])) {
     console.log(`    🌐 → ${lang.name}`);
     const t = await translateScheme(scheme, lang);
-    if (t) await supabase.from('scheme_translations').insert({
-      scheme_id: saved.id, language: lang.code,
-      name: t.name, explanation: t.explanation, steps: t.steps, example: t.example,
-    }).catch(() => {});
+    if (t) {
+      try {
+        await supabase.from('scheme_translations').insert({
+          scheme_id: saved.id, language: lang.code,
+          name: t.name, explanation: t.explanation, steps: t.steps, example: t.example,
+        });
+      } catch (e) { console.error(`Failed to save ${lang.name} translation: ${e.message}`); }
+    }
     await delay(1500);
   }
   return saved;
@@ -427,7 +439,7 @@ async function saveScheme(scheme) {
 // ── MAIN ─────────────────────────────────────────────────
 async function main() {
   console.log('═══════════════════════════════════════════════');
-  console.log('🤖 ClaimIt Scheme Finder Agent');
+  console.log('🤖 SchemeAtlas Scheme Finder Agent');
   console.log(`⏰ ${new Date().toISOString()}`);
   console.log('═══════════════════════════════════════════════\n');
 

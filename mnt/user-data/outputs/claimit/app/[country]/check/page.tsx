@@ -45,7 +45,7 @@ export default function CheckPage() {
         language: form.language,
       });
       if (err) throw err;
-      if (typeof window !== 'undefined') localStorage.setItem('claimit_session', sid);
+      if (typeof window !== 'undefined') localStorage.setItem('schemeatlas_session', sid);
       router.push(`/results/${sid}`);
     } catch (e: any) {
       setError(e.message || 'Something went wrong. Please try again.');

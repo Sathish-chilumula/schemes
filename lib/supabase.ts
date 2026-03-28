@@ -28,6 +28,11 @@ export type Scheme = {
   image_keyword: string;
   is_published: boolean;
   discovered_at: string;
+  target_group?: string[];
+  state_codes?: string[];
+  scheme_type?: string;
+  views?: number;
+  article_content?: string;
 };
 
 export type UserProfile = {

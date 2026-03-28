@@ -272,7 +272,7 @@ async function saveScheme(schemeData, country, sourceUrl) {
 // MAIN AGENT RUNNER
 // ============================================
 async function runFindAgent() {
-  console.log('🤖 ClaimIt Scheme Finder Agent Starting...');
+  console.log('🤖 SchemeAtlas Scheme Finder Agent Starting...');
   console.log(`Time: ${new Date().toISOString()}`);
 
   let newSchemesFound = 0;

@@ -1,4 +1,4 @@
-# ClaimIt — Complete Setup Guide
+# SchemeAtlas — Complete Setup Guide
 
 ## STEP 1: Run Supabase SQL
 Open supabase_schema.sql → paste in Supabase SQL Editor → Run
@@ -35,11 +35,11 @@ Go to: your repo → Settings → Secrets → Actions → New secret
 
 ## STEP 4: Push Code to GitHub
 ```bash
-cd /path/to/downloaded/claimit
+cd /path/to/downloaded/schemeatlas
 git init
 git remote add origin https://github.com/Sathish-chilumula/schemes.git
 git add .
-git commit -m "Initial ClaimIt build"
+git commit -m "Initial SchemeAtlas build"
 git push -u origin main
 ```
 
@@ -49,7 +49,7 @@ GitHub → your repo → Actions → "Scheme Discovery" → Run workflow
 ## BLUEPRINT — What Each File Does
 
 ```
-claimit/
+schemeatlas/
 ├── app/
 │   ├── page.tsx                    ← Home: hero + country selector + recent schemes
 │   ├── layout.tsx                  ← Root layout with fonts and meta
@@ -82,7 +82,7 @@ claimit/
 ```
 
 ## USER FLOW
-1. User visits claimit.vercel.app
+1. User visits schemeatlas.vercel.app
 2. IP auto-detects country OR user selects country
 3. User fills 3-step form (age, profession, income, location)
 4. AI checks eligibility against all schemes in Supabase

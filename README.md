@@ -1,4 +1,4 @@
-# ClaimIt — Global Government Scheme Finder 🌍
+# SchemeAtlas — Global Government Scheme Finder 🌍
 
 Find every government benefit you qualify for. Free. In your language. For 50+ countries.
 

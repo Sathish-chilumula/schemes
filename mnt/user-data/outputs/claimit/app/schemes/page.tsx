@@ -4,7 +4,7 @@ import { COUNTRIES, CATEGORIES } from '@/lib/config';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'All Government Schemes | ClaimIt',
+  title: 'All Government Schemes | SchemeAtlas',
   description: 'Browse 1000+ government schemes from India, UK, USA, Nigeria, Kenya. Find what you qualify for.',
 };
 

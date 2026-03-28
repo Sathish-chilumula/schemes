@@ -1,6 +1,5 @@
 // ═══════════════════════════════════════════════════════
 // CLAIMIT — COMPLETE COUNTRY CONFIGURATION
-// Every country: API sources, scraping targets, languages
 // ═══════════════════════════════════════════════════════
 
 export const COUNTRIES: Record<string, CountryConfig> = {
@@ -16,40 +15,14 @@ export const COUNTRIES: Record<string, CountryConfig> = {
     defaultLanguage: 'hi',
 
     apis: [
-      {
-        name: 'myScheme API',
-        url: 'https://api.myscheme.gov.in/search/v4/schemes',
-        type: 'api',
-        requiresKey: false,
-        notes: 'Best source. 1000+ schemes. Register at apisetu.gov.in',
-      },
-      {
-        name: 'data.gov.in',
-        url: 'https://data.gov.in/api/datastore/resource.json',
-        type: 'api',
-        requiresKey: true,
-        keyEnvVar: 'DATAGOV_IN_KEY',
-        notes: 'Free key at data.gov.in/user/register',
-      },
+      { name: 'myScheme API', url: 'https://api.myscheme.gov.in/search/v4/schemes', type: 'api', requiresKey: false },
     ],
-
     rssFeeds: [
       'https://pib.gov.in/RssMain.aspx',
-      'https://www.pmindia.gov.in/en/feed/',
-      'https://news.google.com/rss/search?q=government+scheme+india+2025&hl=en-IN&gl=IN&ceid=IN:en',
-      'https://news.google.com/rss/search?q=new+yojana+india+2025&hl=en-IN&gl=IN&ceid=IN:en',
     ],
-
-    scrapingTargets: [
-      { url: 'https://www.myscheme.gov.in/schemes', name: 'myScheme Portal' },
-      { url: 'https://india.gov.in/spotlight', name: 'India.gov.in' },
-      { url: 'https://vikaspedia.in/social-welfare', name: 'Vikaspedia Welfare' },
-      { url: 'https://www.india.gov.in/my-government/schemes-in-focus', name: 'Schemes in Focus' },
-    ],
-
-    subreddits: ['india', 'IndiaSpeaks', 'LegalAdviceIndia', 'IndianStockMarket'],
-    telegramChannels: ['@indiangovernmentschemes'],
-
+    scrapingTargets: [],
+    subreddits: [],
+    
     incomeRanges: [
       { label: 'Below ₹1 lakh/year', value: 100000 },
       { label: '₹1–2.5 lakh/year', value: 250000 },
@@ -59,14 +32,39 @@ export const COUNTRIES: Record<string, CountryConfig> = {
     ],
 
     states: [
-      'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
-      'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka',
-      'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram',
-      'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu',
-      'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
-      'Delhi', 'Jammu & Kashmir', 'Ladakh',
+      { code: 'AP', name: 'Andhra Pradesh' },
+      { code: 'AR', name: 'Arunachal Pradesh' },
+      { code: 'AS', name: 'Assam' },
+      { code: 'BR', name: 'Bihar' },
+      { code: 'CG', name: 'Chhattisgarh' },
+      { code: 'GA', name: 'Goa' },
+      { code: 'GJ', name: 'Gujarat' },
+      { code: 'HR', name: 'Haryana' },
+      { code: 'HP', name: 'Himachal Pradesh' },
+      { code: 'JH', name: 'Jharkhand' },
+      { code: 'KA', name: 'Karnataka' },
+      { code: 'KL', name: 'Kerala' },
+      { code: 'MP', name: 'Madhya Pradesh' },
+      { code: 'MH', name: 'Maharashtra' },
+      { code: 'MN', name: 'Manipur' },
+      { code: 'ML', name: 'Meghalaya' },
+      { code: 'MZ', name: 'Mizoram' },
+      { code: 'NL', name: 'Nagaland' },
+      { code: 'OR', name: 'Odisha' },
+      { code: 'PB', name: 'Punjab' },
+      { code: 'RJ', name: 'Rajasthan' },
+      { code: 'SK', name: 'Sikkim' },
+      { code: 'TN', name: 'Tamil Nadu' },
+      { code: 'TS', name: 'Telangana' },
+      { code: 'TR', name: 'Tripura' },
+      { code: 'UP', name: 'Uttar Pradesh' },
+      { code: 'UK', name: 'Uttarakhand' },
+      { code: 'WB', name: 'West Bengal' },
+      { code: 'DL', name: 'Delhi' },
+      { code: 'JK', name: 'Jammu & Kashmir' },
     ],
 
+    targetGroups: ['SC', 'ST', 'OBC', 'BC', 'Minority', 'General', 'EWS', 'Women', 'BPL'],
     categories: ['cash', 'housing', 'health', 'education', 'agriculture', 'women', 'elderly', 'disability', 'business'],
   },
 
@@ -79,29 +77,7 @@ export const COUNTRIES: Record<string, CountryConfig> = {
     currencySymbol: '£',
     languages: ['en'],
     defaultLanguage: 'en',
-
-    apis: [
-      {
-        name: 'GOV.UK API',
-        url: 'https://www.gov.uk/api/content/browse/benefits',
-        type: 'api',
-        requiresKey: false,
-        notes: 'Free, no key needed. Official UK government API',
-      },
-    ],
-
-    rssFeeds: [
-      'https://www.gov.uk/search/news-and-communications.atom?keywords=benefits&organisations%5B%5D=department-for-work-pensions',
-      'https://news.google.com/rss/search?q=UK+government+benefits+scheme+2025&hl=en-GB&gl=GB&ceid=GB:en',
-    ],
-
-    scrapingTargets: [
-      { url: 'https://www.gov.uk/browse/benefits', name: 'GOV.UK Benefits' },
-      { url: 'https://www.turn2us.org.uk/Benefit-guides', name: 'Turn2Us Benefits' },
-    ],
-
-    subreddits: ['unitedkingdom', 'UKPersonalFinance', 'DWPhelp', 'AskUK'],
-
+    apis: [], rssFeeds: [], scrapingTargets: [], subreddits: [],
     incomeRanges: [
       { label: 'Below £10,000/year', value: 10000 },
       { label: '£10,000–£20,000/year', value: 20000 },
@@ -109,8 +85,10 @@ export const COUNTRIES: Record<string, CountryConfig> = {
       { label: '£35,000–£50,000/year', value: 50000 },
       { label: 'Above £50,000/year', value: 9999999 },
     ],
-
-    states: ['England', 'Scotland', 'Wales', 'Northern Ireland'],
+    states: [
+      { code: 'ENG', name: 'England' }, { code: 'SCT', name: 'Scotland' }, { code: 'WAL', name: 'Wales' }, { code: 'NIR', name: 'Northern Ireland' }
+    ],
+    targetGroups: ['Low Income', 'Disabled', 'Elderly', 'Students'],
     categories: ['cash', 'housing', 'health', 'education', 'disability', 'elderly', 'family', 'employment'],
   },
 
@@ -123,58 +101,20 @@ export const COUNTRIES: Record<string, CountryConfig> = {
     currencySymbol: '$',
     languages: ['en', 'es'],
     defaultLanguage: 'en',
-
-    apis: [
-      {
-        name: 'Benefits.gov API',
-        url: 'https://www.benefits.gov/api/benefits',
-        type: 'api',
-        requiresKey: false,
-        notes: '1000+ federal benefit programs. No key needed',
-      },
-      {
-        name: 'Federal Register API',
-        url: 'https://www.federalregister.gov/api/v1/articles.json',
-        type: 'api',
-        requiresKey: false,
-        notes: 'New program announcements. Free, no key',
-      },
-    ],
-
-    rssFeeds: [
-      'https://www.usa.gov/rss/updates.xml',
-      'https://news.google.com/rss/search?q=USA+federal+assistance+program+2025&hl=en-US&gl=US&ceid=US:en',
-    ],
-
-    scrapingTargets: [
-      { url: 'https://www.benefits.gov/benefits/browse-by-category', name: 'Benefits.gov' },
-      { url: 'https://www.usa.gov/benefit-finder', name: 'USA.gov Benefit Finder' },
-    ],
-
-    subreddits: ['povertyfinance', 'Assistance', 'Medicaid', 'foodstamps', 'SocialSecurity'],
-
+    apis: [], rssFeeds: [], scrapingTargets: [], subreddits: [],
     incomeRanges: [
       { label: 'Below $15,000/year', value: 15000 },
       { label: '$15,000–$30,000/year', value: 30000 },
       { label: '$30,000–$50,000/year', value: 50000 },
-      { label: '$50,000–$80,000/year', value: 80000 },
       { label: 'Above $80,000/year', value: 9999999 },
     ],
-
     states: [
-      'Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut',
-      'Delaware','Florida','Georgia','Hawaii','Idaho','Illinois','Indiana','Iowa',
-      'Kansas','Kentucky','Louisiana','Maine','Maryland','Massachusetts','Michigan',
-      'Minnesota','Mississippi','Missouri','Montana','Nebraska','Nevada',
-      'New Hampshire','New Jersey','New Mexico','New York','North Carolina',
-      'North Dakota','Ohio','Oklahoma','Oregon','Pennsylvania','Rhode Island',
-      'South Carolina','South Dakota','Tennessee','Texas','Utah','Vermont',
-      'Virginia','Washington','West Virginia','Wisconsin','Wyoming','DC',
+      { code: 'CA', name: 'California' }, { code: 'NY', name: 'New York' }, { code: 'TX', name: 'Texas' }, { code: 'FL', name: 'Florida'}
     ],
-
-    categories: ['cash', 'food', 'housing', 'health', 'education', 'disability', 'elderly', 'employment', 'family'],
+    targetGroups: ['Low Income', 'Veterans', 'Disabled', 'Seniors'],
+    categories: ['cash', 'food', 'housing', 'health', 'education', 'disability', 'elderly'],
   },
-
+  
   // ── NIGERIA ──────────────────────────────────────────
   NG: {
     code: 'NG',
@@ -184,46 +124,15 @@ export const COUNTRIES: Record<string, CountryConfig> = {
     currencySymbol: '₦',
     languages: ['en', 'yo', 'ha', 'ig'],
     defaultLanguage: 'en',
-
-    apis: [
-      {
-        name: 'Nigeria Open Data',
-        url: 'https://opendata.nigerianstat.gov.ng/api',
-        type: 'api',
-        requiresKey: false,
-        notes: 'Limited data. Use scraping as primary source',
-      },
-    ],
-
-    rssFeeds: [
-      'https://news.google.com/rss/search?q=Nigeria+government+welfare+scheme+benefit+2025&hl=en-NG&gl=NG&ceid=NG:en',
-      'https://news.google.com/rss/search?q=Nigeria+NASIMS+social+investment+2025&hl=en-NG&gl=NG',
-    ],
-
-    scrapingTargets: [
-      { url: 'https://www.nasims.gov.ng', name: 'NASIMS (Social Investment)' },
-      { url: 'https://nsip.gov.ng', name: 'National Social Investment Programme' },
-      { url: 'https://npower.gov.ng', name: 'N-Power Youth Programme' },
-    ],
-
-    subreddits: ['Nigeria', 'lagos', 'naija'],
-
+    apis: [], rssFeeds: [], scrapingTargets: [], subreddits: [],
     incomeRanges: [
-      { label: 'Below ₦500,000/year', value: 500000 },
+      { label: 'Below ₦500k/year', value: 500000 },
       { label: '₦500k–₦1.5M/year', value: 1500000 },
-      { label: '₦1.5M–₦5M/year', value: 5000000 },
-      { label: 'Above ₦5M/year', value: 9999999 },
+      { label: 'Above ₦1.5M/year', value: 9999999 },
     ],
-
-    states: [
-      'Abia','Adamawa','Akwa Ibom','Anambra','Bauchi','Bayelsa','Benue','Borno',
-      'Cross River','Delta','Ebonyi','Edo','Ekiti','Enugu','FCT','Gombe','Imo',
-      'Jigawa','Kaduna','Kano','Katsina','Kebbi','Kogi','Kwara','Lagos','Nasarawa',
-      'Niger','Ogun','Ondo','Osun','Oyo','Plateau','Rivers','Sokoto','Taraba',
-      'Yobe','Zamfara',
-    ],
-
-    categories: ['cash', 'food', 'agriculture', 'business', 'employment', 'education', 'health', 'women'],
+    states: [{ code: 'LAG', name: 'Lagos' }, { code: 'ABJ', name: 'Abuja' }, { code: 'KAN', name: 'Kano' }],
+    targetGroups: ['Youth', 'Women', 'Farmers', 'Artisans'],
+    categories: ['cash', 'business', 'employment', 'education', 'agriculture'],
   },
 
   // ── KENYA ────────────────────────────────────────────
@@ -235,80 +144,32 @@ export const COUNTRIES: Record<string, CountryConfig> = {
     currencySymbol: 'KSh',
     languages: ['en', 'sw'],
     defaultLanguage: 'sw',
-
-    apis: [
-      {
-        name: 'Kenya Open Data',
-        url: 'https://opendata.go.ke/api/views',
-        type: 'api',
-        requiresKey: false,
-        notes: 'Government datasets. Free, no key needed',
-      },
-    ],
-
-    rssFeeds: [
-      'https://news.google.com/rss/search?q=Kenya+government+welfare+scheme+2025&hl=en-KE&gl=KE&ceid=KE:en',
-      'https://news.google.com/rss/search?q=Kenya+Huduma+social+protection+2025&hl=en-KE&gl=KE',
-    ],
-
-    scrapingTargets: [
-      { url: 'https://www.socialprotection.go.ke', name: 'Social Protection Kenya' },
-      { url: 'https://hudumacentre.go.ke', name: 'Huduma Centre' },
-      { url: 'https://www.helb.co.ke', name: 'Higher Education Loans Board' },
-    ],
-
-    subreddits: ['Kenya', 'nairobi', 'kenyanews'],
-
+    apis: [], rssFeeds: [], scrapingTargets: [], subreddits: [],
     incomeRanges: [
-      { label: 'Below KSh 100,000/year', value: 100000 },
+      { label: 'Below KSh 100k/year', value: 100000 },
       { label: 'KSh 100k–300k/year', value: 300000 },
-      { label: 'KSh 300k–600k/year', value: 600000 },
-      { label: 'KSh 600k–1.2M/year', value: 1200000 },
-      { label: 'Above KSh 1.2M/year', value: 9999999 },
+      { label: 'Above KSh 300k/year', value: 9999999 },
     ],
-
-    states: [
-      'Nairobi','Mombasa','Kisumu','Nakuru','Eldoret','Nyeri','Meru','Kakamega',
-      'Kisii','Thika','Kilifi','Machakos','Garissa','Kitale','Malindi',
-      'Bungoma','Embu','Migori','Homabay','Bomet','Kericho','Uasin Gishu',
-      'Trans Nzoia','Baringo','Laikipia','Nyandarua','Kirinyaga',"Murang'a",
-      'Kiambu','Kajiado','Narok','Kwale','Taita Taveta','Tana River','Lamu',
-      'Mandera','Wajir','Marsabit','Isiolo','West Pokot','Samburu','Turkana',
-    ],
-
-    categories: ['cash', 'agriculture', 'health', 'education', 'housing', 'elderly', 'disability', 'women'],
+    states: [{ code: 'NBO', name: 'Nairobi' }, { code: 'MBA', name: 'Mombasa' }],
+    targetGroups: ['Youth', 'Women', 'Elderly', 'Disabled'],
+    categories: ['agriculture', 'health', 'education', 'business'],
   },
 };
 
-// ── LANGUAGE NAMES ────────────────────────────────────
-export const LANGUAGE_NAMES: Record<string, string> = {
-  en: 'English',
-  hi: 'हिंदी',
-  te: 'తెలుగు',
-  ta: 'தமிழ்',
-  kn: 'ಕನ್ನಡ',
-  mr: 'मराठी',
-  es: 'Español',
-  yo: 'Yoruba',
-  ha: 'Hausa',
-  ig: 'Igbo',
-  sw: 'Kiswahili',
-};
-
 // ── CATEGORY CONFIG ────────────────────────────────────
-export const CATEGORIES: Record<string, { icon: string; color: string; bgColor: string }> = {
-  cash:        { icon: '💰', color: 'text-green-800',  bgColor: 'bg-green-100' },
-  housing:     { icon: '🏠', color: 'text-blue-800',   bgColor: 'bg-blue-100' },
-  health:      { icon: '❤️', color: 'text-red-800',    bgColor: 'bg-red-100' },
-  education:   { icon: '🎓', color: 'text-yellow-800', bgColor: 'bg-yellow-100' },
-  agriculture: { icon: '🌾', color: 'text-lime-800',   bgColor: 'bg-lime-100' },
-  women:       { icon: '👩', color: 'text-pink-800',   bgColor: 'bg-pink-100' },
-  elderly:     { icon: '👴', color: 'text-purple-800', bgColor: 'bg-purple-100' },
-  disability:  { icon: '♿', color: 'text-orange-800', bgColor: 'bg-orange-100' },
-  business:    { icon: '💼', color: 'text-cyan-800',   bgColor: 'bg-cyan-100' },
-  food:        { icon: '🍱', color: 'text-amber-800',  bgColor: 'bg-amber-100' },
-  employment:  { icon: '💼', color: 'text-indigo-800', bgColor: 'bg-indigo-100' },
-  family:      { icon: '👨‍👩‍👧', color: 'text-rose-800',   bgColor: 'bg-rose-100' },
+export const CATEGORIES: Record<string, { icon: string; color: string; bgColor: string; label?: string }> = {
+  cash:        { icon: '💰', color: 'text-green-800',  bgColor: 'bg-green-100', label: 'Cash Aid' },
+  housing:     { icon: '🏠', color: 'text-blue-800',   bgColor: 'bg-blue-100', label: 'Housing' },
+  health:      { icon: '❤️', color: 'text-red-800',    bgColor: 'bg-red-100', label: 'Healthcare' },
+  education:   { icon: '🎓', color: 'text-yellow-800', bgColor: 'bg-yellow-100', label: 'Education' },
+  agriculture: { icon: '🌾', color: 'text-lime-800',   bgColor: 'bg-lime-100', label: 'Agriculture' },
+  women:       { icon: '👩', color: 'text-pink-800',   bgColor: 'bg-pink-100', label: 'Women' },
+  elderly:     { icon: '👴', color: 'text-purple-800', bgColor: 'bg-purple-100', label: 'Elderly' },
+  disability:  { icon: '♿', color: 'text-orange-800', bgColor: 'bg-orange-100', label: 'Disability' },
+  business:    { icon: '💼', color: 'text-cyan-800',   bgColor: 'bg-cyan-100', label: 'Business' },
+  food:        { icon: '🍱', color: 'text-amber-800',  bgColor: 'bg-amber-100', label: 'Food' },
+  employment:  { icon: '💼', color: 'text-indigo-800', bgColor: 'bg-indigo-100', label: 'Employment' },
+  family:      { icon: '👨‍👩‍👧', color: 'text-rose-800',   bgColor: 'bg-rose-100', label: 'Family' },
 };
 
 export const PROFESSIONS = [
@@ -322,8 +183,6 @@ export const PROFESSIONS = [
   'Homemaker',
   'Retired',
   'Disabled / Unable to Work',
-  'Fisherman',
-  'Artisan / Craftsperson',
   'Other',
 ];
 
@@ -337,26 +196,19 @@ export type CountryConfig = {
   defaultLanguage: string;
   apis: ApiSource[];
   rssFeeds: string[];
-  scrapingTargets: ScrapingTarget[];
+  scrapingTargets: any[];
   subreddits: string[];
-  telegramChannels?: string[];
   incomeRanges: { label: string; value: number }[];
-  states: string[];
+  states: { code: string; name: string }[];
+  targetGroups: string[];
   categories: string[];
 };
 
 export type ApiSource = {
   name: string;
   url: string;
-  type: 'api' | 'rss' | 'scrape';
+  type: string;
   requiresKey: boolean;
-  keyEnvVar?: string;
-  notes?: string;
-};
-
-export type ScrapingTarget = {
-  url: string;
-  name: string;
 };
 
 export function generateSessionId(): string {

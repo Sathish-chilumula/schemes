@@ -31,7 +31,7 @@ export default function HomePage() {
             <div className="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">C</span>
             </div>
-            <span className="font-bold text-xl text-slate-900">ClaimIt</span>
+            <span className="font-bold text-xl text-slate-900">SchemeAtlas</span>
           </Link>
           <div className="flex items-center gap-3">
             <Link href="/schemes" className="hidden md:block text-sm text-slate-500 hover:text-slate-900 font-medium">
@@ -204,7 +204,7 @@ export default function HomePage() {
       <section className="bg-slate-900 text-white section">
         <div className="page-container">
           <div className="text-center mb-10">
-            <h2 className="text-3xl md:text-4xl font-bold mb-3">Why ClaimIt?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-3">Why SchemeAtlas?</h2>
             <p className="text-slate-400">Unlike government portals, we make it truly simple</p>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
@@ -239,9 +239,9 @@ export default function HomePage() {
       {/* ── FOOTER ── */}
       <footer className="bg-white border-t border-slate-100 py-8">
         <div className="page-container text-center text-slate-400 text-sm">
-          <div className="font-bold text-slate-900 text-lg mb-1">ClaimIt</div>
+          <div className="font-bold text-slate-900 text-lg mb-1">SchemeAtlas</div>
           <p>Free government scheme finder for everyone, everywhere.</p>
-          <p className="mt-1">© {new Date().getFullYear()} ClaimIt · Not affiliated with any government</p>
+          <p className="mt-1">© {new Date().getFullYear()} SchemeAtlas · Not affiliated with any government</p>
           <div className="flex justify-center gap-6 mt-4 text-xs">
             {Object.values(COUNTRIES).map(c => (
               <Link key={c.code} href={`/${c.code}`} className="hover:text-brand-500 transition-colors">

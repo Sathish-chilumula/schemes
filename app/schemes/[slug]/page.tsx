@@ -2,6 +2,7 @@
 
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
+import { Navbar } from '@/components/Navbar';
 import { supabase, type Scheme } from '@/lib/supabase';
 import { COUNTRIES, CATEGORIES } from '@/lib/config';
 
@@ -21,6 +22,9 @@ export default function SchemeDetailPage({ params }: { params: Promise<{ slug: s
         setScheme(data);
         setLoading(false);
         if (data) {
+          // Increment views asynchronously
+          supabase.rpc('increment_view_count', { scheme_id: data.id }).then();
+          
           supabase
             .from('schemes')
             .select('*')
@@ -37,9 +41,9 @@ export default function SchemeDetailPage({ params }: { params: Promise<{ slug: s
   const country = scheme ? COUNTRIES[scheme.country_code] : null;
   const cat = scheme ? CATEGORIES[scheme.category] : null;
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://claimit.pages.dev';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://schemeatlas.pages.dev';
   const shareText = scheme
-    ? `Check out this government scheme: ${scheme.name} — ${scheme.benefit_amount}. Find schemes you qualify for free on ClaimIt 👉 ${siteUrl}/schemes/${slug}`
+    ? `Check out this government scheme: ${scheme.name} — ${scheme.benefit_amount}. Find schemes you qualify for free on SchemeAtlas 👉 ${siteUrl}/schemes/${slug}`
     : '';
 
   // Parse eligibility and how_to_apply (they may be JSON or plain string)
@@ -69,22 +73,7 @@ export default function SchemeDetailPage({ params }: { params: Promise<{ slug: s
 
   return (
     <div className="min-h-screen">
-      {/* Navbar */}
-      <nav className="bg-white border-b border-slate-100 sticky top-0 z-50">
-        <div className="page-container h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">C</span>
-            </div>
-            <span className="font-bold text-xl text-slate-900">ClaimIt</span>
-          </Link>
-          {country && (
-            <Link href={`/${scheme!.country_code}/check`} className="btn-primary text-sm py-2 px-4">
-              Check My Eligibility →
-            </Link>
-          )}
-        </div>
-      </nav>
+      <Navbar />
 
       {loading ? (
         <div className="page-container py-16 max-w-3xl mx-auto space-y-6">
@@ -120,32 +109,51 @@ export default function SchemeDetailPage({ params }: { params: Promise<{ slug: s
           </div>
 
           {/* Header */}
-          <div className="card p-8 mb-6">
-            <div className="flex items-start gap-3 mb-4 flex-wrap">
-              {cat && (
-                <span className={`badge ${cat.bgColor} ${cat.color}`}>
-                  {cat.icon} {scheme.category}
-                </span>
+            <div className="relative rounded-xl overflow-hidden mb-6 bg-slate-900 border border-slate-100">
+              {scheme.image_url && (
+                <div 
+                  className="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-overlay"
+                  style={{ backgroundImage: `url(${scheme.image_url})` }}
+                />
               )}
-              {country && (
-                <span className="badge bg-slate-100 text-slate-700">
-                  {country.flag} {country.name}
-                </span>
-              )}
-            </div>
-
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-3">{scheme.name}</h1>
-
-            <div className="flex items-center gap-4 mb-5">
-              <div className="bg-green-50 border border-green-100 rounded-xl px-5 py-3">
-                <div className="text-xs text-green-600 font-semibold mb-0.5">BENEFIT AMOUNT</div>
-                <div className="text-xl font-bold text-green-700">{scheme.benefit_amount}</div>
+              <div className="relative z-10 p-8 sm:p-10">
+                <div className="flex items-start gap-3 mb-4 flex-wrap">
+                  {cat && (
+                    <span className={`badge ${cat.bgColor} ${cat.color} bg-white/90 backdrop-blur`}>
+                      {cat.icon} {scheme.category}
+                    </span>
+                  )}
+                  {country && (
+                    <span className="badge bg-white/90 text-slate-800 backdrop-blur">
+                      {country.flag} {country.name}
+                    </span>
+                  )}
+                </div>
+                <h1 className="text-3xl md:text-4xl font-extrabold text-white leading-tight mb-2 drop-shadow-md">
+                  {scheme.name}
+                </h1>
+                <p className="text-slate-200 text-sm font-medium">Real-time AI Match Confidence: High</p>
               </div>
             </div>
 
-            <p className="text-slate-700 text-lg leading-relaxed mb-6">{scheme.what_you_get}</p>
+            <div className="card p-8 mb-6">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="bg-green-50 border border-green-100 rounded-xl px-5 py-3 w-full sm:w-auto">
+                  <div className="text-xs text-green-600 font-semibold mb-0.5 uppercase tracking-wider">Benefit Amount</div>
+                  <div className="text-2xl font-extrabold text-green-700">{scheme.benefit_amount}</div>
+                </div>
+              </div>
 
-            {/* CTA Buttons */}
+              {scheme.article_content ? (
+                <div 
+                  className="prose prose-slate max-w-none text-slate-700 leading-relaxed mb-8 prose-h3:text-slate-900 prose-a:text-brand-500"
+                  dangerouslySetInnerHTML={{ __html: scheme.article_content }}
+                />
+              ) : (
+                <p className="text-slate-700 text-lg leading-relaxed mb-8">{scheme.what_you_get}</p>
+              )}
+
+              {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-3">
               {scheme.official_url && (
                 <a
@@ -237,7 +245,7 @@ export default function SchemeDetailPage({ params }: { params: Promise<{ slug: s
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-6">
             <p className="text-amber-800 text-sm">
               <strong>⚠️ Important:</strong> Always verify scheme details on the official government website.
-              Schemes may change eligibility criteria or close without notice. ClaimIt is not affiliated with any government.
+              Schemes may change eligibility criteria or close without notice. SchemeAtlas is not affiliated with any government.
             </p>
           </div>
 

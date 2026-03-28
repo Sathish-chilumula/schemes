@@ -3,6 +3,7 @@
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { COUNTRIES, CATEGORIES } from '@/lib/config';
+import { Navbar } from '@/components/Navbar';
 
 type EligibilityResult = {
   scheme_id: string;
@@ -65,27 +66,12 @@ export default function ResultsPage({ params }: { params: Promise<{ sessionId: s
   const country = profile ? COUNTRIES[profile.country_code] : null;
 
   const shareText = eligible.length > 0
-    ? `I found ${eligible.length} government schemes I qualify for on ClaimIt! Check yours free 👉 ${process.env.NEXT_PUBLIC_SITE_URL || 'https://claimit.pages.dev'}`
-    : `Check which government schemes you qualify for free on ClaimIt! 👉 ${process.env.NEXT_PUBLIC_SITE_URL || 'https://claimit.pages.dev'}`;
+    ? `I found ${eligible.length} government schemes I qualify for on SchemeAtlas! Check yours free 👉 ${process.env.NEXT_PUBLIC_SITE_URL || 'https://schemeatlas.pages.dev'}`
+    : `Check which government schemes you qualify for free on SchemeAtlas! 👉 ${process.env.NEXT_PUBLIC_SITE_URL || 'https://schemeatlas.pages.dev'}`;
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Navbar */}
-      <nav className="bg-white border-b border-slate-100">
-        <div className="page-container h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">C</span>
-            </div>
-            <span className="font-bold text-xl text-slate-900">ClaimIt</span>
-          </Link>
-          {country && (
-            <Link href={`/${profile!.country_code}/check`} className="text-sm text-brand-500 font-medium hover:underline">
-              Try again →
-            </Link>
-          )}
-        </div>
-      </nav>
+      <Navbar />
 
       <div className="page-container py-8 max-w-4xl mx-auto">
 

@@ -12,7 +12,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
-const SITE_URL = process.env.SITE_URL || 'https://claimit.vercel.app';
+const SITE_URL = process.env.SITE_URL || 'https://schemeatlas.vercel.app';
 
 // ============================================
 // REDDIT SUBREDDITS PER COUNTRY
@@ -100,7 +100,7 @@ async function postReddit(scheme) {
       }),
       {
         auth: { username: clientId, password: clientSecret },
-        headers: { 'User-Agent': 'ClaimIt/1.0' }
+        headers: { 'User-Agent': 'SchemeAtlas/1.0' }
       }
     );
 
@@ -124,7 +124,7 @@ async function postReddit(scheme) {
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
-          'User-Agent': 'ClaimIt/1.0'
+          'User-Agent': 'SchemeAtlas/1.0'
         }
       }
     );
@@ -219,7 +219,7 @@ async function logSocialPost(schemeId, platform, postUrl) {
 // Posts all unpublished-to-social schemes
 // ============================================
 async function runSocialAgent() {
-  console.log('📱 ClaimIt Social Media Agent Starting...');
+  console.log('📱 SchemeAtlas Social Media Agent Starting...');
 
   // Get recently added schemes not yet posted to social
   const { data: schemes } = await supabase

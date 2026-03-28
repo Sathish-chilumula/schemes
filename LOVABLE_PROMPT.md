@@ -1,11 +1,11 @@
-# ClaimIt — Lovable.dev Frontend Prompt
+# SchemeAtlas — Lovable.dev Frontend Prompt
 # Copy this prompt into Lovable.dev to build the complete UI
 
 ---
 
 ## PROMPT FOR LOVABLE.DEV
 
-Build a complete web app called "ClaimIt" — a global government scheme finder.
+Build a complete web app called "SchemeAtlas" — a global government scheme finder.
 
 ## Tech Stack
 - Next.js 14 with App Router
@@ -195,7 +195,7 @@ const { data } = await supabase
 ## SEO REQUIREMENTS
 
 Each page needs:
-- Dynamic meta title: "[Scheme Name] — Free Government Benefits | ClaimIt"
+- Dynamic meta title: "[Scheme Name] — Free Government Benefits | SchemeAtlas"
 - Meta description based on scheme content
 - hreflang tags for multilingual pages
 - Open Graph tags for social sharing

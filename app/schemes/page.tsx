@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { Navbar } from '@/components/Navbar';
 import { supabase, type Scheme } from '@/lib/supabase';
 import { COUNTRIES, CATEGORIES } from '@/lib/config';
+import { SchemeCard } from '@/components/SchemeCard';
 
 const ALL_COUNTRIES = ['all', ...Object.keys(COUNTRIES)];
 
@@ -47,20 +49,7 @@ export default function SchemesPage() {
 
   return (
     <div className="min-h-screen">
-      {/* Navbar */}
-      <nav className="bg-white border-b border-slate-100 sticky top-0 z-50">
-        <div className="page-container h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">C</span>
-            </div>
-            <span className="font-bold text-xl text-slate-900">ClaimIt</span>
-          </Link>
-          <Link href="/IN/check" className="btn-primary text-sm py-2 px-4">
-            Check My Benefits →
-          </Link>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Header */}
       <div className="bg-slate-900 text-white py-12">
@@ -161,32 +150,9 @@ export default function SchemesPage() {
               Showing <strong>{filtered.length}</strong> of {schemes.length} schemes
             </p>
             <div className="grid md:grid-cols-3 gap-5">
-              {filtered.map(scheme => {
-                const country = COUNTRIES[scheme.country_code];
-                const cat = CATEGORIES[scheme.category];
-                return (
-                  <Link key={scheme.id} href={`/schemes/${scheme.slug}`}
-                    className="card p-5 group flex flex-col">
-                    <div className="flex items-start justify-between mb-3">
-                      {cat && (
-                        <span className={`badge ${cat.bgColor} ${cat.color}`}>
-                          {cat.icon} {scheme.category}
-                        </span>
-                      )}
-                      <span className="text-lg ml-auto">{country?.flag}</span>
-                    </div>
-                    <h3 className="font-semibold text-slate-900 mb-2 group-hover:text-brand-500
-                                   transition-colors leading-snug flex-1 text-sm">
-                      {scheme.name}
-                    </h3>
-                    <p className="text-xs text-slate-500 mb-3 line-clamp-2">{scheme.what_you_get}</p>
-                    <div className="flex items-center justify-between mt-auto pt-3 border-t border-slate-50">
-                      <span className="font-bold text-brand-500 text-sm">{scheme.benefit_amount}</span>
-                      <span className="text-xs text-slate-400">{country?.name}</span>
-                    </div>
-                  </Link>
-                );
-              })}
+              {filtered.map(scheme => (
+                <SchemeCard key={scheme.id} scheme={scheme} />
+              ))}
             </div>
           </>
         )}
