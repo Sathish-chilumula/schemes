@@ -1,19 +1,40 @@
 {
-  "name": "claimit-agents",
+  "name": "claimit",
   "version": "1.0.0",
-  "description": "ClaimIt automation agents",
+  "description": "Find every government benefit you qualify for — free, in your language",
+  "private": true,
   "scripts": {
-    "find": "node findSchemes.js",
-    "social": "node postSocial.js",
-    "all": "node findSchemes.js && node postSocial.js"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "pages:build": "npx @cloudflare/next-on-pages",
+    "preview": "npm run pages:build && wrangler pages dev .vercel/output/static",
+    "deploy": "npm run pages:build && wrangler pages deploy .vercel/output/static",
+    "agents:find": "node agents/findSchemes.js",
+    "agents:social": "node agents/postSocial.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
     "@supabase/supabase-js": "^2.45.0",
-    "axios": "^1.7.0",
-    "rss-parser": "^3.13.0",
-    "playwright": "^1.45.0",
-    "cheerio": "^1.0.0-rc.12",
-    "dotenv": "^16.4.5"
+    "next": "^16.2.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@cloudflare/next-on-pages": "^1.13.12",
+    "@types/node": "^20.14.14",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.19",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "15.2.4",
+    "postcss": "^8.4.40",
+    "tailwindcss": "^3.4.6",
+    "typescript": "^5.5.4",
+    "wrangler": "^3.101.0"
+  },
+  "engines": {
+    "node": ">=18.17.0"
   }
 }
