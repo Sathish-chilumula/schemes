@@ -9,12 +9,24 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const Parser = require('rss-parser');
 const axios = require('axios');
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
-);
+const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+const key = process.env.SUPABASE_SERVICE_KEY;
+const geminiKey = process.env.GEMINI_API_KEY;
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+if (!url || !key || !geminiKey) {
+  console.error('\n❌ CRITICAL STARTUP ERROR ❌');
+  console.error('One or more required environment variables are missing:');
+  console.error(`- SUPABASE_URL: ${url ? '✅ Found' : '❌ Missing'}`);
+  console.error(`- SUPABASE_SERVICE_KEY: ${key ? '✅ Found' : '❌ Missing'}`);
+  console.error(`- GEMINI_API_KEY: ${geminiKey ? '✅ Found' : '❌ Missing'}`);
+  console.error('\nIf running in GitHub Actions: Ensure these are added to Repository Settings > Secrets and variables > Actions.');
+  console.error('If running locally: Ensure you have exported these variables in your terminal.');
+  process.exit(1);
+}
+
+const supabase = createClient(url, key);
+const genAI = new GoogleGenerativeAI(geminiKey);
+
 const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 const parser = new Parser();
 
