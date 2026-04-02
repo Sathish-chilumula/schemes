@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -16,6 +17,8 @@ const SUGGESTED_QUESTIONS = [
 
 export function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
+  const { user } = useAuth();
+  
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -53,7 +56,16 @@ export function ChatWidget() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: newMessages }),
+        body: JSON.stringify({ 
+          messages: newMessages,
+          // Automatically append authenticated user context!
+          userProfile: user ? { 
+            name: user.name, 
+            country: user.country_code, 
+            email: user.email,
+            phone: user.phone
+          } : null
+        }),
       });
 
       const data = await res.json();
@@ -153,7 +165,7 @@ export function ChatWidget() {
             <span>🤖</span>
           </div>
           <div className="chat-header-info">
-            <p className="chat-header-name">SchemeBot</p>
+            <p className="chat-header-name">SchemeBot {user ? `(for ${user.name})` : ''}</p>
             <span className="chat-header-status">
               <span className="chat-status-dot" />
               AI-powered · Always online
