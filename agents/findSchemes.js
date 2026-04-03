@@ -234,38 +234,7 @@ const LANGUAGE_NAMES = {
   sw: 'Swahili'
 };
 
-async function generateTranslation(scheme, language) {
-  const langName = LANGUAGE_NAMES[language];
 
-  const prompt = `
-You are a ${langName} content writer for a government scheme website.
-
-Translate and rewrite this government scheme information in simple, natural ${langName}.
-Write as if explaining to a village elder who has never used a computer.
-
-Scheme Name: ${scheme.name}
-What You Get: ${scheme.what_you_get}
-Benefit Amount: ${scheme.benefit_amount}
-How to Apply Steps: ${JSON.stringify(scheme.how_to_apply?.steps)}
-
-Return ONLY valid JSON, nothing else:
-{
-  "name": "Scheme name in ${langName}",
-  "explanation": "2-3 sentence simple explanation in ${langName}",
-  "steps": "Step by step how to apply in ${langName} (numbered)",
-  "example": "One sentence example like: Raju, 45 year old farmer from village got benefit from this"
-}
-`;
-
-  try {
-    const text = await generateAICompletion(prompt);
-    const clean = text.replace(/```json|```/g, '').trim();
-    return JSON.parse(clean);
-  } catch (err) {
-    console.error(`Translation failed for ${language}:`, err.message);
-    return null;
-  }
-}
 
 
 // ============================================
@@ -338,34 +307,8 @@ async function saveScheme(schemeData, country, sourceUrl) {
 
   console.log(`✅ Scheme saved: ${schemeData.name}`);
 
-  // Save English translation
-  await supabase.from('scheme_translations').insert({
-    scheme_id: scheme.id,
-    language: 'en',
-    name: schemeData.name,
-    explanation: schemeData.summary,
-    steps: schemeData.how_to_apply?.steps?.join('\n'),
-    example: null
-  });
-
-  // Save local language translations
-  const languages = COUNTRY_LANGUAGES[country] || [];
-  for (const lang of languages) {
-    console.log(`Translating to ${lang}...`);
-    const translation = await generateTranslation(schemeData, lang);
-    if (translation) {
-      await supabase.from('scheme_translations').insert({
-        scheme_id: scheme.id,
-        language: lang,
-        name: translation.name,
-        explanation: translation.explanation,
-        steps: translation.steps,
-        example: translation.example
-      });
-    }
-    // Small delay to avoid API rate limits
-    await new Promise(r => setTimeout(r, 1000));
-  }
+  // Translations are now handled automatically by the generate-content.js script 
+  // running via GitHub Actions, which looks for schemes where content_en is null.
 
   return scheme;
 }

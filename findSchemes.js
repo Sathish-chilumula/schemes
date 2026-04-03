@@ -346,27 +346,7 @@ Return ONLY JSON:
   } catch (e) { return scheme; }
 }
 
-// ── Gemini: Translate ─────────────────────────────────────
-async function translateScheme(scheme, lang) {
-  const prompt = `Translate this government scheme into simple ${lang.name} for rural users.
 
-Name: ${scheme.name}
-Benefit: ${scheme.what_you_get}
-Amount: ${scheme.benefit_amount}
-Steps: ${JSON.stringify(scheme.how_to_apply?.steps || [])}
-
-Return ONLY JSON:
-{
-  "name":"name in ${lang.name}",
-  "explanation":"2-3 sentence explanation in ${lang.name}",
-  "steps":"numbered steps in ${lang.name}",
-  "example":"one sentence story of someone who got this benefit"
-}`;
-  try {
-    const text = await callOpenRouter(prompt);
-    return JSON.parse(text);
-  } catch (e) { return null; }
-}
 
 // ── Save to Supabase ──────────────────────────────────────
 async function alreadyExists(name, country) {
@@ -408,31 +388,7 @@ async function saveScheme(scheme) {
 
   console.log(`  ✅ Saved: ${scheme.name.substring(0, 55)}`);
 
-  // English
-  try {
-    await supabase.from('scheme_translations').insert({
-      scheme_id: saved.id, language: 'en',
-      name: scheme.name,
-      explanation: scheme.summary || scheme.what_you_get,
-      steps: (scheme.how_to_apply?.steps || []).join('\n'),
-      example: null,
-    });
-  } catch (e) { console.error(`Failed to save English translation: ${e.message}`); }
-
-  // Local languages
-  for (const lang of (TRANSLATE_LANGS[scheme.country] || [])) {
-    console.log(`    🌐 → ${lang.name}`);
-    const t = await translateScheme(scheme, lang);
-    if (t) {
-      try {
-        await supabase.from('scheme_translations').insert({
-          scheme_id: saved.id, language: lang.code,
-          name: t.name, explanation: t.explanation, steps: t.steps, example: t.example,
-        });
-      } catch (e) { console.error(`Failed to save ${lang.name} translation: ${e.message}`); }
-    }
-    await delay(1500);
-  }
+  // English and Local translations are automatically handled by the generate-content.js script
   return saved;
 }
 
