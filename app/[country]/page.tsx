@@ -7,6 +7,12 @@ import { COUNTRIES, CATEGORIES } from '@/lib/config';
 import { SchemeCard } from '@/components/SchemeCard';
 import { Navbar } from '@/components/Navbar';
 
+export function generateStaticParams() {
+  return Object.keys(COUNTRIES).map((country) => ({
+    country: country.toLowerCase(),
+  }));
+}
+
 export default function CountryPage({ params }: { params: Promise<{ country: string }> }) {
   const { country } = use(params);
   const countryCode = country.toUpperCase();

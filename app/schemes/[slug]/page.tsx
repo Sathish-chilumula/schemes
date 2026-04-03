@@ -2,33 +2,9 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
 import { supabaseAdmin, type Scheme } from '@/lib/supabase';
-import { COUNTRIES, CATEGORIES } from '@/lib/config';
+import { COUNTRIES, CATEGORIES, LANG_LABELS } from '@/lib/config';
 import { Metadata } from 'next';
-
-const LANG_LABELS: Record<string, string> = {
-  en: 'English', hi: 'हिंदी', te: 'తెలుగు', kn: 'ಕನ್ನಡ', ta: 'தமிழ்',
-  ml: 'മലയാളം', mr: 'मराठी', bn: 'বাংলা', gu: 'ગુજરાતી', pa: 'ਪੰਜਾਬੀ',
-  or: 'ଓଡ଼ିଆ', as: 'অসমীয়া', sw: 'Kiswahili', yo: 'Yorùbá', es: 'Español',
-};
-
-function parseQAContent(content: string): { question: string; answer: string }[] {
-  if (!content) return [];
-  const sections: { question: string; answer: string }[] = [];
-  const parts = content.split(/(?=(?:\*\*?)?(?:Q\d+:|\d+\.)\s*)/i);
-  for (const part of parts) {
-    const trimmed = part.trim();
-    if (!trimmed) continue;
-    const lines = trimmed.split('\n');
-    const questionLine = lines[0]?.trim() || '';
-    const answerLines = lines.slice(1).join('\n').trim();
-    if (questionLine && answerLines) {
-      const question = questionLine.replace(/^\d+\.\s*/, '').replace(/\*\*/g, '').replace(/Q\d+:\s*/i, '').trim();
-      const answer = answerLines.replace(/\*\*/g, '').trim();
-      if (question.length > 3) sections.push({ question, answer });
-    }
-  }
-  return sections;
-}
+import { SchemeContent } from './SchemeContent';
 
 function getCountryFullName(code: string): string {
   const map: Record<string, string> = {
@@ -51,12 +27,11 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ 
-  params, searchParams 
+  params 
 }: { 
-  params: Promise<{ slug: string }>,
-  searchParams?: Promise<{ lang?: string }>
+  params: Promise<{ slug: string }>
 }): Promise<Metadata> {
-  const [resolvedParams, resolvedSearchParams] = await Promise.all([params, searchParams || Promise.resolve({} as { lang?: string })]);
+  const resolvedParams = await params;
   const supabase = supabaseAdmin();
   const { data: scheme } = await supabase
     .from('schemes')
@@ -71,8 +46,7 @@ export async function generateMetadata({
     : scheme.what_you_get?.substring(0, 160) || `Learn about ${scheme.name} - eligibility, benefits and how to apply.`;
 
   const baseUrl = `https://schemeatlas.com/schemes/${resolvedParams.slug}`;
-  const lang = resolvedSearchParams.lang || 'en';
-  const currentUrl = lang === 'en' ? baseUrl : `${baseUrl}?lang=${lang}`;
+  const currentUrl = baseUrl;
 
   const languages: Record<string, string> = {
     en: baseUrl,
@@ -100,14 +74,11 @@ export async function generateMetadata({
 }
 
 export default async function SchemeDetailPage({ 
-  params, 
-  searchParams 
+  params
 }: { 
-  params: Promise<{ slug: string }>,
-  searchParams: Promise<{ lang?: string }>
+  params: Promise<{ slug: string }>
 }) {
-  const [resolvedParams, resolvedSearchParams] = await Promise.all([params, searchParams]);
-  const lang = (resolvedSearchParams.lang || 'en') as 'en' | 'hi' | 'local';
+  const resolvedParams = await params;
   
   const supabase = supabaseAdmin();
   const { data: scheme } = await supabase
@@ -133,29 +104,10 @@ export default async function SchemeDetailPage({
 
   const country = COUNTRIES[scheme.country_code];
   const cat = CATEGORIES[scheme.category];
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://schemeatlas.com';
-  const shareText = `Check out this government scheme: ${scheme.name} — ${scheme.benefit_amount}. Find schemes you qualify for free on SchemeAtlas 👉 ${siteUrl}/schemes/${scheme.slug}`;
 
   const eligibilityList: string[] = scheme.eligibility ? (Array.isArray(scheme.eligibility) ? scheme.eligibility : typeof scheme.eligibility === 'object' ? Object.values(scheme.eligibility).filter(Boolean) as string[] : [String(scheme.eligibility)]) : [];
   const howToApplyList: string[] = scheme.how_to_apply ? (Array.isArray(scheme.how_to_apply) ? scheme.how_to_apply : typeof scheme.how_to_apply === 'object' ? Object.values(scheme.how_to_apply).filter(Boolean) as string[] : [String(scheme.how_to_apply)]) : [];
   const documents: string[] = scheme.documents ? (Array.isArray(scheme.documents) ? scheme.documents : typeof scheme.documents === 'string' ? JSON.parse(scheme.documents || '[]') : []) : [];
-
-  const getActiveContent = () => {
-    let active = scheme.content_en;
-    if (lang === 'hi' && scheme.content_hi) active = scheme.content_hi;
-    if ((lang === scheme.local_language || lang === 'local') && scheme.content_local) active = scheme.content_local;
-    return active || scheme.content_en || null;
-  };
-
-  const activeContent = getActiveContent();
-  const qaSections = activeContent ? parseQAContent(activeContent) : [];
-
-  const availableLangs: { key: string; label: string; code: string }[] = [];
-  if (scheme.content_en) availableLangs.push({ key: 'en', code: 'en', label: 'English' });
-  if (scheme.content_hi) availableLangs.push({ key: 'hindi', code: 'hi', label: 'हिंदी' });
-  if (scheme.content_local && scheme.local_language && scheme.local_language !== 'hi') {
-    availableLangs.push({ key: 'local', code: scheme.local_language, label: LANG_LABELS[scheme.local_language] || scheme.local_language });
-  }
 
   const lastUpdated = scheme.last_updated
     ? new Date(scheme.last_updated).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
@@ -172,7 +124,7 @@ export default async function SchemeDetailPage({
     },
     areaServed: {
       '@type': scheme.state_name ? 'State' : 'Country',
-      name: scheme.state_name || getCountryFullName(scheme.country_code) || scheme.country_code,
+      name: scheme.state_name || scheme.country_code,
     },
     audience: {
       '@type': 'Audience',
@@ -248,63 +200,24 @@ export default async function SchemeDetailPage({
             </div>
           </div>
 
-          {availableLangs.length > 0 ? (
-            <div className="mb-8">
-              {availableLangs.length > 1 && (
-                <div className="flex gap-1 mb-6 bg-slate-100 p-1 rounded-xl w-fit">
-                  {availableLangs.map(l => (
-                    <Link
-                      key={l.code}
-                      href={`/schemes/${scheme.slug}?lang=${l.code}`}
-                      replace
-                      scroll={false}
-                      className={`px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 ${
-                        (lang === l.code || (lang === 'local' && l.key === 'local'))
-                          ? 'bg-white text-brand-600 shadow-sm'
-                          : 'text-slate-500 hover:text-slate-700'
-                      }`}
-                    >
-                      {l.label}
-                    </Link>
-                  ))}
-                </div>
-              )}
+          <SchemeContent 
+            contentEn={scheme.content_en}
+            contentHi={scheme.content_hi}
+            contentLocal={scheme.content_local}
+            localLanguage={scheme.local_language}
+          />
 
-              {qaSections.length > 0 ? (
-                <article className="space-y-6">
-                  {qaSections.map((section, i) => (
-                    <section key={i} className="border-b border-slate-100 pb-5 last:border-0 last:pb-0">
-                      <h2 className="text-lg font-bold text-slate-900 mb-2 flex items-start gap-2">
-                        <span className="w-7 h-7 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center flex-shrink-0 text-sm font-bold mt-0.5">
-                          {i + 1}
-                        </span>
-                        {section.question}
-                      </h2>
-                      <p className="text-slate-600 leading-relaxed pl-9">
-                        {section.answer}
-                      </p>
-                    </section>
-                  ))}
-                </article>
-              ) : activeContent ? (
-                <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed">
-                  {activeContent.split('\n').map((line, i) => (
-                    <p key={i}>{line}</p>
-                  ))}
-                </div>
-              ) : null}
+          {!scheme.content_en && !scheme.article_content && !scheme.what_you_get && (
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 mb-8 text-center">
+              <p className="text-slate-500 text-sm">📄 Detailed guide for this scheme is being prepared. Check back soon or visit the official site.</p>
             </div>
-          ) : scheme.article_content ? (
+          )}
+
+          {scheme.article_content && !scheme.content_en && (
             <div 
               className="prose prose-slate max-w-none text-slate-700 leading-relaxed mb-8 prose-h3:text-slate-900 prose-a:text-brand-500"
               dangerouslySetInnerHTML={{ __html: scheme.article_content }}
             />
-          ) : scheme.what_you_get ? (
-            <p className="text-slate-700 text-lg leading-relaxed mb-8">{scheme.what_you_get}</p>
-          ) : (
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 mb-8 text-center">
-              <p className="text-slate-500 text-sm">📄 Detailed guide for this scheme is being prepared. Check back soon or visit the official site.</p>
-            </div>
           )}
 
           <div className="flex flex-col sm:flex-row gap-3 mt-8">

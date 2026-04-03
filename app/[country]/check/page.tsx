@@ -7,6 +7,12 @@ import { supabase } from '@/lib/supabase';
 import { COUNTRIES, PROFESSIONS, generateSessionId } from '@/lib/config';
 import { Navbar } from '@/components/Navbar';
 
+export function generateStaticParams() {
+  return Object.keys(COUNTRIES).map((country) => ({
+    country: country.toLowerCase(),
+  }));
+}
+
 const STEPS = ['Profile', 'Income & Work', 'Location', 'Done'];
 
 export default function CheckPage({ params }: { params: Promise<{ country: string }> }) {

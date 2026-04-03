@@ -214,3 +214,9 @@ export type ApiSource = {
 export function generateSessionId(): string {
   return 'sess_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
 }
+
+export const LANG_LABELS: Record<string, string> = {
+  en: 'English', hi: 'हिंदी', te: 'తెలుగు', kn: 'ಕನ್ನಡ', ta: 'தமிழ்',
+  ml: 'മലയാളം', mr: 'ಮರಾठी', bn: 'বাংলা', gu: 'ગુજરાતી', pa: 'ਪੰਜਾਬੀ',
+  or: 'ଓਡ଼ିଆ', as: 'অসমীয়া', sw: 'Kiswahili', yo: 'Yorùbá', es: 'Español',
+};
