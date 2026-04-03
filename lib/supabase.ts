@@ -33,6 +33,15 @@ export type Scheme = {
   scheme_type?: string;
   views?: number;
   article_content?: string;
+  state_code?: string;
+  state_name?: string;
+  local_language?: string;
+  content_en?: string;
+  content_hi?: string;
+  content_local?: string;
+  is_central?: boolean;
+  last_updated?: string;
+  ministry?: string;
 };
 
 export type UserProfile = {

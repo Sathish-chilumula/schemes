@@ -3,7 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { COUNTRIES } from '@/lib/config';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://schemeatlas.vercel.app';
+  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://schemeatlas.com';
   
   // 1. Static Pages
   const staticPaths = [

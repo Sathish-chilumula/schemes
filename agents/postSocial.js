@@ -12,7 +12,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
-const SITE_URL = process.env.SITE_URL || 'https://schemeatlas.vercel.app';
+const SITE_URL = process.env.SITE_URL || 'https://schemeatlas.com';
 
 // ============================================
 // REDDIT SUBREDDITS PER COUNTRY

@@ -3,7 +3,7 @@ const { createClient } = require('@supabase/supabase-js');
 const axios = require('axios');
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
-const SITE = process.env.SITE_URL || 'https://schemeatlas.vercel.app';
+const SITE = process.env.SITE_URL || 'https://schemeatlas.com';
 
 const SUBREDDITS = {
   IN: ['india', 'IndiaSpeaks', 'LegalAdviceIndia'],

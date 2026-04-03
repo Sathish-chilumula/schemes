@@ -2,15 +2,67 @@
 
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
+import Head from 'next/head';
 import { Navbar } from '@/components/Navbar';
 import { supabase, type Scheme } from '@/lib/supabase';
 import { COUNTRIES, CATEGORIES } from '@/lib/config';
+
+// Language display names
+const LANG_LABELS: Record<string, string> = {
+  en: 'English',
+  hi: 'हिंदी',
+  te: 'తెలుగు',
+  kn: 'ಕನ್ನಡ',
+  ta: 'தமிழ்',
+  ml: 'മലയാളം',
+  mr: 'मराठी',
+  bn: 'বাংলা',
+  gu: 'ગુજરાતી',
+  pa: 'ਪੰਜਾਬੀ',
+  or: 'ଓଡ଼ିଆ',
+  as: 'অসমীয়া',
+  sw: 'Kiswahili',
+  yo: 'Yorùbá',
+  es: 'Español',
+};
+
+// Parse Q&A content into structured sections
+function parseQAContent(content: string): { question: string; answer: string }[] {
+  if (!content) return [];
+  const sections: { question: string; answer: string }[] = [];
+  // Split by numbered questions: "1.", "2.", etc.
+  const parts = content.split(/(?=\d+\.\s)/);
+  for (const part of parts) {
+    const trimmed = part.trim();
+    if (!trimmed) continue;
+    // Extract question (first line) and answer (rest)
+    const lines = trimmed.split('\n');
+    const questionLine = lines[0]?.trim() || '';
+    const answerLines = lines.slice(1).join('\n').trim();
+    if (questionLine && answerLines) {
+      // Remove the number prefix like "1. "
+      const question = questionLine.replace(/^\d+\.\s*/, '');
+      sections.push({ question, answer: answerLines });
+    }
+  }
+  return sections;
+}
+
+// Get country full name from code
+function getCountryFullName(code: string): string {
+  const map: Record<string, string> = {
+    IN: 'India', GB: 'United Kingdom', US: 'United States',
+    NG: 'Nigeria', KE: 'Kenya',
+  };
+  return map[code] || code;
+}
 
 export default function SchemeDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
   const [scheme, setScheme] = useState<Scheme | null>(null);
   const [related, setRelated] = useState<Scheme[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeLang, setActiveLang] = useState<'en' | 'hi' | 'local'>('en');
 
   useEffect(() => {
     supabase
@@ -38,10 +90,36 @@ export default function SchemeDetailPage({ params }: { params: Promise<{ slug: s
       });
   }, [slug]);
 
+  // Set page title dynamically
+  useEffect(() => {
+    if (scheme) {
+      document.title = `${scheme.name} 2025 - Eligibility, Benefits & How to Apply | SchemeAtlas`;
+      // Update meta description
+      const metaDesc = document.querySelector('meta[name="description"]');
+      const descContent = `Learn about ${scheme.name} - eligibility criteria, benefit amount, how to apply and required documents. Updated guide for 2025.`;
+      if (metaDesc) {
+        metaDesc.setAttribute('content', descContent);
+      } else {
+        const meta = document.createElement('meta');
+        meta.name = 'description';
+        meta.content = descContent;
+        document.head.appendChild(meta);
+      }
+      // Set canonical
+      let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
+      if (!canonical) {
+        canonical = document.createElement('link');
+        canonical.rel = 'canonical';
+        document.head.appendChild(canonical);
+      }
+      canonical.href = `https://schemeatlas.com/schemes/${slug}`;
+    }
+  }, [scheme, slug]);
+
   const country = scheme ? COUNTRIES[scheme.country_code] : null;
   const cat = scheme ? CATEGORIES[scheme.category] : null;
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://schemeatlas.pages.dev';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://schemeatlas.com';
   const shareText = scheme
     ? `Check out this government scheme: ${scheme.name} — ${scheme.benefit_amount}. Find schemes you qualify for free on SchemeAtlas 👉 ${siteUrl}/schemes/${slug}`
     : '';
@@ -71,9 +149,70 @@ export default function SchemeDetailPage({ params }: { params: Promise<{ slug: s
       : []
     : [];
 
+  // Get the Q&A content for the active language
+  const getActiveContent = () => {
+    if (!scheme) return null;
+    switch (activeLang) {
+      case 'en': return scheme.content_en || null;
+      case 'hi': return scheme.content_hi || null;
+      case 'local': return scheme.content_local || null;
+      default: return null;
+    }
+  };
+
+  const activeContent = getActiveContent();
+  const qaSections = activeContent ? parseQAContent(activeContent) : [];
+
+  // Determine which language tabs to show
+  const availableLangs: { key: 'en' | 'hi' | 'local'; label: string }[] = [];
+  if (scheme) {
+    if (scheme.content_en) availableLangs.push({ key: 'en', label: 'English' });
+    if (scheme.content_hi) availableLangs.push({ key: 'hi', label: 'हिंदी' });
+    if (scheme.content_local && scheme.local_language && scheme.local_language !== 'hi') {
+      availableLangs.push({ key: 'local', label: LANG_LABELS[scheme.local_language] || scheme.local_language });
+    }
+  }
+
+  // Format last_updated
+  const lastUpdated = scheme?.last_updated
+    ? new Date(scheme.last_updated).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+    : null;
+
+  // JSON-LD Structured Data
+  const jsonLd = scheme ? {
+    '@context': 'https://schema.org',
+    '@type': 'GovernmentService',
+    name: scheme.name,
+    description: (scheme.content_en || scheme.what_you_get || '').substring(0, 160),
+    provider: {
+      '@type': 'GovernmentOrganization',
+      name: scheme.ministry || scheme.category || 'Government',
+    },
+    areaServed: {
+      '@type': 'Country',
+      name: getCountryFullName(scheme.country_code),
+    },
+    audience: {
+      '@type': 'Audience',
+      audienceType: (typeof scheme.eligibility === 'string'
+        ? scheme.eligibility
+        : JSON.stringify(scheme.eligibility)
+      ).substring(0, 100),
+    },
+    url: `https://schemeatlas.com/schemes/${scheme.slug}`,
+  } : null;
+
   return (
     <div className="min-h-screen">
       <Navbar />
+
+      {/* JSON-LD Schema */}
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
 
       {loading ? (
         <div className="page-container py-16 max-w-3xl mx-auto space-y-6">
@@ -132,7 +271,12 @@ export default function SchemeDetailPage({ params }: { params: Promise<{ slug: s
                 <h1 className="text-3xl md:text-4xl font-extrabold text-white leading-tight mb-2 drop-shadow-md">
                   {scheme.name}
                 </h1>
-                <p className="text-slate-200 text-sm font-medium">Real-time AI Match Confidence: High</p>
+                {lastUpdated && (
+                  <p className="text-slate-300 text-sm font-medium mt-1">
+                    📅 Last Updated: {lastUpdated}
+                  </p>
+                )}
+                <p className="text-slate-200 text-sm font-medium mt-1">Real-time AI Match Confidence: High</p>
               </div>
             </div>
 
@@ -144,13 +288,64 @@ export default function SchemeDetailPage({ params }: { params: Promise<{ slug: s
                 </div>
               </div>
 
-              {scheme.article_content ? (
+              {/* ══ Language Switcher + Q&A Content ══ */}
+              {availableLangs.length > 0 ? (
+                <div className="mb-8">
+                  {/* Language Tabs */}
+                  {availableLangs.length > 1 && (
+                    <div className="flex gap-1 mb-6 bg-slate-100 p-1 rounded-xl w-fit">
+                      {availableLangs.map(lang => (
+                        <button
+                          key={lang.key}
+                          onClick={() => setActiveLang(lang.key)}
+                          className={`px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 ${
+                            activeLang === lang.key
+                              ? 'bg-white text-brand-600 shadow-sm'
+                              : 'text-slate-500 hover:text-slate-700'
+                          }`}
+                        >
+                          {lang.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Q&A Sections */}
+                  {qaSections.length > 0 ? (
+                    <div className="space-y-6">
+                      {qaSections.map((section, i) => (
+                        <div key={i} className="border-b border-slate-100 pb-5 last:border-0 last:pb-0">
+                          <h3 className="text-lg font-bold text-slate-900 mb-2 flex items-start gap-2">
+                            <span className="w-7 h-7 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center flex-shrink-0 text-sm font-bold mt-0.5">
+                              {i + 1}
+                            </span>
+                            {section.question}
+                          </h3>
+                          <p className="text-slate-600 leading-relaxed pl-9">
+                            {section.answer}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : activeContent ? (
+                    <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed">
+                      {activeContent.split('\n').map((line, i) => (
+                        <p key={i}>{line}</p>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              ) : scheme.article_content ? (
                 <div 
                   className="prose prose-slate max-w-none text-slate-700 leading-relaxed mb-8 prose-h3:text-slate-900 prose-a:text-brand-500"
                   dangerouslySetInnerHTML={{ __html: scheme.article_content }}
                 />
-              ) : (
+              ) : scheme.what_you_get ? (
                 <p className="text-slate-700 text-lg leading-relaxed mb-8">{scheme.what_you_get}</p>
+              ) : (
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 mb-8 text-center">
+                  <p className="text-slate-500 text-sm">📄 Detailed guide coming soon</p>
+                </div>
               )}
 
               {/* CTA Buttons */}

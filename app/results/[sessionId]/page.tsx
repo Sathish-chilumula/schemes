@@ -66,8 +66,8 @@ export default function ResultsPage({ params }: { params: Promise<{ sessionId: s
   const country = profile ? COUNTRIES[profile.country_code] : null;
 
   const shareText = eligible.length > 0
-    ? `I found ${eligible.length} government schemes I qualify for on SchemeAtlas! Check yours free 👉 ${process.env.NEXT_PUBLIC_SITE_URL || 'https://schemeatlas.pages.dev'}`
-    : `Check which government schemes you qualify for free on SchemeAtlas! 👉 ${process.env.NEXT_PUBLIC_SITE_URL || 'https://schemeatlas.pages.dev'}`;
+    ? `I found ${eligible.length} government schemes I qualify for on SchemeAtlas! Check yours free 👉 ${process.env.NEXT_PUBLIC_SITE_URL || 'https://schemeatlas.com'}`
+    : `Check which government schemes you qualify for free on SchemeAtlas! 👉 ${process.env.NEXT_PUBLIC_SITE_URL || 'https://schemeatlas.com'}`;
 
   return (
     <div className="min-h-screen bg-slate-50">
