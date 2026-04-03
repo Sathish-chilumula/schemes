@@ -30,8 +30,8 @@ const LANG_LABELS: Record<string, string> = {
 function parseQAContent(content: string): { question: string; answer: string }[] {
   if (!content) return [];
   const sections: { question: string; answer: string }[] = [];
-  // Split by numbered questions: "1.", "2.", etc.
-  const parts = content.split(/(?=\d+\.\s)/);
+  // Split by numbered questions: "1.", "Q1:", "**Q1:", etc.
+  const parts = content.split(/(?=(?:\*\*?)?(?:Q\d+:|\d+\.)\s*)/i);
   for (const part of parts) {
     const trimmed = part.trim();
     if (!trimmed) continue;
@@ -40,9 +40,14 @@ function parseQAContent(content: string): { question: string; answer: string }[]
     const questionLine = lines[0]?.trim() || '';
     const answerLines = lines.slice(1).join('\n').trim();
     if (questionLine && answerLines) {
-      // Remove the number prefix like "1. "
-      const question = questionLine.replace(/^\d+\.\s*/, '');
-      sections.push({ question, answer: answerLines });
+      // Remove the number prefix like "1. " and any markdown asterisks
+      const question = questionLine.replace(/^\d+\.\s*/, '').replace(/\*\*/g, '').replace(/Q\d+:\s*/i, '').trim();
+      const answer = answerLines.replace(/\*\*/g, '').trim();
+      
+      // Also occasionally the AI adds preamble like "**Scheme Guide**". We skip empty questions
+      if (question.length > 3) {
+        sections.push({ question, answer });
+      }
     }
   }
   return sections;
