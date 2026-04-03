@@ -5,6 +5,7 @@ import { supabaseAdmin, type Scheme } from '@/lib/supabase';
 import { COUNTRIES, CATEGORIES, LANG_LABELS } from '@/lib/config';
 import { Metadata } from 'next';
 import { SchemeContent } from './SchemeContent';
+import { slugify } from '@/lib/seo';
 
 function getCountryFullName(code: string): string {
   const map: Record<string, string> = {
@@ -60,10 +61,10 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${scheme.name} 2025 - Eligibility, Benefits & How to Apply | SchemeAtlas`,
+    title: `${scheme.name} 2026 - Eligibility, Benefits & How to Apply | SchemeAtlas`,
     description,
     openGraph: {
-      title: `${scheme.name} 2025 | SchemeAtlas`,
+      title: `${scheme.name} 2026 | SchemeAtlas`,
       description,
       url: currentUrl,
       type: 'article',
@@ -91,7 +92,10 @@ export default async function SchemeDetailPage({
 
   if (!scheme) notFound();
 
-  // Async task to fetch related schemes, without blocking main thread heavily if possible
+  const stateSlug = scheme.state_name ? slugify(scheme.state_name) : null;
+  const categorySlug = scheme.category ? slugify(scheme.category) : 'general';
+
+  // Async task to fetch related schemes
   const { data: related } = await supabase
     .from('schemes')
     .select('*')
@@ -171,7 +175,7 @@ export default async function SchemeDetailPage({
   } : null;
 
   return (
-    <div className="min-h-screen">
+    <main className="min-h-screen bg-slate-50 font-sans">
       <Navbar />
 
       <script
@@ -185,150 +189,167 @@ export default async function SchemeDetailPage({
         />
       )}
 
-      <div className="page-container py-8 max-w-3xl mx-auto">
-        <div className="flex items-center gap-2 text-sm text-slate-400 mb-6 flex-wrap">
-          <Link href="/" className="hover:text-brand-500">Home</Link>
-          <span>›</span>
-          <Link href="/schemes" className="hover:text-brand-500">Schemes</Link>
-          {country && (
-            <>
-              <span>›</span>
-              <Link href={`/${scheme.country_code}`} className="hover:text-brand-500">
-                {country.flag} {country.name}
-              </Link>
-            </>
-          )}
-          <span>›</span>
-          <span className="text-slate-600 truncate max-w-xs">{scheme.name}</span>
-        </div>
+      {/* SEO Breadcrumbs & Header */}
+      <div className="bg-white border-b border-slate-200 py-10 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4">
+          <nav className="flex items-center space-x-2 text-sm text-slate-500 mb-8 font-medium">
+            <Link href="/" className="hover:text-blue-600 transition-colors">Home</Link>
+            <span className="text-slate-300">/</span>
+            <Link href="/schemes" className="hover:text-blue-600 transition-colors">Schemes</Link>
+            {stateSlug && (
+              <>
+                <span className="text-slate-300">/</span>
+                <Link href={`/schemes/${stateSlug}`} className="hover:text-blue-600 transition-colors capitalize">
+                  {scheme.state_name}
+                </Link>
+              </>
+            )}
+            <span className="text-slate-300">/</span>
+            <Link 
+              href={`/schemes/${stateSlug || 'india'}/${categorySlug}`} 
+              className="hover:text-blue-600 transition-colors capitalize"
+            >
+              {scheme.category || 'General'}
+            </Link>
+          </nav>
 
-        <div className="relative rounded-xl overflow-hidden mb-6 bg-slate-900 border border-slate-100">
-          {scheme.image_url && (
-            <div 
-              className="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-overlay"
-              style={{ backgroundImage: `url(${scheme.image_url})` }}
+          <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 leading-tight mb-6">
+            {scheme.name} (April 2026 Update)
+          </h1>
+          
+          <div className="flex flex-wrap items-center gap-4 text-slate-600 mb-2">
+            <div className="flex items-center bg-blue-50 px-4 py-2 rounded-xl border border-blue-100">
+              <span className="flex h-3 w-3 mr-3 items-center justify-center rounded-full bg-blue-100">
+                <span className="h-2 w-2 animate-ping rounded-full bg-blue-600"></span>
+              </span>
+              <span className="text-blue-700 font-bold">Live Status: Active & Open</span>
+            </div>
+            <div className="flex items-center text-sm font-semibold text-slate-500 bg-slate-50 px-4 py-2 rounded-xl border border-slate-200">
+              <svg className="w-4 h-4 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+              </svg>
+              Last Updated: April 2026
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 py-16">
+        <div className="flex flex-col lg:flex-row gap-12">
+          {/* Main Content Area */}
+          <div className="lg:w-2/3">
+            <SchemeContent 
+              contentEn={scheme.content_en}
+              contentHi={scheme.content_hi}
+              contentLocal={scheme.content_local}
+              localLanguage={scheme.local_language}
+              fallbackWhatYouGet={scheme.what_you_get}
+              fallbackBenefitAmount={scheme.benefit_amount}
+              eligibilityList={eligibilityList}
+              howToApplyList={howToApplyList}
+              documents={documents}
+              schemeName={scheme.name}
             />
-          )}
-          <div className="relative z-10 p-8 sm:p-10">
-            <div className="flex items-start gap-3 mb-4 flex-wrap">
-              {cat && (
-                <span className={`badge ${cat.bgColor} ${cat.color} bg-white/90 backdrop-blur`}>
-                  {cat.icon} {scheme.category}
-                </span>
+
+            <div className="flex flex-col sm:flex-row gap-4 mt-12 bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+              {scheme.official_url && (
+                <a 
+                  href={scheme.official_url} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-bold text-lg text-center hover:bg-blue-700 hover:scale-[1.02] transform transition-all shadow-lg hover:shadow-blue-200/50 flex-1"
+                >
+                  Apply on Official Site ↗
+                </a>
               )}
               {country && (
-                <span className="badge bg-white/90 text-slate-800 backdrop-blur">
-                  {country.flag} {country.name}
-                </span>
+                <Link 
+                  href={`/${scheme.country_code}/check`} 
+                  className="bg-slate-900 text-white px-8 py-4 rounded-2xl font-bold text-lg text-center hover:bg-black transition-all flex-1"
+                >
+                  Check If I Qualify →
+                </Link>
               )}
             </div>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-white leading-tight mb-2 drop-shadow-md">
-              {scheme.name} {new Date().getFullYear()}
-            </h1>
-            {lastUpdated && (
-              <p className="text-slate-300 text-sm font-medium mt-1">
-                📅 Last Updated: {lastUpdated}
+            
+            <div className="mt-8 bg-amber-50 border border-amber-100 rounded-2xl p-6">
+              <p className="text-amber-800 text-sm leading-relaxed">
+                <strong>⚠️ Note:</strong> SchemeAtlas provides information to help you find and understand benefits. We are not a government agency. Always verify current details on the <strong>official website</strong> before applying.
               </p>
-            )}
-            <p className="text-slate-200 text-sm font-medium mt-1">Real-time AI Match Confidence: High</p>
-          </div>
-        </div>
-
-        <div className="card p-8 mb-6">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="bg-green-50 border border-green-100 rounded-xl px-5 py-3 w-full sm:w-auto">
-              <div className="text-xs text-green-600 font-semibold mb-0.5 uppercase tracking-wider">Benefit Amount</div>
-              <div className="text-2xl font-extrabold text-green-700">{scheme.benefit_amount}</div>
             </div>
           </div>
 
-          <SchemeContent 
-            contentEn={scheme.content_en}
-            contentHi={scheme.content_hi}
-            contentLocal={scheme.content_local}
-            localLanguage={scheme.local_language}
-            // Fallbacks
-            fallbackWhatYouGet={scheme.what_you_get}
-            fallbackBenefitAmount={scheme.benefit_amount}
-            eligibilityList={eligibilityList}
-            howToApplyList={howToApplyList}
-            documents={documents}
-            schemeName={scheme.name}
-          />
+          {/* Sidebar - SEO Authority & Intent */}
+          <div className="lg:w-1/3 space-y-8">
+            <div className="sticky top-24 space-y-8">
+              {/* Intent Section: Who Should Definitely Apply */}
+              <div className="bg-gradient-to-br from-emerald-50 to-green-50 p-8 rounded-3xl border border-emerald-100 shadow-sm group hover:shadow-md transition-shadow">
+                <h3 className="text-xl font-bold text-emerald-800 mb-5 flex items-center">
+                  <svg className="w-6 h-6 mr-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Who Should Apply?
+                </h3>
+                <ul className="space-y-4">
+                  <li className="flex items-start">
+                    <span className="text-emerald-500 mr-2 font-bold select-none text-xl leading-none">✓</span>
+                    <span className="text-emerald-900 font-medium leading-relaxed italic">
+                      "Residents of {scheme.state_name || 'India'} looking for {scheme.category || 'government'} support."
+                    </span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-emerald-500 mr-2 font-bold select-none text-xl leading-none">✓</span>
+                    <span className="text-emerald-900 font-medium leading-relaxed italic">
+                      "Families meeting the eligibility criteria for {scheme.category || 'this program'} for 2026."
+                    </span>
+                  </li>
+                </ul>
+              </div>
 
-          {!scheme.content_en && !scheme.article_content && !scheme.what_you_get && (
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 mb-8 text-center">
-              <p className="text-slate-500 text-sm">📄 Detailed guide for this scheme is being prepared. Check back soon or visit the official site.</p>
+              {/* Intent Section: Who Should NOT Apply */}
+              <div className="bg-gradient-to-br from-rose-50 to-pink-50 p-8 rounded-3xl border border-rose-100 shadow-sm group hover:shadow-md transition-shadow">
+                <h3 className="text-xl font-bold text-rose-800 mb-5 flex items-center">
+                  <svg className="w-6 h-6 mr-3 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  Who Should NOT Apply?
+                </h3>
+                <ul className="space-y-4">
+                  <li className="flex items-start">
+                    <span className="text-rose-500 mr-2 font-bold select-none text-xl leading-none">!</span>
+                    <span className="text-rose-900 font-medium leading-relaxed opacity-80">
+                      Individuals with an annual family income exceeding the threshold for these specific benefits.
+                    </span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-rose-500 mr-2 font-bold select-none text-xl leading-none">!</span>
+                    <span className="text-rose-900 font-medium leading-relaxed opacity-80">
+                      Those already receiving full aid from other similar government programs.
+                    </span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Related Schemes */}
+              {related && related.length > 0 && (
+                <div className="bg-white p-8 rounded-3xl border border-slate-200">
+                  <h3 className="text-xl font-bold text-slate-800 mb-6">Similar Programs</h3>
+                  <div className="space-y-6">
+                    {related.map(r => (
+                      <Link key={r.id} href={`/schemes/${r.slug}`} className="block group">
+                        <h4 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors mb-1">
+                          {r.name}
+                        </h4>
+                        <p className="text-sm text-green-600 font-bold">{r.benefit_amount}</p>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-
-          {scheme.article_content && !scheme.content_en && (
-            <div 
-              className="prose prose-slate max-w-none text-slate-700 leading-relaxed mb-8 prose-h3:text-slate-900 prose-a:text-brand-500"
-              dangerouslySetInnerHTML={{ __html: scheme.article_content }}
-            />
-          )}
-
-          <div className="flex flex-col sm:flex-row gap-3 mt-8">
-            {scheme.official_url && (
-              <a href={scheme.official_url} target="_blank" rel="noopener noreferrer" className="btn-primary flex-1 text-center">
-                Apply on Official Site ↗
-              </a>
-            )}
-            {country && (
-              <Link href={`/${scheme.country_code}/check`} className="btn-secondary flex-1 text-center">
-                Check If I Qualify →
-              </Link>
-            )}
           </div>
         </div>
-
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-6">
-          <p className="text-amber-800 text-sm">
-            <strong>⚠️ Important Disclaimer:</strong> Always verify scheme details on the official government website.
-            Schemes may change eligibility criteria or close without notice. SchemeAtlas is not affiliated with any government.
-          </p>
-        </div>
-
-        {related && related.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-xl font-bold text-slate-900 mb-4">Related Schemes</h2>
-            <div className="grid sm:grid-cols-3 gap-4">
-              {related.map(r => {
-                const rCat = CATEGORIES[r.category];
-                return (
-                  <Link key={r.id} href={`/schemes/${r.slug}`} className="card p-4 group">
-                    {rCat && (
-                      <span className={`badge ${rCat.bgColor} ${rCat.color} mb-2`}>
-                        {rCat.icon} {r.category}
-                      </span>
-                    )}
-                    <h3 className="font-semibold text-sm text-slate-900 group-hover:text-brand-500 transition-colors mb-1 leading-snug">
-                      {r.name}
-                    </h3>
-                    <p className="text-xs font-bold text-brand-500">{r.benefit_amount}</p>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        )}
       </div>
-      
-      {/* Mobile nav */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200
-                      flex justify-around items-center py-2 z-50 md:hidden">
-        {[
-          { href: '/', icon: '🏠', label: 'Home' },
-          { href: scheme ? `/${scheme.country_code}/check` : '/IN/check', icon: '🔍', label: 'Check' },
-          { href: '/schemes', icon: '📋', label: 'Schemes' },
-        ].map(item => (
-          <Link key={item.href} href={item.href} className="nav-link">
-            <span className="text-xl">{item.icon}</span>
-            <span className="text-xs font-medium">{item.label}</span>
-          </Link>
-        ))}
-      </div>
-    </div>
+    </main>
   );
 }

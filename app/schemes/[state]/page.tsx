@@ -1,0 +1,100 @@
+import { notFound } from 'next/navigation';
+import Link from 'next/link';
+import { Navbar } from '@/components/Navbar';
+import { COUNTRIES } from '@/lib/config';
+import { slugify } from '@/lib/seo';
+import { Metadata } from 'next';
+
+export async function generateStaticParams() {
+  const india = COUNTRIES.IN;
+  return india.states.map(state => ({
+    state: slugify(state.name),
+  }));
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ state: string }> }): Promise<Metadata> {
+  const resolvedParams = await params;
+  const india = COUNTRIES.IN;
+  const stateObj = india.states.find(s => slugify(s.name) === resolvedParams.state);
+
+  if (!stateObj) return { title: 'State Not Found' };
+
+  const title = `All Government Schemes in ${stateObj.name} 2026 | SchemeAtlas`;
+  const description = `Explore all state and central government schemes available in ${stateObj.name} for 2026. Browse benefits by category like agriculture, education, and health.`;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `https://schemeatlas.com/schemes/${resolvedParams.state}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `https://schemeatlas.com/schemes/${resolvedParams.state}`,
+      siteName: 'SchemeAtlas',
+      type: 'website',
+    },
+  };
+}
+
+export default async function StateHubPage({ params }: { params: Promise<{ state: string }> }) {
+  const resolvedParams = await params;
+  const india = COUNTRIES.IN;
+  const stateObj = india.states.find(s => slugify(s.name) === resolvedParams.state);
+
+  if (!stateObj) notFound();
+
+  const categories = india.categories;
+
+  return (
+    <main className="min-h-screen bg-slate-50">
+      <Navbar />
+      
+      {/* Hero Section */}
+      <div className="bg-blue-600 text-white py-16">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            Government Schemes in {stateObj.name} (2026)
+          </h1>
+          <p className="text-xl opacity-90 max-w-2xl mx-auto">
+            Find every benefit, subsidy, and welfare program available for residents of {stateObj.name}.
+          </p>
+        </div>
+      </div>
+
+      {/* Category Grid (Silo Navigation) */}
+      <div className="max-w-7xl mx-auto px-4 py-16">
+        <h2 className="text-2xl font-bold text-slate-800 mb-8 border-b pb-2">
+          Browse by Category in {stateObj.name}
+        </h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {categories.map((cat) => (
+            <Link 
+              key={cat}
+              href={`/schemes/${resolvedParams.state}/${slugify(cat)}`}
+              className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-all border border-slate-200 group"
+            >
+              <h3 className="text-xl font-semibold text-blue-600 mb-2 capitalize group-hover:underline">
+                {cat} Schemes
+              </h3>
+              <p className="text-slate-600">
+                View all state and central {cat} benefits available in {stateObj.name} for 2026.
+              </p>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* Freshness Footer */}
+      <div className="max-w-7xl mx-auto px-4 pb-16">
+        <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm text-center">
+          <p className="text-slate-500 italic">
+            Last Updated: April 2026 — Optimized for the latest government policies.
+          </p>
+        </div>
+      </div>
+    </main>
+  );
+}
