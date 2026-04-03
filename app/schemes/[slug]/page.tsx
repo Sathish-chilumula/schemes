@@ -17,6 +17,19 @@ function getCountryFullName(code: string): string {
 
 
 
+export async function generateStaticParams() {
+  const supabase = supabaseAdmin();
+  const { data: schemes } = await supabase
+    .from('schemes')
+    .select('slug')
+    .not('slug', 'is', null)
+    .eq('is_published', true);
+
+  return schemes?.map((scheme) => ({
+    slug: scheme.slug,
+  })) ?? [];
+}
+
 export async function generateMetadata({ 
   params 
 }: { 
@@ -172,7 +185,7 @@ export default async function SchemeDetailPage({
               )}
             </div>
             <h1 className="text-3xl md:text-4xl font-extrabold text-white leading-tight mb-2 drop-shadow-md">
-              {scheme.name}
+              {scheme.name} {new Date().getFullYear()}
             </h1>
             {lastUpdated && (
               <p className="text-slate-300 text-sm font-medium mt-1">
@@ -196,6 +209,13 @@ export default async function SchemeDetailPage({
             contentHi={scheme.content_hi}
             contentLocal={scheme.content_local}
             localLanguage={scheme.local_language}
+            // Fallbacks
+            fallbackWhatYouGet={scheme.what_you_get}
+            fallbackBenefitAmount={scheme.benefit_amount}
+            eligibilityList={eligibilityList}
+            howToApplyList={howToApplyList}
+            documents={documents}
+            schemeName={scheme.name}
           />
 
           {!scheme.content_en && !scheme.article_content && !scheme.what_you_get && (
@@ -224,54 +244,6 @@ export default async function SchemeDetailPage({
             )}
           </div>
         </div>
-
-        {eligibilityList.length > 0 && (
-          <div className="card p-6 mb-6">
-            <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
-              <span className="text-2xl">👤</span> Who Can Apply (Eligibility)
-            </h2>
-            <ul className="space-y-2">
-              {eligibilityList.map((item, i) => (
-                <li key={i} className="flex items-start gap-3 text-slate-700">
-                  <span className="mt-1 w-5 h-5 rounded-full bg-brand-50 text-brand-500 flex items-center justify-center flex-shrink-0 text-xs font-bold">✓</span>
-                  {String(item)}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {howToApplyList.length > 0 && (
-          <div className="card p-6 mb-6">
-            <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
-              <span className="text-2xl">📝</span> How to Apply
-            </h2>
-            <ol className="space-y-4">
-              {howToApplyList.map((step, i) => (
-                <li key={i} className="flex items-start gap-4">
-                  <span className="w-7 h-7 rounded-full bg-brand-500 text-white flex items-center justify-center flex-shrink-0 font-bold text-sm">{i + 1}</span>
-                  <span className="text-slate-700 mt-0.5">{String(step)}</span>
-                </li>
-              ))}
-            </ol>
-          </div>
-        )}
-
-        {documents.length > 0 && (
-          <div className="card p-6 mb-6">
-            <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
-              <span className="text-2xl">📂</span> Documents Required
-            </h2>
-            <div className="grid sm:grid-cols-2 gap-2">
-              {documents.map((doc, i) => (
-                <div key={i} className="flex items-center gap-3 bg-slate-50 rounded-xl px-4 py-2.5">
-                  <span className="text-slate-400">📄</span>
-                  <span className="text-slate-700 text-sm">{doc}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-6">
           <p className="text-amber-800 text-sm">

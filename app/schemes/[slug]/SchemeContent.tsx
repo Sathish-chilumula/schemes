@@ -8,9 +8,26 @@ interface SchemeContentProps {
   contentHi: string | null;
   contentLocal: string | null;
   localLanguage: string | null;
+  fallbackWhatYouGet?: string | null;
+  fallbackBenefitAmount?: string | null;
+  eligibilityList?: string[];
+  howToApplyList?: string[];
+  documents?: string[];
+  schemeName?: string;
 }
 
-export function SchemeContent({ contentEn, contentHi, contentLocal, localLanguage }: SchemeContentProps) {
+export function SchemeContent({ 
+  contentEn, 
+  contentHi, 
+  contentLocal, 
+  localLanguage,
+  fallbackWhatYouGet,
+  fallbackBenefitAmount,
+  eligibilityList = [],
+  howToApplyList = [],
+  documents = [],
+  schemeName = 'this scheme'
+}: SchemeContentProps) {
   const [lang, setLang] = useState('en');
 
   // Sync with URL search params on mount if available
@@ -51,10 +68,41 @@ export function SchemeContent({ contentEn, contentHi, contentLocal, localLanguag
     availableLangs.push({ code: localLanguage, label: LANG_LABELS[localLanguage] || localLanguage });
   }
 
+  // The generate-content LLM outputs 8 specific questions. 
+  // We map indices 0 through 4 to specific structured SEO headers.
+  const hasCleanStructure = qaSections.length >= 5;
+  const overview = hasCleanStructure ? qaSections[0] : null;
+  const eligibility = hasCleanStructure ? qaSections[1] : null;
+  const benefits = hasCleanStructure ? qaSections[2] : null;
+  const application = hasCleanStructure ? qaSections[3] : null;
+  const docs = hasCleanStructure ? qaSections[4] : null;
+  const faqs = hasCleanStructure ? qaSections.slice(5) : qaSections;
+
+  // JSON-LD FAQ Schema
+  const faqSchema = qaSections.length > 0 ? {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: qaSections.map(qa => ({
+      '@type': 'Question',
+      name: qa.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: qa.answer
+      }
+    }))
+  } : null;
+
   return (
-    <div className="mb-8">
+    <div className="mb-8 scheme-seo-article">
+      {faqSchema && (
+        <script 
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+        />
+      )}
+
       {availableLangs.length > 1 && (
-        <div className="flex gap-1 mb-6 bg-slate-100 p-1 rounded-xl w-fit">
+        <div className="flex gap-1 mb-8 bg-slate-100 p-1 rounded-xl w-fit">
           {availableLangs.map(l => (
             <button
               key={l.code}
@@ -79,29 +127,101 @@ export function SchemeContent({ contentEn, contentHi, contentLocal, localLanguag
         </div>
       )}
 
-      {qaSections.length > 0 ? (
-        <article className="space-y-6">
-          {qaSections.map((section, i) => (
-            <section key={i} className="border-b border-slate-100 pb-5 last:border-0 last:pb-0">
-              <h2 className="text-lg font-bold text-slate-900 mb-2 flex items-start gap-2">
-                <span className="w-7 h-7 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center flex-shrink-0 text-sm font-bold mt-0.5">
-                  {i + 1}
-                </span>
-                {section.question}
-              </h2>
-              <p className="text-slate-600 leading-relaxed pl-9">
-                {section.answer}
-              </p>
-            </section>
-          ))}
+      {activeContent ? (
+        <article className="prose prose-slate max-w-none prose-h2:text-slate-900 prose-h2:text-xl prose-h2:font-bold prose-h2:mt-10 prose-h2:mb-4">
+          
+          <p className="text-lg text-slate-700 leading-relaxed mb-6 font-medium">
+            {overview ? overview.answer : fallbackWhatYouGet || `Learn about ${schemeName} including benefits, eligibility, and how to apply.`}
+          </p>
+
+          <h2 className="flex items-center gap-2 border-b border-slate-100 pb-2">
+            <span className="text-2xl">🌟</span> Benefits
+          </h2>
+          <p className="text-slate-700 leading-relaxed">
+            {benefits ? benefits.answer : fallbackBenefitAmount || 'Not specified'}
+          </p>
+
+          <h2 className="flex items-center gap-2 border-b border-slate-100 pb-2">
+            <span className="text-2xl">👤</span> Eligibility Criteria
+          </h2>
+          {eligibility ? (
+            <p className="text-slate-700 leading-relaxed">{eligibility.answer}</p>
+          ) : eligibilityList.length > 0 ? (
+            <ul className="space-y-2 !pl-0">
+              {eligibilityList.map((item, i) => (
+                <li key={i} className="flex items-start gap-3 text-slate-700 list-none">
+                  <span className="mt-1 w-5 h-5 rounded-full bg-brand-50 text-brand-500 flex items-center justify-center flex-shrink-0 text-xs font-bold">✓</span>
+                  {String(item)}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-slate-500 italic">Eligibility details currently being updated.</p>
+          )}
+
+          <h2 className="flex items-center gap-2 border-b border-slate-100 pb-2">
+            <span className="text-2xl">📂</span> Required Documents
+          </h2>
+          {docs ? (
+             <p className="text-slate-700 leading-relaxed">{docs.answer}</p>
+          ) : documents.length > 0 ? (
+            <div className="grid sm:grid-cols-2 gap-2 not-prose">
+              {documents.map((doc, i) => (
+                <div key={i} className="flex items-center gap-3 bg-slate-50 rounded-xl px-4 py-2.5">
+                  <span className="text-slate-400">📄</span>
+                  <span className="text-slate-700 text-sm">{doc}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+             <p className="text-slate-500 italic">No specific documents listed.</p>
+          )}
+
+          <h2 className="flex items-center gap-2 border-b border-slate-100 pb-2">
+            <span className="text-2xl">📝</span> Application Process
+          </h2>
+          {application ? (
+            <p className="text-slate-700 leading-relaxed">{application.answer}</p>
+          ) : howToApplyList.length > 0 ? (
+            <ol className="space-y-4 !pl-0">
+              {howToApplyList.map((step, i) => (
+                <li key={i} className="flex items-start gap-4 list-none">
+                  <span className="w-7 h-7 rounded-full bg-brand-500 text-white flex items-center justify-center flex-shrink-0 font-bold text-sm">{i + 1}</span>
+                  <span className="text-slate-700 mt-0.5">{String(step)}</span>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p className="text-slate-500 italic">Visit the official website for application details.</p>
+          )}
+
+          {faqs.length > 0 && (
+             <>
+                <h2 className="flex items-center gap-2 border-b border-slate-100 pb-2 mt-12 mb-6">
+                  <span className="text-2xl">❓</span> Frequently Asked Questions
+                </h2>
+                <div className="space-y-6 not-prose">
+                  {faqs.map((faq, i) => (
+                    <div key={i} className="bg-slate-50 p-5 rounded-xl border border-slate-100">
+                      <h3 className="text-slate-900 font-bold mb-2 flex items-start gap-2 text-base">
+                        <span className="text-brand-500 font-extrabold mt-0.5">Q.</span> 
+                        {faq.question}
+                      </h3>
+                      <p className="text-slate-600 pl-6 leading-relaxed">
+                        {faq.answer}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+             </>
+          )}
         </article>
-      ) : activeContent ? (
-        <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed">
-          {activeContent.split('\n').map((line, i) => (
-            <p key={i}>{line}</p>
-          ))}
+      ) : (
+        <div className="prose prose-slate max-w-none text-slate-700">
+           {/* Ultimate fallback if no LLM data available but component is rendered */}
+           <p>{fallbackWhatYouGet}</p>
         </div>
-      ) : null}
+      )}
     </div>
   );
 }
