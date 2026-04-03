@@ -3,16 +3,22 @@ import { supabaseAdmin } from '@/lib/supabase';
 
 export const runtime = 'edge';
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 export async function POST(req: NextRequest) {
   try {
+    const GROQ_API_KEY = process.env.GROQ_API_KEY;
     if (!GROQ_API_KEY) {
+      console.error('Chat AI error: GROQ_API_KEY not configured');
       return NextResponse.json({ error: 'AI service not configured' }, { status: 500 });
     }
 
-    const { messages, userProfile } = await req.json();
+    const bodyText = await req.text();
+    if (!bodyText) {
+      return NextResponse.json({ error: 'Empty request body' }, { status: 400 });
+    }
+    
+    const { messages, userProfile } = JSON.parse(bodyText);
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json({ error: 'Invalid messages' }, { status: 400 });
