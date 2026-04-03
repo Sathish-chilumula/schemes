@@ -18,10 +18,11 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm install @supabase/supabase-js node-fetch
+        run: npm install @supabase/supabase-js node-fetch openai
 
       - name: Generate content for schemes
         env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}

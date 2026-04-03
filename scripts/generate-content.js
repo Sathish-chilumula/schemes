@@ -8,19 +8,27 @@
  */
 
 const { createClient } = require('@supabase/supabase-js');
+const OpenAI = require('openai');
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
-if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY || !GROQ_API_KEY) {
-  console.error("❌ Missing required environment variables. Ensure SUPABASE_URL, SUPABASE_SERVICE_KEY, and GROQ_API_KEY are set.");
+if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY || (!OPENAI_API_KEY && !GROQ_API_KEY)) {
+  console.error("❌ Missing required environment variables. Ensure SUPABASE_URL, SUPABASE_SERVICE_KEY, and at least one API key (OPENAI or GROQ) is set.");
   process.exit(1);
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-const MODELS = ['llama-3.1-8b-instant'];
+// Initialize OpenAI client (supports Groq as fallback via baseURL)
+const openai = new OpenAI({
+  apiKey: OPENAI_API_KEY || GROQ_API_KEY,
+  baseURL: OPENAI_API_KEY ? undefined : 'https://api.groq.com/openai/v1'
+});
+
+const MODELS = OPENAI_API_KEY ? ['gpt-4o-mini', 'gpt-4o'] : ['llama-3.1-8b-instant', 'llama-3.1-70b-versatile'];
 
 // Language maps
 const STATE_LANGUAGE_MAP = {
@@ -43,40 +51,26 @@ async function callLLM(prompt, retries = 3) {
   for (const model of MODELS) {
     for (let attempt = 0; attempt < retries; attempt++) {
       try {
-        const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${GROQ_API_KEY}`,
-          },
-          body: JSON.stringify({
-            model: model,
-            messages: [{ role: 'user', content: prompt }],
-            max_tokens: 1500, temperature: 0.4,
-          }),
+        const response = await openai.chat.completions.create({
+          model: model,
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 1500,
+          temperature: 0.4,
         });
 
-        if (res.status === 429) {
-          console.log(`     ⏳ Rate limited, waiting 6s...`);
-          await delay(6000);
-          continue;
-        }
-        
-        if (!res.ok) {
-          if (attempt < retries - 1) {
-            await delay(4000);
-            continue;
-          }
-          break;
-        }
-
-        const data = await res.json();
-        const content = data.choices?.[0]?.message?.content || '';
+        const content = response.choices?.[0]?.message?.content || '';
         if (content.length > 100) return content;
         
         await delay(2000);
       } catch (err) {
+        if (err.status === 429) {
+          console.log(`     ⏳ Rate limited, waiting 6s...`);
+          await delay(6000);
+          continue;
+        }
+
         if (attempt < retries - 1) {
+          console.log(`     ⚠️ Attempt ${attempt + 1} failed: ${err.message}. Retrying...`);
           await delay(4000);
           continue;
         }
