@@ -1,22 +1,14 @@
 /**
- * SchemeAtlas — Multilingual Content Generator
- * 
- * Generates Q&A articles for government schemes using Groq (LLaMA 3.1 8B).
- * Each scheme gets: English article + its OWN local language translation only.
- * 
- * Runs via GitHub Actions daily at 2am IST.
+ * One-time script: Generate Q&A content for all schemes
+ * Uses Groq API (super fast, high limits)
+ * Run: node scripts/run-migration-and-generate.js
  */
 
 const { createClient } = require('@supabase/supabase-js');
 
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
-
-if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY || !GROQ_API_KEY) {
-  console.error("❌ Missing required environment variables. Ensure SUPABASE_URL, SUPABASE_SERVICE_KEY, and GROQ_API_KEY are set.");
-  process.exit(1);
-}
+const SUPABASE_URL = process.env.SUPABASE_URL || 'YOUR_SUPABASE_URL';
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || 'YOUR_SERVICE_KEY';
+const GROQ_API_KEY = process.env.GROQ_API_KEY || 'YOUR_GROQ_KEY';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
@@ -63,6 +55,7 @@ async function callLLM(prompt, retries = 3) {
         }
         
         if (!res.ok) {
+          const errText = await res.text();
           if (attempt < retries - 1) {
             await delay(4000);
             continue;
@@ -83,8 +76,9 @@ async function callLLM(prompt, retries = 3) {
         break;
       }
     }
+    console.log(`     Trying next model...`);
   }
-  throw new Error('All models exhausted or failed');
+  throw new Error('All models exhausted');
 }
 
 function getLocalLanguage(scheme) {
@@ -98,38 +92,38 @@ function getLocalLanguage(scheme) {
 }
 
 async function main() {
-  console.log('🚀 Automated Scheme Content Generator (Groq LLaMA)');
+  console.log('🚀 SchemeAtlas Content Generator (Groq LLaMA 3.3)');
   console.log('━'.repeat(55));
   
-  // Fetch up to 25 schemes without English content
+  // Fetch schemes without content
   const { data: schemes, error } = await supabase
     .from('schemes')
     .select('*')
     .is('content_en', null)
     .eq('is_published', true)
-    .limit(25);
+    .limit(30);  // Larger batch on Groq
   
   if (error) { console.error('❌ Fetch error:', error.message); process.exit(1); }
   if (!schemes || schemes.length === 0) {
-    console.log('✅ All schemes already have content! Nothing to do.');
+    console.log('✅ All schemes already have content!');
     process.exit(0);
   }
   
-  console.log(`📋 Found ${schemes.length} schemes needing content.\n`);
+  console.log(`📋 Generating content for ${schemes.length} schemes.\n`);
   
-  let successCount = 0;
-  let failCount = 0;
+  let success = 0, fail = 0;
   
   for (let i = 0; i < schemes.length; i++) {
     const scheme = schemes[i];
     const localLang = getLocalLanguage(scheme);
-    const localLangName = localLang ? LANGUAGE_NAMES[localLang] : null;
+    const localName = localLang ? LANGUAGE_NAMES[localLang] : null;
     
-    console.log(`[${i+1}/${schemes.length}] 📝 Generating for: ${scheme.name}`);
-    console.log(`   Country: ${scheme.country_code} | Local: ${localLangName || 'English only'}`);
+    console.log(`[${i+1}/${schemes.length}] 📝 ${scheme.name}`);
+    console.log(`   Country: ${scheme.country_code} | Local: ${localName || 'English only'}`);
     
     try {
-      const eligStr = typeof scheme.eligibility === 'object' ? JSON.stringify(scheme.eligibility) : scheme.eligibility || 'Not specified';
+      const eligStr = typeof scheme.eligibility === 'object' 
+        ? JSON.stringify(scheme.eligibility) : scheme.eligibility || 'Not specified';
       
       const enPrompt = `Write a government scheme guide in Q&A format for citizens with these exact questions:
 1. What is ${scheme.name}?
@@ -141,16 +135,24 @@ async function main() {
 7. What is the last date to apply?
 8. Is ${scheme.name} still available in 2025?
 
-For each question write a clear answer in 2-4 sentences. Write for ordinary citizens in simple language. Keep total under 700 words. Be factual.\n\nScheme details:\nName: ${scheme.name}\nCountry: ${scheme.country_code}\nEligibility: ${eligStr}\nBenefit: ${scheme.benefit_amount || 'Not specified'}\nCategory: ${scheme.category || 'Not specified'}`;
+For each question write a clear answer in 2-4 sentences. Write for ordinary citizens in simple language. Keep total under 700 words. Be factual.
 
-      console.log('   ⏳ Generating English content...');
+Scheme details:
+Name: ${scheme.name}
+Country: ${scheme.country_code}
+Eligibility: ${eligStr}
+Benefit: ${scheme.benefit_amount || 'Not specified'}
+Category: ${scheme.category || 'Not specified'}`;
+
+      console.log('   ⏳ Generating English...');
       const contentEn = await callLLM(enPrompt);
+      
       if (!contentEn || contentEn.length < 200) {
-        console.log(`   ⚠️ English content generation failed or too short. Skipping.`);
-        failCount++;
+        console.log(`   ⚠️ Too short (${contentEn?.length || 0} chars). Skipping.`);
+        fail++;
         continue;
       }
-      console.log(`   ✅ English: \${contentEn.length} chars`);
+      console.log(`   ✅ English: ${contentEn.length} chars`);
       
       let contentLocal = null;
       let contentHi = null;
@@ -158,11 +160,15 @@ For each question write a clear answer in 2-4 sentences. Write for ordinary citi
       if (localLang && localLang !== 'en') {
         const langName = LANGUAGE_NAMES[localLang];
         console.log(`   ⏳ Translating to ${langName}...`);
-        const localPrompt = `Translate this Q&A scheme guide to ${langName}. Keep every question as a question in ${langName}. Keep all numbers, amounts, dates and URLs unchanged. Do not remove any section:\n\n${contentEn}`;
-        const translated = await callLLM(localPrompt);
+        const translated = await callLLM(
+          `Translate this Q&A guide to ${langName}. Keep numbers, amounts, dates, URLs unchanged. Keep question format:\n\n${contentEn}`
+        );
         
-        if (localLang === 'hi') { contentHi = translated; }
-        else { contentLocal = translated; }
+        if (localLang === 'hi') {
+          contentHi = translated;
+        } else {
+          contentLocal = translated;
+        }
         console.log(`   ✅ ${langName}: ${translated?.length || 0} chars`);
       }
       
@@ -173,23 +179,26 @@ For each question write a clear answer in 2-4 sentences. Write for ordinary citi
           content_hi: contentHi,
           content_local: contentLocal,
           local_language: localLang || null,
-          last_updated: new Date().toISOString()
+          last_updated: new Date().toISOString(),
         })
         .eq('id', scheme.id);
-        
-      if (upErr) throw upErr;
-      console.log(`   ✅ Successfully saved to database!`);
-      successCount++;
       
+      if (upErr) {
+        console.log(`   ❌ DB error: ${upErr.message}`);
+        fail++;
+      } else {
+        console.log(`   ✅ Saved to database!`);
+        success++;
+      }
     } catch (err) {
-      console.error(`   ❌ Failed:`, err.message);
-      failCount++;
+      console.error(`   ❌ Error: ${err.message}`);
+      fail++;
     }
     console.log('');
   }
   
   console.log('━'.repeat(55));
-  console.log(`🏁 Finished run! Success: ${successCount} | Failed: ${failCount}`);
+  console.log(`🏁 Batch done! Success: ${success} | Failed: ${fail}`);
 }
 
-main().catch(e => { console.error('💥 Fatal error:', e); process.exit(1); });
+main().catch(e => { console.error('💥', e); process.exit(1); });
