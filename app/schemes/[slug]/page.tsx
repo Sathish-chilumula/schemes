@@ -6,8 +6,6 @@ import { COUNTRIES, CATEGORIES, LANG_LABELS } from '@/lib/config';
 import { Metadata } from 'next';
 import { SchemeContent } from './SchemeContent';
 
-export const runtime = 'edge';
-
 function getCountryFullName(code: string): string {
   const map: Record<string, string> = {
     IN: 'India', GB: 'United Kingdom', US: 'United States', NG: 'Nigeria', KE: 'Kenya',
