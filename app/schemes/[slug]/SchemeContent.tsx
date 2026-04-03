@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { LANG_LABELS } from './page';
+import { LANG_LABELS } from '@/lib/config';
 
 interface SchemeContentProps {
   contentEn: string | null;
