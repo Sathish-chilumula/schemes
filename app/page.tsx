@@ -2,8 +2,6 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { HomeClient } from './HomeClient';
 import { Metadata } from 'next';
 
-export const runtime = 'edge';
-
 export const metadata: Metadata = {
   title: 'SchemeAtlas | Find Government Benefits Instantly',
   description: 'Instantly find government benefits, schemes, and financial aid you qualify for. Use our free AI eligibility checker across thousands of schemes.',

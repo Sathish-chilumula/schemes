@@ -1,5 +1,3 @@
-export const runtime = 'edge';
-
-export default function EdgeLayout({ children }: { children: React.ReactNode }) {
+export default function SchemeLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }

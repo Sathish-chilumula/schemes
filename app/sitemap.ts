@@ -2,8 +2,6 @@ import { MetadataRoute } from 'next';
 import { supabaseAdmin } from '@/lib/supabase';
 import { COUNTRIES } from '@/lib/config';
 
-export const runtime = 'edge';
-
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://schemeatlas.com';
   
