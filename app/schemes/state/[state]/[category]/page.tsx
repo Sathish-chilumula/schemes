@@ -40,12 +40,12 @@ export async function generateMetadata({
     title,
     description,
     alternates: {
-      canonical: `https://schemeatlas.com/schemes/${resolvedParams.state}/${resolvedParams.category}`,
+      canonical: `https://schemeatlas.com/schemes/state/${resolvedParams.state}/${resolvedParams.category}`,
     },
     openGraph: {
       title,
       description,
-      url: `https://schemeatlas.com/schemes/${resolvedParams.state}/${resolvedParams.category}`,
+      url: `https://schemeatlas.com/schemes/state/${resolvedParams.state}/${resolvedParams.category}`,
       type: 'website',
     },
   };
@@ -106,7 +106,7 @@ export default async function PSEOPage({
             <span className="mx-2">/</span>
             <Link href="/schemes" className="hover:underline">Schemes</Link>
             <span className="mx-2">/</span>
-            <Link href={`/schemes/${resolvedParams.state}`} className="hover:underline">{stateObj.name}</Link>
+            <Link href={`/schemes/state/${resolvedParams.state}`} className="hover:underline">{stateObj.name}</Link>
           </nav>
           
           <h1 className="text-4xl md:text-5xl font-extrabold mb-6 leading-tight">

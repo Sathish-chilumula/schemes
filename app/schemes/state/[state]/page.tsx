@@ -26,12 +26,12 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
     title,
     description,
     alternates: {
-      canonical: `https://schemeatlas.com/schemes/${resolvedParams.state}`,
+      canonical: `https://schemeatlas.com/schemes/state/${resolvedParams.state}`,
     },
     openGraph: {
       title,
       description,
-      url: `https://schemeatlas.com/schemes/${resolvedParams.state}`,
+      url: `https://schemeatlas.com/schemes/state/${resolvedParams.state}`,
       siteName: 'SchemeAtlas',
       type: 'website',
     },
@@ -51,9 +51,17 @@ export default async function StateHubPage({ params }: { params: Promise<{ state
     <main className="min-h-screen bg-slate-50">
       <Navbar />
       
-      {/* Hero Section */}
-      <div className="bg-blue-600 text-white py-16">
+      {/* Hero Section & Breadcrumbs */}
+      <div className="bg-blue-600 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 text-center">
+          <nav className="text-blue-100 text-sm mb-6 uppercase tracking-wider font-semibold">
+            <Link href="/" className="hover:underline">Home</Link>
+            <span className="mx-2">/</span>
+            <Link href="/schemes" className="hover:underline">Schemes</Link>
+            <span className="mx-2">/</span>
+            <span className="text-white">{stateObj.name}</span>
+          </nav>
+          
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
             Government Schemes in {stateObj.name} (2026)
           </h1>
@@ -73,7 +81,7 @@ export default async function StateHubPage({ params }: { params: Promise<{ state
           {categories.map((cat) => (
             <Link 
               key={cat}
-              href={`/schemes/${resolvedParams.state}/${slugify(cat)}`}
+              href={`/schemes/state/${resolvedParams.state}/${slugify(cat)}`}
               className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-all border border-slate-200 group"
             >
               <h3 className="text-xl font-semibold text-blue-600 mb-2 capitalize group-hover:underline">
