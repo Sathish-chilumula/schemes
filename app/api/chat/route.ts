@@ -34,7 +34,7 @@ Rules:
 - The user profile might already have their country, use that if they don't specify one!${userContextStr}`;
 
     const recentMessages = messages.slice(-10);
-    const groqMessages = [
+    const groqMessages: any[] = [
       { role: 'system', content: systemPrompt },
       ...recentMessages.map((msg: { role: string; content: string }) => ({
         role: msg.role === 'assistant' ? 'assistant' : 'user',
