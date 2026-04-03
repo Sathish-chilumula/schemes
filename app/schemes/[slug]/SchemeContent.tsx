@@ -78,28 +78,8 @@ export function SchemeContent({
   const docs = hasCleanStructure ? qaSections[4] : null;
   const faqs = hasCleanStructure ? qaSections.slice(5) : qaSections;
 
-  // JSON-LD FAQ Schema
-  const faqSchema = qaSections.length > 0 ? {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: qaSections.map(qa => ({
-      '@type': 'Question',
-      name: qa.question,
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: qa.answer
-      }
-    }))
-  } : null;
-
   return (
     <div className="mb-8 scheme-seo-article">
-      {faqSchema && (
-        <script 
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-        />
-      )}
 
       {availableLangs.length > 1 && (
         <div className="flex gap-1 mb-8 bg-slate-100 p-1 rounded-xl w-fit">

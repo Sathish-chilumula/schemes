@@ -138,6 +138,40 @@ export default async function SchemeDetailPage({
     url: `https://schemeatlas.com/schemes/${scheme.slug}`,
   };
 
+  const parseQAContent = (content: string) => {
+    if (!content) return [];
+    const sections: { question: string; answer: string }[] = [];
+    const parts = content.split(/(?=(?:\*\*?)?(?:Q\d+:|\d+\.)\s*)/i);
+    for (const part of parts) {
+      const trimmed = part.trim();
+      if (!trimmed) continue;
+      const lines = trimmed.split('\n');
+      const questionLine = lines[0]?.trim() || '';
+      const answerLines = lines.slice(1).join('\n').trim();
+      if (questionLine && answerLines) {
+        const question = questionLine.replace(/^\d+\.\s*/, '').replace(/\*\*/g, '').replace(/Q\d+:\s*/i, '').trim();
+        const answer = answerLines.replace(/\*\*/g, '').trim();
+        if (question.length > 3) sections.push({ question, answer });
+      }
+    }
+    return sections;
+  };
+
+  const qaSections = scheme.content_en ? parseQAContent(scheme.content_en) : [];
+  
+  const faqSchema = qaSections.length > 0 ? {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: qaSections.map(qa => ({
+      '@type': 'Question',
+      name: qa.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: qa.answer
+      }
+    }))
+  } : null;
+
   return (
     <div className="min-h-screen">
       <Navbar />
@@ -146,6 +180,12 @@ export default async function SchemeDetailPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      {faqSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+        />
+      )}
 
       <div className="page-container py-8 max-w-3xl mx-auto">
         <div className="flex items-center gap-2 text-sm text-slate-400 mb-6 flex-wrap">
