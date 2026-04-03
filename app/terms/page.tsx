@@ -1,4 +1,10 @@
 import { Navbar } from '@/components/Navbar';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Terms of Service | SchemeAtlas Global Platform',
+  description: 'Read the official terms of service for the SchemeAtlas platform. Learn about your rights and responsibilities when discovering government schemes.',
+};
 
 export default function Terms() {
   return (

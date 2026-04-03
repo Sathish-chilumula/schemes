@@ -1,4 +1,10 @@
 import { Navbar } from '@/components/Navbar';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy | SchemeAtlas Global Data Protection',
+  description: 'Understand how we protect your personal data when searching for government schemes. We are committed to transparency and privacy.',
+};
 
 export default function PrivacyPolicy() {
   return (

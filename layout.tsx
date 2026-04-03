@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'SchemeAtlas — Find Government Benefits You Qualify For',
-  description: 'Discover every government scheme and benefit you qualify for. Free. In your language. For 50+ countries worldwide.',
+  title: 'SchemeAtlas 2026 — Find Government Benefits & Schemes You Qualify For',
+  description: 'Discover every government scheme and benefit you qualify for in 2026. Free. In your language. For 50+ countries worldwide.',
   keywords: 'government schemes, benefits, welfare, financial assistance, eligibility checker',
   openGraph: {
     title: 'SchemeAtlas — Find Government Benefits You Qualify For',

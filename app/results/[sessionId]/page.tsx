@@ -1,8 +1,20 @@
 import { notFound } from 'next/navigation';
 import { supabaseAdmin } from '@/lib/supabase';
 import { ResultsClient } from './ResultsClient';
+import { Metadata } from 'next';
 
 export const runtime = 'edge';
+
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: `Your Personalized Eligibility Results | SchemeAtlas`,
+    description: `View the specific government schemes you qualify for based on your profile for 2026.`,
+    robots: {
+      index: false,
+      follow: false,
+    },
+  };
+}
 
 export default async function ResultsPage({ params }: { params: Promise<{ sessionId: string }> }) {
   const { sessionId } = await params;

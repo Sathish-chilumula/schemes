@@ -1,4 +1,10 @@
 import { Navbar } from '@/components/Navbar';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Contact Us | SchemeAtlas Support & Inquiries',
+  description: 'Have questions or suggestions for SchemeAtlas? Reach out to our team for support, feature requests, or to suggest new government schemes globally.',
+};
 
 export default function Contact() {
   return (

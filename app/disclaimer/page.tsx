@@ -1,4 +1,10 @@
 import { Navbar } from '@/components/Navbar';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Disclaimer | SchemeAtlas Non-Governmental Platform',
+  description: 'Read the official SchemeAtlas disclaimer. We provide independent information based on public data sources and are not affiliated with any government agency.',
+};
 
 export default function Disclaimer() {
   return (

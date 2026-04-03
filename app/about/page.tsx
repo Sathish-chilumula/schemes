@@ -1,5 +1,11 @@
 import { Navbar } from '@/components/Navbar';
 import Link from 'next/link';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'About SchemeAtlas – Transforming Benefit Discovery with AI',
+  description: 'Learn about SchemeAtlas, our mission to simplify government schemes, and how we use AI to help citizens across 50+ countries find financial aid.',
+};
 
 export default function About() {
   return (
