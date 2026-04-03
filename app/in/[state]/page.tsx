@@ -38,11 +38,7 @@ const STATE_MAPPING: Record<string, { code: string, name: string }> = {
   'west-bengal': { code: 'WB', name: 'West Bengal' }
 };
 
-export async function generateStaticParams() {
-  return Object.keys(STATE_MAPPING).map((state) => ({
-    state,
-  }));
-}
+
 
 export async function generateMetadata({ params }: { params: Promise<{ state: string }> }): Promise<Metadata> {
   const { state } = await params;

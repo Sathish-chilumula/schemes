@@ -15,18 +15,7 @@ function getCountryFullName(code: string): string {
   return map[code] || code;
 }
 
-export async function generateStaticParams() {
-  const supabase = supabaseAdmin();
-  const { data: schemes } = await supabase
-    .from('schemes')
-    .select('slug')
-    .not('slug', 'is', null)
-    .eq('is_published', true);
 
-  return schemes?.map((scheme) => ({
-    slug: scheme.slug,
-  })) ?? [];
-}
 
 export async function generateMetadata({ 
   params 
