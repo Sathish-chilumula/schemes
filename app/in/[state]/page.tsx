@@ -5,6 +5,7 @@ import { Navbar } from '@/components/Navbar';
 import { SchemeCard } from '@/components/SchemeCard';
 import { Metadata } from 'next';
 
+export const runtime = 'edge';
 
 const STATE_MAPPING: Record<string, { code: string, name: string }> = {
   'andhra-pradesh': { code: 'AP', name: 'Andhra Pradesh' },
