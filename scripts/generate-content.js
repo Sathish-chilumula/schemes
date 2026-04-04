@@ -113,6 +113,7 @@ async function main() {
     return !s.content_en || 
            s.content_en.length < 300 || 
            !(s.content_en.includes('Q:') && s.content_en.includes('A:')) ||
+           !s.content_en.includes('About the Scheme') ||
            missingHi || 
            missingLocal;
   }).slice(0, 100);
@@ -138,8 +139,9 @@ async function main() {
     try {
       const eligStr = typeof scheme.eligibility === 'object' ? JSON.stringify(scheme.eligibility) : scheme.eligibility || 'Not specified';
       
-      const enPrompt = `Write a government scheme guide in strict Q&A format for citizens using exactly these 8 questions:
-Q: What is ${scheme.name}?
+      const enPrompt = `Write a comprehensive government scheme guide for citizens.
+First, write a section titled "About the Scheme" with 1-2 paragraphs explaining what the scheme is, its purpose, and its major benefits. Let the heading exactly be "### About the Scheme".
+Then, write a Q&A section using EXACTLY these 7 questions:
 Q: Who is eligible for ${scheme.name}?
 Q: How much benefit will you get?
 Q: How to apply for ${scheme.name}?
@@ -149,11 +151,11 @@ Q: What is the last date to apply?
 Q: Is ${scheme.name} still active and available?
 
 Rules:
-- Prefix every single question with EXACTLY "Q: " (do not use numbers).
-- Prefix every single answer with EXACTLY "A: ".
+- Under the Q&A section, prefix every single question with EXACTLY "Q: " (do not use numbers).
+- Under the Q&A section, prefix every single answer with EXACTLY "A: ".
 - Write a clear, short answer in 2-4 sentences for each.
-- Do NOT use any markdown symbols like **, ##, or bullet points. Use plain text.
-- Keep the total output under 600 words.
+- Do NOT use any markdown formatting except for the "### About the Scheme" title. No bolding text inside answers.
+- Keep the total output under 700 words.
 - Be factual and simple.
 
 Scheme details:
@@ -164,7 +166,7 @@ Benefit: ${scheme.benefit_amount || 'Not specified'}
 Category: ${scheme.category || 'Not specified'}`;
 
       let contentEn = scheme.content_en;
-      const needsEn = !contentEn || contentEn.length < 300 || !(contentEn.includes('Q:') && contentEn.includes('A:'));
+      const needsEn = !contentEn || contentEn.length < 300 || !(contentEn.includes('Q:') && contentEn.includes('A:')) || !contentEn.includes('About the Scheme');
 
       if (needsEn) {
         console.log('   ⏳ Generating English content...');
@@ -189,12 +191,12 @@ Category: ${scheme.category || 'Not specified'}`;
 
         if (needsLocalTranslation) {
           console.log(`   ⏳ Translating to ${langName}...`);
-          const localPrompt = `Translate this strict Q&A scheme guide to ${langName}.
+          const localPrompt = `Translate this comprehensive scheme guide to ${langName}.
 Rules:
 - Keep the exact prefixes "Q:" and "A:" in English (do not translate these prefixes).
-- Translate the question and answer text accurately to ${langName}.
+- Translate the question and answer text, and the "About the Scheme" paragraphs accurately to ${langName}.
 - Keep all numbers, amounts, dates, and URLs unchanged.
-- Do not use markdown like ** or ##.\n\nOriginal:\n${contentEn}`;
+- Do not use markdown like **. Keep "### About the Scheme" as plain text or simple headers.\n\nOriginal:\n${contentEn}`;
           const translated = await callLLM(localPrompt);
           
           if (localLang === 'hi') { contentHi = translated; }
