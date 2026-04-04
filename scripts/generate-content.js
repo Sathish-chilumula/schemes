@@ -104,9 +104,18 @@ async function main() {
   
   if (error) { console.error('❌ Fetch error:', error.message); process.exit(1); }
   
-  const schemes = allSchemes.filter(s => 
-    !s.content_en || !(s.content_en.includes('Q:') && s.content_en.includes('A:'))
-  ).slice(0, 15);
+  const schemes = allSchemes.filter(s => {
+    const local = getLocalLanguage(s);
+    const needsTranslation = local && local !== 'en';
+    const missingHi = needsTranslation && local === 'hi' && !s.content_hi;
+    const missingLocal = needsTranslation && local !== 'hi' && !s.content_local;
+
+    return !s.content_en || 
+           s.content_en.length < 300 || 
+           !(s.content_en.includes('Q:') && s.content_en.includes('A:')) ||
+           missingHi || 
+           missingLocal;
+  }).slice(0, 100);
 
   if (!schemes || schemes.length === 0) {
     console.log('✅ All schemes already have Q&A content! Nothing to do.');
@@ -154,32 +163,46 @@ Eligibility: ${eligStr}
 Benefit: ${scheme.benefit_amount || 'Not specified'}
 Category: ${scheme.category || 'Not specified'}`;
 
-      console.log('   ⏳ Generating English content...');
-      const contentEn = await callLLM(enPrompt);
-      if (!contentEn || contentEn.length < 200) {
-        console.log(`   ⚠️ English content generation failed or too short. Skipping.`);
-        failCount++;
-        continue;
+      let contentEn = scheme.content_en;
+      const needsEn = !contentEn || contentEn.length < 300 || !(contentEn.includes('Q:') && contentEn.includes('A:'));
+
+      if (needsEn) {
+        console.log('   ⏳ Generating English content...');
+        contentEn = await callLLM(enPrompt);
+        if (!contentEn || contentEn.length < 200) {
+          console.log(`   ⚠️ English content generation failed or too short. Skipping.`);
+          failCount++;
+          continue;
+        }
+        console.log(`   ✅ English generated: ${contentEn.length} chars`);
+      } else {
+        console.log(`   ✅ English content already valid (${contentEn.length} chars)`);
       }
-      console.log(`   ✅ English: \${contentEn.length} chars`);
       
-      let contentLocal = null;
-      let contentHi = null;
+      let contentLocal = scheme.content_local;
+      let contentHi = scheme.content_hi;
       
       if (localLang && localLang !== 'en') {
         const langName = LANGUAGE_NAMES[localLang];
-        console.log(`   ⏳ Translating to ${langName}...`);
-        const localPrompt = `Translate this strict Q&A scheme guide to ${langName}.
+        
+        const needsLocalTranslation = (localLang === 'hi' && !contentHi) || (localLang !== 'hi' && !contentLocal) || needsEn;
+
+        if (needsLocalTranslation) {
+          console.log(`   ⏳ Translating to ${langName}...`);
+          const localPrompt = `Translate this strict Q&A scheme guide to ${langName}.
 Rules:
 - Keep the exact prefixes "Q:" and "A:" in English (do not translate these prefixes).
 - Translate the question and answer text accurately to ${langName}.
 - Keep all numbers, amounts, dates, and URLs unchanged.
 - Do not use markdown like ** or ##.\n\nOriginal:\n${contentEn}`;
-        const translated = await callLLM(localPrompt);
-        
-        if (localLang === 'hi') { contentHi = translated; }
-        else { contentLocal = translated; }
-        console.log(`   ✅ ${langName}: ${translated?.length || 0} chars`);
+          const translated = await callLLM(localPrompt);
+          
+          if (localLang === 'hi') { contentHi = translated; }
+          else { contentLocal = translated; }
+          console.log(`   ✅ ${langName} translated: ${translated?.length || 0} chars`);
+        } else {
+          console.log(`   ✅ ${langName} translation already exists`);
+        }
       }
       
       const { error: upErr } = await supabase

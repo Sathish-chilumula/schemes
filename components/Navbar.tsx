@@ -240,7 +240,7 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
             )}
 
             <Link
-              href="/IN/check"
+              href="/in/check"
               onClick={() => setMobileMenuOpen(false)}
               className="block sm:hidden btn-primary text-center text-sm py-3 px-5 mt-3"
             >

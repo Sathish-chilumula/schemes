@@ -99,7 +99,7 @@ export function HomeClient({
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up delay-300">
-            <Link href="/IN/check" className="w-full sm:w-auto btn-primary text-lg px-8 py-4 !rounded-2xl shadow-xl shadow-brand-500/20">
+            <Link href="/in/check" className="w-full sm:w-auto btn-primary text-lg px-8 py-4 !rounded-2xl shadow-xl shadow-brand-500/20">
               Check My Eligibility Free
             </Link>
             <Link href="/schemes" className="w-full sm:w-auto btn-secondary text-lg px-8 py-4 !rounded-2xl !bg-white/10 !border-white/20 !text-white hover:!bg-white/20 hover:!border-white/30 backdrop-blur-md">
@@ -201,12 +201,12 @@ export function HomeClient({
           <section id="categories" className="page-container mb-20">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Browse by <span className="text-brand-500">Category</span></h2>
-              <Link href="/IN" className="text-brand-500 font-semibold hover:text-brand-600 transition-colors hidden sm:block">See all categories →</Link>
+              <Link href="/in" className="text-brand-500 font-semibold hover:text-brand-600 transition-colors hidden sm:block">See all categories →</Link>
             </div>
             
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
               {socialCategories.map((cat, i) => (
-                <Link key={i} href={`/IN?category=${cat.name}`} className="group relative overflow-hidden rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                <Link key={i} href={`/in?category=${cat.name}`} className="group relative overflow-hidden rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
                   {/* Gradient Background */}
                   <div className={`absolute inset-0 bg-gradient-to-br ${cat.color} opacity-90 group-hover:opacity-100 transition-opacity`}></div>
                   {/* Fancy pattern overlay */}
@@ -263,7 +263,7 @@ export function HomeClient({
           <section id="states" className="page-container mb-20">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Browse by <span className="text-brand-500">State</span></h2>
-              <Link href="/IN" className="text-brand-500 font-semibold hover:text-brand-600 transition-colors hidden sm:block">See all 28 states →</Link>
+              <Link href="/in" className="text-brand-500 font-semibold hover:text-brand-600 transition-colors hidden sm:block">See all 28 states →</Link>
             </div>
             
             <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
@@ -343,7 +343,7 @@ export function HomeClient({
             <Link href="/" className="hover:text-white transition-colors">Home</Link>
             <Link href="/schemes" className="hover:text-white transition-colors">Schemes</Link>
             <Link href="/saved" className="hover:text-white transition-colors">Saved</Link>
-            <Link href="/IN/check" className="hover:text-white transition-colors">Eligibility Checker</Link>
+            <Link href="/in/check" className="hover:text-white transition-colors">Eligibility Checker</Link>
           </div>
           <div className="flex flex-wrap justify-center gap-4 text-xs font-semibold text-slate-500">
             <Link href="/about" className="hover:text-slate-300 transition-colors">About Us</Link>
