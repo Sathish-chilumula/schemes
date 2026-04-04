@@ -113,7 +113,9 @@ async function main() {
     return !s.content_en || 
            s.content_en.length < 300 || 
            !(s.content_en.includes('Q:') && s.content_en.includes('A:')) ||
-           !s.content_en.includes('About the Scheme') ||
+           s.content_en.indexOf('Q:') < 100 ||
+           s.content_en.includes('**') ||
+           s.content_en.includes('#') ||
            missingHi || 
            missingLocal;
   }).slice(0, 100);
@@ -166,7 +168,8 @@ Benefit: ${scheme.benefit_amount || 'Not specified'}
 Category: ${scheme.category || 'Not specified'}`;
 
       let contentEn = scheme.content_en;
-      const needsEn = !contentEn || contentEn.length < 300 || !(contentEn.includes('Q:') && contentEn.includes('A:')) || contentEn.includes('**') || contentEn.includes('#');
+      const hasOverview = contentEn && contentEn.indexOf('Q:') > 100;
+      const needsEn = !contentEn || contentEn.length < 300 || !(contentEn.includes('Q:') && contentEn.includes('A:')) || contentEn.includes('**') || contentEn.includes('#') || !hasOverview;
 
       if (needsEn) {
         console.log('   ⏳ Generating English content...');
