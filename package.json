@@ -13,6 +13,7 @@
     "deploy": "npm run pages:build && wrangler pages deploy .vercel/output/static",
     "agents:find": "node agents/findSchemes.js",
     "agents:social": "node agents/postSocial.js",
+    "agents:generate": "node scripts/generate-content.js",
     "postbuild": "next-sitemap"
   },
   "dependencies": {
