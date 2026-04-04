@@ -183,11 +183,34 @@ Category: ${scheme.category || 'Not specified'}`;
       
       let contentLocal = scheme.content_local;
       let contentHi = scheme.country_code === 'IN' ? scheme.content_hi : null;
+      let dbLocalLanguage = scheme.local_language;
       
-      if (localLang && localLang !== 'en') {
-        const langName = LANGUAGE_NAMES[localLang];
+      let requiredTranslations = [];
+      if (scheme.country_code === 'IN') {
+        const sc = scheme.state_code || scheme.state_region;
+        const isCentral = scheme.is_central || !sc;
         
-        const needsLocalTranslation = (localLang === 'hi' && !contentHi) || (localLang !== 'hi' && !contentLocal) || needsEn;
+        if (isCentral) {
+           requiredTranslations = ['hi', 'te'];
+        } else {
+           const stateLang = STATE_LANGUAGE_MAP[sc] || 'hi';
+           requiredTranslations = [stateLang];
+           if (stateLang !== 'hi') contentHi = null; // Clean up mistaken Hindi if it's a non-Hindi state
+        }
+      } else {
+        const foreignLang = COUNTRY_LANGUAGE_MAP[scheme.country_code];
+        if (foreignLang) requiredTranslations.push(foreignLang);
+      }
+
+      // Filter out 'en' if it somehow gets in
+      requiredTranslations = requiredTranslations.filter(lang => lang !== 'en');
+
+      for (const lang of requiredTranslations) {
+        const langName = LANGUAGE_NAMES[lang];
+        if (!langName) continue;
+
+        const isHi = lang === 'hi';
+        const needsLocalTranslation = (isHi && !contentHi) || (!isHi && !contentLocal) || needsEn;
 
         if (needsLocalTranslation) {
           console.log(`   ⏳ Translating to ${langName}...`);
@@ -199,8 +222,12 @@ Rules:
 - NEVER use asterisks (**), hashes (#), or markdown formatting of any kind.\n\nOriginal:\n${contentEn}`;
           const translated = await callLLM(localPrompt);
           
-          if (localLang === 'hi') { contentHi = translated; }
-          else { contentLocal = translated; }
+          if (isHi) { 
+            contentHi = translated; 
+          } else { 
+            contentLocal = translated; 
+            dbLocalLanguage = lang; // Store which local language we used
+          }
           console.log(`   ✅ ${langName} translated: ${translated?.length || 0} chars`);
         } else {
           console.log(`   ✅ ${langName} translation already exists`);
@@ -213,7 +240,7 @@ Rules:
           content_en: contentEn,
           content_hi: contentHi,
           content_local: contentLocal,
-          local_language: localLang || null,
+          local_language: dbLocalLanguage,
           last_updated: new Date().toISOString()
         })
         .eq('id', scheme.id);
