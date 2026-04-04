@@ -30,8 +30,8 @@ let geminiModel = null;
 if (geminiKey) {
   try {
     genAI = new GoogleGenerativeAI(geminiKey);
-    // Use gemini-1.5-flash for Tier 1
-    geminiModel = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    // Use gemini-2.0-flash for Tier 1
+    geminiModel = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
   } catch (e) {
     console.warn('⚠️ Gemini SDK init failed, will use fallbacks.');
   }
@@ -56,16 +56,17 @@ async function generateAICompletion(prompt) {
   // --- TIER 2: OPENROUTER ---
   if (openRouterKey) {
     try {
-      console.log('🤖 Attempting Tier 2: OpenRouter (Gemini 2.0 Flash stable)...');
+      console.log('🤖 Attempting Tier 2: OpenRouter...');
       const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-        model: 'google/gemini-2.0-flash-001',
+        model: 'google/gemini-2.0-flash-exp:free',
         messages: [{ role: 'user', content: prompt }]
       }, {
         headers: { 
           'Authorization': `Bearer ${openRouterKey}`,
           'HTTP-Referer': 'https://claimit.pages.dev',
           'X-Title': 'ClaimIt Scheme Atlas'
-        }
+        },
+        timeout: 15000 // IMPORTANT to avoid 30 min hang
       });
       const text = response.data?.choices?.[0]?.message?.content?.trim();
       if (text) return text;
@@ -82,7 +83,8 @@ async function generateAICompletion(prompt) {
         model: 'llama-3.1-8b-instant',
         messages: [{ role: 'user', content: prompt }]
       }, {
-        headers: { 'Authorization': `Bearer ${groqKey}` }
+        headers: { 'Authorization': `Bearer ${groqKey}` },
+        timeout: 15000
       });
       const text = response.data?.choices?.[0]?.message?.content?.trim();
       if (text) return text;
@@ -91,7 +93,7 @@ async function generateAICompletion(prompt) {
     }
   }
 
-  throw new Error('All AI providers failed to generate a response.');
+  return ""; // Failsafe fallback
 }
 
 // ============================================
@@ -100,8 +102,7 @@ async function generateAICompletion(prompt) {
 const RSS_SOURCES = {
   IN: [
     'https://pib.gov.in/RssMain.aspx',
-    'https://www.myscheme.gov.in/rss',
-    'https://news.google.com/rss/search?q=government+scheme+india+2026+new+launch&hl=en-IN&gl=IN'
+    'https://news.google.com/rss/search?q=government+scheme+india+new+welfare+program&hl=en-IN&gl=IN'
   ],
   GB: [
     'https://www.gov.uk/search/news-and-communications.atom',
@@ -132,8 +133,27 @@ const INDIAN_STATES = [
   { code: 'OR', name: 'Odisha' }, { code: 'PB', name: 'Punjab' }, { code: 'RJ', name: 'Rajasthan' },
   { code: 'SK', name: 'Sikkim' }, { code: 'TN', name: 'Tamil Nadu' }, { code: 'TS', name: 'Telangana' },
   { code: 'TR', name: 'Tripura' }, { code: 'UP', name: 'Uttar Pradesh' }, { code: 'UK', name: 'Uttarakhand' },
-  { code: 'WB', name: 'West Bengal' }, { code: 'DL', name: 'Delhi' }, { code: 'JK', name: 'Jammu & Kashmir' }
+  { code: 'WB', name: 'West Bengal' }, { code: 'DL', name: 'Delhi' }, { code: 'JK', name: 'Jammu and Kashmir' },
+  { code: 'AN', name: 'Andaman and Nicobar Islands' }, { code: 'CH', name: 'Chandigarh' },
+  { code: 'DN', name: 'Dadra & Nagar Haveli and Daman & Diu' }, { code: 'LA', name: 'Ladakh' },
+  { code: 'LD', name: 'Lakshadweep' }, { code: 'PY', name: 'Puducherry' }
 ];
+
+const MINISTRIES = [
+  'Ministry Of Agriculture', 'Ministry Of Commerce', 'Ministry of Education', 'Ministry of Electronics',
+  'Ministry of Fisheries', 'Ministry Of Finance', 'Ministry Of Home Affairs', 'Ministry Of MSME',
+  'Ministry Of Science', 'Ministry Of Minority Affairs', 'Ministry Of Social Justice', 'Ministry Of Youth Affairs'
+];
+
+INDIAN_STATES.forEach(state => {
+  RSS_SOURCES.IN.push(`https://news.google.com/rss/search?q=government+scheme+${encodeURIComponent(state.name)}+new&hl=en-IN&gl=IN`);
+});
+
+MINISTRIES.forEach(min => {
+  RSS_SOURCES.IN.push(`https://news.google.com/rss/search?q=${encodeURIComponent(min)}+scheme+new&hl=en-IN&gl=IN`);
+});
+
+// Removed duplicate array
 
 const MYSCHEME_KEYWORDS = ['welfare', 'scholarship', 'housing', 'health', 'agriculture', 'women', 'disability'];
 
