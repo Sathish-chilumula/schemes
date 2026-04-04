@@ -30,6 +30,7 @@ let geminiModel = null;
 if (geminiKey) {
   try {
     genAI = new GoogleGenerativeAI(geminiKey);
+    // Use gemini-1.5-flash for Tier 1
     geminiModel = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
   } catch (e) {
     console.warn('⚠️ Gemini SDK init failed, will use fallbacks.');
@@ -55,9 +56,9 @@ async function generateAICompletion(prompt) {
   // --- TIER 2: OPENROUTER ---
   if (openRouterKey) {
     try {
-      console.log('🤖 Attempting Tier 2: OpenRouter (Gemini 2.0 Flash Exp)...');
+      console.log('🤖 Attempting Tier 2: OpenRouter (Gemini 2.0 Flash stable)...');
       const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-        model: 'google/gemini-2.0-flash-exp:free',
+        model: 'google/gemini-2.0-flash-001',
         messages: [{ role: 'user', content: prompt }]
       }, {
         headers: { 
@@ -76,9 +77,9 @@ async function generateAICompletion(prompt) {
   // --- TIER 3: GROQ ---
   if (groqKey) {
     try {
-      console.log('🤖 Attempting Tier 3: Groq (Llama 3.3 70B)...');
+      console.log('🤖 Attempting Tier 3: Groq (Llama 3.1 8B instant)...');
       const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
-        model: 'llama-3.3-70b-versatile',
+        model: 'llama-3.1-8b-instant',
         messages: [{ role: 'user', content: prompt }]
       }, {
         headers: { 'Authorization': `Bearer ${groqKey}` }
@@ -156,7 +157,7 @@ async function fetchIndiamyScheme() {
   console.log('\n📡 Starting myScheme.gov.in API Discovery (State-wise)...');
   const allSchemes = [];
   const key = process.env.APISETU_KEY;
-  const headers = key ? { 'X-Api-Key': key } : {};
+  const headers = key ? { 'X-APISETU-APIKEY': key } : {};
 
   // 1. Fetch Central Schemes
   console.log('   🏛️  Fetching Central (National) Schemes...');
