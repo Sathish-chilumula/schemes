@@ -65,27 +65,37 @@ export function SchemeContent({
     }
     
     // Pattern 2: Old markdown format — convert ## sections to Q&A
-    const sections = content.split(/##\s+/);
-    return sections
-      .filter(s => s.trim().length > 50)
-      .map(section => {
+    const sections = content.split(/##\s+/).filter(s => s.trim().length > 10);
+    
+    if (sections.length > 0) {
+      return sections.map(section => {
         const lines = section.split('\n').filter(l => l.trim());
+        if (lines.length === 0) return null;
+        
         const heading = lines[0]
           .replace(/📌|💰|👥|🚫|📄|📝|⚠️|💡|❓|🌟/g, '')
           .trim();
-        const body = lines.slice(1).join(' ')
+        const body = lines.slice(1).join('\n')
           .replace(/\*\*/g, '')
           .replace(/[-•]\s/g, '')
           .trim();
         
+        // If there's no body, the 'heading' is probably the whole text
+        if (!body && heading.length > 50) {
+          return { question: "Overview", answer: heading };
+        }
+
         // Convert heading to question format
         const question = heading.includes('?') 
           ? heading 
           : `What is the ${heading.toLowerCase()} for this scheme?`;
         
-        return { question, answer: body };
-      })
-      .filter(pair => pair.question && pair.answer);
+        return { question, answer: body || heading };
+      }).filter(pair => pair && pair.question && pair.answer);
+    }
+
+    // Fallback: Just return a single Overview section if it's plain text
+    return [{ question: "Overview", answer: content }];
   };
 
   const activeContent = lang === 'hi' ? contentHi : (lang === localLanguage ? contentLocal : contentEn);
