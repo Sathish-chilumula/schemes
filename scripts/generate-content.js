@@ -182,7 +182,7 @@ Category: ${scheme.category || 'Not specified'}`;
       }
       
       let contentLocal = scheme.content_local;
-      let contentHi = scheme.content_hi;
+      let contentHi = scheme.country_code === 'IN' ? scheme.content_hi : null;
       
       if (localLang && localLang !== 'en') {
         const langName = LANGUAGE_NAMES[localLang];
