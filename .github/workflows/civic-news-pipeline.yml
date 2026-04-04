@@ -1,0 +1,41 @@
+# ============================================
+# SCHEMEATLAS — DAILY CIVIC NEWS PIPELINE
+# Hunts for Govt Jobs, Decisions, and Alerts
+# Runs daily at 4 AM UTC
+# ============================================
+
+name: Daily Civic News & Jobs Pipeline
+
+on:
+  schedule:
+    - cron: '0 4 * * *'   # 4 AM UTC Daily
+  workflow_dispatch:      # Manual trigger
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: npm install @supabase/supabase-js @google/generative-ai axios fast-xml-parser
+
+      - name: Run Civic News Discovery Agent
+        run: node agents/findCivicNews.js
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL != '' && secrets.SUPABASE_URL || secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+
+      - name: Trigger Cloudflare Rebuild
+        if: success()
+        run: |
+          curl -X POST "${{ secrets.CLOUDFLARE_DEPLOY_HOOK }}"

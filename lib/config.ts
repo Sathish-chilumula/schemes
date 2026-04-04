@@ -170,6 +170,10 @@ export const CATEGORIES: Record<string, { icon: string; color: string; bgColor: 
   food:        { icon: '🍱', color: 'text-amber-800',  bgColor: 'bg-amber-100', label: 'Food' },
   employment:  { icon: '💼', color: 'text-indigo-800', bgColor: 'bg-indigo-100', label: 'Employment' },
   family:      { icon: '👨‍👩‍👧', color: 'text-rose-800',   bgColor: 'bg-rose-100', label: 'Family' },
+  job:         { icon: '🎯', color: 'text-blue-900',    bgColor: 'bg-blue-50',  label: 'Govt Job' },
+  news:        { icon: '📰', color: 'text-slate-900',   bgColor: 'bg-slate-100', label: 'Civic News' },
+  alert:       { icon: '🔔', color: 'text-red-900',     bgColor: 'bg-red-50',   label: 'Important Alert' },
+  budget:      { icon: '📊', color: 'text-emerald-900', bgColor: 'bg-emerald-50', label: 'Budget/Finance' },
 };
 
 export const PROFESSIONS = [
