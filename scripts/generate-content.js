@@ -28,7 +28,7 @@ const openai = new OpenAI({
   baseURL: OPENAI_API_KEY ? undefined : 'https://api.groq.com/openai/v1'
 });
 
-const MODELS = OPENAI_API_KEY ? ['gpt-4o-mini', 'gpt-4o'] : ['llama-3.1-8b-instant', 'llama-3.1-70b-versatile'];
+const MODELS = OPENAI_API_KEY ? ['gpt-4o-mini'] : ['llama-3.1-8b-instant', 'llama-3.1-70b-versatile'];
 
 // Language maps
 const STATE_LANGUAGE_MAP = {
