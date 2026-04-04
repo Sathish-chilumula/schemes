@@ -157,7 +157,26 @@ async function fetchIndiamyScheme() {
   console.log('\n📡 Starting myScheme.gov.in API Discovery (State-wise)...');
   const allSchemes = [];
   const key = process.env.APISETU_KEY;
-  const headers = key ? { 'X-APISETU-APIKEY': key } : {};
+  
+  if (!key || key.trim() === '') {
+    console.log('   ⏭️  APISETU_KEY is missing. Skipping direct API polling to prevent 401 errors.');
+    console.log('      (RSS feeds will still be used for discovery instead).');
+    return [];
+  }
+  
+  const headers = { 'X-APISETU-APIKEY': key };
+
+  // --- API Health Check to pre-validate key ---
+  try {
+    await axios.get('https://api.myscheme.gov.in/search/v4/schemes', {
+        headers, params: { lang: 'en', limit: 1 }, timeout: 8000
+    });
+  } catch (e) {
+    if (e.response && (e.response.status === 401 || e.response.status === 403)) {
+      console.warn(`   ⚠️  APISETU_KEY is invalid/expired (Status ${e.response.status}). Skipping API sync.`);
+      return [];
+    }
+  }
 
   // 1. Fetch Central Schemes
   console.log('   🏛️  Fetching Central (National) Schemes...');
@@ -182,7 +201,8 @@ async function fetchIndiamyScheme() {
       });
       await new Promise(r => setTimeout(r, 800));
     } catch (e) {
-      console.warn(`   ⚠️  Central keyword "${keyword}" failed: ${e.message}`);
+      const msg = e.response ? e.response.status : e.message;
+      console.warn(`   ⚠️  Central keyword "${keyword}" failed: ${msg}`);
     }
   }
 
@@ -210,7 +230,8 @@ async function fetchIndiamyScheme() {
         });
         await new Promise(r => setTimeout(r, 600));
       } catch (e) {
-        console.warn(`   ⚠️  State "${state.code}" keyword "${keyword}" failed: ${e.message}`);
+        const msg = e.response ? e.response.status : e.message;
+        console.warn(`   ⚠️  State "${state.code}" keyword "${keyword}" failed: ${msg}`);
       }
     }
     await new Promise(r => setTimeout(r, 1000));
