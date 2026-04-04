@@ -133,7 +133,7 @@ async function main() {
 5. What documents are needed to apply?
 6. When will you receive the benefit?
 7. What is the last date to apply?
-8. Is ${scheme.name} still available in 2025?
+8. Is ${scheme.name} still active and available?
 
 For each question write a clear answer in 2-4 sentences. Write for ordinary citizens in simple language. Keep total under 700 words. Be factual.\n\nScheme details:\nName: ${scheme.name}\nCountry: ${scheme.country_code}\nEligibility: ${eligStr}\nBenefit: ${scheme.benefit_amount || 'Not specified'}\nCategory: ${scheme.category || 'Not specified'}`;
 

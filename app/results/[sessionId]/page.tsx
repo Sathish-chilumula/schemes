@@ -27,7 +27,11 @@ export default async function ResultsPage({ params }: { params: Promise<{ sessio
     .eq('session_id', sessionId)
     .single();
 
-  if (!profile) notFound();
+  if (!profile) {
+    // If profile not found on server (sync delay), pass null to client
+    // The client will handle polling via the session_id
+    return <ResultsClient initialResults={[]} initialProfile={null} sessionId={sessionId} />;
+  }
 
   // Get schemes and results
   const { data: results } = await supabaseAdmin()

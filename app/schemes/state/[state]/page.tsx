@@ -19,8 +19,9 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
 
   if (!stateObj) return { title: 'State Not Found' };
 
-  const title = `All Government Schemes in ${stateObj.name} 2026 | SchemeAtlas`;
-  const description = `Explore all state and central government schemes available in ${stateObj.name} for 2026. Browse benefits by category like agriculture, education, and health.`;
+  const currentYear = new Date().getFullYear();
+  const title = `All Government Schemes in ${stateObj.name} ${currentYear} | SchemeAtlas`;
+  const description = `Explore all state and central government schemes available in ${stateObj.name} for ${currentYear}. Browse benefits by category like agriculture, education, and health.`;
 
   return {
     title,
@@ -63,7 +64,7 @@ export default async function StateHubPage({ params }: { params: Promise<{ state
           </nav>
           
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Government Schemes in {stateObj.name} (2026)
+            Government Schemes in {stateObj.name} ({new Date().getFullYear()})
           </h1>
           <p className="text-xl opacity-90 max-w-2xl mx-auto">
             Find every benefit, subsidy, and welfare program available for residents of {stateObj.name}.
@@ -88,7 +89,7 @@ export default async function StateHubPage({ params }: { params: Promise<{ state
                 {cat} Schemes
               </h3>
               <p className="text-slate-600">
-                View all state and central {cat} benefits available in {stateObj.name} for 2026.
+                View all state and central {cat} benefits available in {stateObj.name} for {new Date().getFullYear()}.
               </p>
             </Link>
           ))}
@@ -99,7 +100,7 @@ export default async function StateHubPage({ params }: { params: Promise<{ state
       <div className="max-w-7xl mx-auto px-4 pb-16">
         <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm text-center">
           <p className="text-slate-500 italic">
-            Last Updated: April 2026 — Optimized for the latest government policies.
+            Last Updated: {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} — Optimized for the latest government policies.
           </p>
         </div>
       </div>

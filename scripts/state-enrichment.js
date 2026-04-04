@@ -74,7 +74,7 @@ STRICT RULES:
 - Restructure completely. Avoid robotic tones.
 - Target: 8th class level readability.
 - Add "Who should definitely apply" and "Who should NOT apply" sections.
-- Injected Freshness: Include "Last Updated: April 2026" prominently.
+- Focus on providing precise, helpful information based only on the input data.
 
 INPUT DATA:
 Name: ${scheme.name}
@@ -85,7 +85,6 @@ Ministry: ${scheme.ministry || 'N/A'}
 
 OUTPUT FORMAT:
 # ${scheme.name}
-Last Updated: April 2026
 
 ## 📌 Overview
 (Unique summary)

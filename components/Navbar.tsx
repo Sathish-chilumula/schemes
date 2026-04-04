@@ -144,7 +144,7 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
             <CountrySwitcher />
           </div>
           <Link
-            href="/IN/check"
+            href="/in/check"
             className="btn-primary text-sm py-2 px-5 !shadow-brand-500/40 hidden sm:inline-flex"
           >
             Check Eligibility →

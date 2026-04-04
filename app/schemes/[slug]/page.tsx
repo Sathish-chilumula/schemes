@@ -61,10 +61,10 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${scheme.name} 2026 - Eligibility, Benefits & How to Apply | SchemeAtlas`,
+    title: `${scheme.name} ${new Date().getFullYear()} - Eligibility, Benefits & How to Apply | SchemeAtlas`,
     description,
     openGraph: {
-      title: `${scheme.name} 2026 | SchemeAtlas`,
+      title: `${scheme.name} ${new Date().getFullYear()} | SchemeAtlas`,
       description,
       url: currentUrl,
       type: 'article',
@@ -229,7 +229,7 @@ export default async function SchemeDetailPage({
           </nav>
 
           <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 leading-tight mb-6">
-            {scheme.name} (April 2026 Update)
+            {scheme.name}
           </h1>
           
           <div className="flex flex-wrap items-center gap-4 text-slate-600 mb-2">
@@ -243,7 +243,7 @@ export default async function SchemeDetailPage({
               <svg className="w-4 h-4 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
               </svg>
-              Last Updated: April 2026
+              Last Updated: {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
             </div>
           </div>
         </div>
@@ -279,7 +279,7 @@ export default async function SchemeDetailPage({
               )}
               {country && (
                 <Link 
-                  href={`/${scheme.country_code}/check`} 
+                  href={`/${scheme.country_code.toLowerCase()}/check`} 
                   className="bg-slate-900 text-white px-8 py-4 rounded-2xl font-bold text-lg text-center hover:bg-black transition-all flex-1"
                 >
                   Check If I Qualify →
@@ -315,7 +315,7 @@ export default async function SchemeDetailPage({
                   <li className="flex items-start">
                     <span className="text-emerald-500 mr-2 font-bold select-none text-xl leading-none">✓</span>
                     <span className="text-emerald-900 font-medium leading-relaxed italic">
-                      "Families meeting the eligibility criteria for {scheme.category || 'this program'} for 2026."
+                      "Families meeting the eligibility criteria for {scheme.category || 'this program'} for {new Date().getFullYear()}."
                     </span>
                   </li>
                 </ul>

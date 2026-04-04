@@ -60,7 +60,6 @@ async function generateAICompletion(prompt) {
         model: 'google/gemini-2.0-flash-exp:free',
         messages: [{ role: 'user', content: prompt }]
       }, {
-
         headers: { 
           'Authorization': `Bearer ${openRouterKey}`,
           'HTTP-Referer': 'https://claimit.pages.dev',
@@ -94,7 +93,6 @@ async function generateAICompletion(prompt) {
   throw new Error('All AI providers failed to generate a response.');
 }
 
-
 // ============================================
 // RSS FEED SOURCES PER COUNTRY
 // ============================================
@@ -102,7 +100,7 @@ const RSS_SOURCES = {
   IN: [
     'https://pib.gov.in/RssMain.aspx',
     'https://www.myscheme.gov.in/rss',
-    'https://news.google.com/rss/search?q=government+scheme+india+2025&hl=en-IN&gl=IN'
+    'https://news.google.com/rss/search?q=government+scheme+india+2026+new+launch&hl=en-IN&gl=IN'
   ],
   GB: [
     'https://www.gov.uk/search/news-and-communications.atom',
@@ -121,17 +119,116 @@ const RSS_SOURCES = {
 };
 
 // ============================================
+// INDIA: myScheme.gov.in API CONFIG
+// ============================================
+const INDIAN_STATES = [
+  { code: 'AP', name: 'Andhra Pradesh' }, { code: 'AR', name: 'Arunachal Pradesh' }, { code: 'AS', name: 'Assam' },
+  { code: 'BR', name: 'Bihar' }, { code: 'CG', name: 'Chhattisgarh' }, { code: 'GA', name: 'Goa' },
+  { code: 'GJ', name: 'Gujarat' }, { code: 'HR', name: 'Haryana' }, { code: 'HP', name: 'Himachal Pradesh' },
+  { code: 'JH', name: 'Jharkhand' }, { code: 'KA', name: 'Karnataka' }, { code: 'KL', name: 'Kerala' },
+  { code: 'MP', name: 'Madhya Pradesh' }, { code: 'MH', name: 'Maharashtra' }, { code: 'MN', name: 'Manipur' },
+  { code: 'ML', name: 'Meghalaya' }, { code: 'MZ', name: 'Mizoram' }, { code: 'NL', name: 'Nagaland' },
+  { code: 'OR', name: 'Odisha' }, { code: 'PB', name: 'Punjab' }, { code: 'RJ', name: 'Rajasthan' },
+  { code: 'SK', name: 'Sikkim' }, { code: 'TN', name: 'Tamil Nadu' }, { code: 'TS', name: 'Telangana' },
+  { code: 'TR', name: 'Tripura' }, { code: 'UP', name: 'Uttar Pradesh' }, { code: 'UK', name: 'Uttarakhand' },
+  { code: 'WB', name: 'West Bengal' }, { code: 'DL', name: 'Delhi' }, { code: 'JK', name: 'Jammu & Kashmir' }
+];
+
+const MYSCHEME_KEYWORDS = ['welfare', 'scholarship', 'housing', 'health', 'agriculture', 'women', 'disability'];
+
+function mapCategory(raw) {
+  const r = (raw || '').toLowerCase();
+  if (r.includes('agri') || r.includes('farm') || r.includes('crop')) return 'agriculture';
+  if (r.includes('health') || r.includes('medical') || r.includes('hospital')) return 'health';
+  if (r.includes('hous') || r.includes('shelter')) return 'housing';
+  if (r.includes('edu') || r.includes('school') || r.includes('scholar')) return 'education';
+  if (r.includes('women') || r.includes('girl') || r.includes('maternal')) return 'women';
+  if (r.includes('elder') || r.includes('senior') || r.includes('pension')) return 'elderly';
+  if (r.includes('disab')) return 'disability';
+  if (r.includes('business') || r.includes('enterprise') || r.includes('loan')) return 'business';
+  if (r.includes('food') || r.includes('nutrition') || r.includes('ration')) return 'food';
+  if (r.includes('employ') || r.includes('job')) return 'employment';
+  if (r.includes('child') || r.includes('family')) return 'family';
+  return 'cash';
+}
+
+async function fetchIndiamyScheme() {
+  console.log('\n📡 Starting myScheme.gov.in API Discovery (State-wise)...');
+  const allSchemes = [];
+  const key = process.env.APISETU_KEY;
+  const headers = key ? { 'X-Api-Key': key } : {};
+
+  // 1. Fetch Central Schemes
+  console.log('   🏛️  Fetching Central (National) Schemes...');
+  for (const keyword of MYSCHEME_KEYWORDS) {
+    try {
+      const res = await axios.get('https://api.myscheme.gov.in/search/v4/schemes', {
+        headers,
+        params: { lang: 'en', keyword, central: 'Y', page: 1, limit: 10 },
+        timeout: 10000
+      });
+      const list = res.data?.data?.schemes || res.data?.schemes || [];
+      list.forEach(s => {
+        if (s.schemeName || s.title) {
+          allSchemes.push({
+            name: s.schemeName || s.title,
+            keyword,
+            state_code: 'india',
+            state_name: null,
+            raw: s
+          });
+        }
+      });
+      await new Promise(r => setTimeout(r, 800));
+    } catch (e) {
+      console.warn(`   ⚠️  Central keyword "${keyword}" failed: ${e.message}`);
+    }
+  }
+
+  // 2. Fetch State-specific Schemes
+  for (const state of INDIAN_STATES) {
+    console.log(`   📍 Fetching schemes for ${state.name} (${state.code})...`);
+    for (const keyword of MYSCHEME_KEYWORDS.slice(0, 3)) {
+      try {
+        const res = await axios.get('https://api.myscheme.gov.in/search/v4/schemes', {
+          headers,
+          params: { lang: 'en', keyword, state: state.name, central: 'N', page: 1, limit: 10 },
+          timeout: 10000
+        });
+        const list = res.data?.data?.schemes || res.data?.schemes || [];
+        list.forEach(s => {
+          if (s.schemeName || s.title) {
+            allSchemes.push({
+              name: s.schemeName || s.title,
+              keyword,
+              state_code: `IN-${state.code}`,
+              state_name: state.name,
+              raw: s
+            });
+          }
+        });
+        await new Promise(r => setTimeout(r, 600));
+      } catch (e) {
+        console.warn(`   ⚠️  State "${state.code}" keyword "${keyword}" failed: ${e.message}`);
+      }
+    }
+    await new Promise(r => setTimeout(r, 1000));
+  }
+
+  console.log(`\n✅ myScheme Discovery Complete. Found ${allSchemes.length} raw entries.`);
+  return allSchemes;
+}
+
+// ============================================
 // STEP 1: FETCH RSS FEEDS
 // ============================================
 async function fetchRSSFeeds() {
   const allItems = [];
-
   for (const [country, feeds] of Object.entries(RSS_SOURCES)) {
     for (const feedUrl of feeds) {
       try {
         console.log(`Fetching RSS: ${feedUrl}`);
         const feed = await parser.parseURL(feedUrl);
-
         for (const item of feed.items.slice(0, 10)) {
           allItems.push({
             country,
@@ -146,7 +243,6 @@ async function fetchRSSFeeds() {
       }
     }
   }
-
   console.log(`Total RSS items found: ${allItems.length}`);
   return allItems;
 }
@@ -154,19 +250,19 @@ async function fetchRSSFeeds() {
 // ============================================
 // STEP 2: CHECK IF SCHEME ALREADY EXISTS
 // ============================================
-async function schemeExists(title, country) {
+async function getExistingScheme(title, country) {
   const { data } = await supabase
     .from('schemes')
-    .select('id')
+    .select('*')
     .eq('country_code', country)
     .ilike('name', `%${title.substring(0, 30)}%`)
     .limit(1);
 
-  return data && data.length > 0;
+  return data && data.length > 0 ? data[0] : null;
 }
 
 // ============================================
-// STEP 3: EXTRACT SCHEME DETAILS WITH GEMINI
+// STEP 3: EXTRACT SCHEME DETAILS WITH AI
 // ============================================
 async function extractSchemeDetails(item) {
   const prompt = `
@@ -200,6 +296,8 @@ Return ONLY valid JSON, nothing else:
   "documents": ["document 1", "document 2"],
   "official_url": "official government URL if found",
   "image_keyword": "3-4 word search term for relevant photo",
+  "state_name": "Full state name or null if central",
+  "state_code": "Standard code like IN-AP, IN-KL, or india for central",
   "summary": "2 sentence simple explanation for common people"
 }
 `;
@@ -213,29 +311,6 @@ Return ONLY valid JSON, nothing else:
     return { is_scheme: false };
   }
 }
-
-
-// ============================================
-// STEP 4: GENERATE TRANSLATIONS
-// ============================================
-const COUNTRY_LANGUAGES = {
-  IN: ['hi', 'te'],
-  GB: [],
-  US: ['es'],
-  NG: ['yo'],
-  KE: ['sw']
-};
-
-const LANGUAGE_NAMES = {
-  hi: 'Hindi',
-  te: 'Telugu',
-  es: 'Spanish',
-  yo: 'Yoruba',
-  sw: 'Swahili'
-};
-
-
-
 
 // ============================================
 // STEP 5: CREATE URL SLUG
@@ -268,99 +343,164 @@ async function fetchUnsplashImage(keyword) {
   }
 }
 
-
 // ============================================
-// STEP 6: SAVE TO SUPABASE
+// STEP 6: SAVE OR UPDATE IN SUPABASE
 // ============================================
-async function saveScheme(schemeData, country, sourceUrl) {
-  const slug = createSlug(schemeData.name, country);
-  
+async function saveScheme(schemeData, country, sourceUrl, existingId = null) {
+  const slug = existingId ? null : createSlug(schemeData.name, country);
   const searchKeyword = schemeData.image_keyword || schemeData.category;
-  console.log(`📸 Fetching Unsplash image for: ${searchKeyword}`);
-  const imageUrl = await fetchUnsplashImage(`${searchKeyword} photograph`);
+  
+  const payload = {
+    country_code: country,
+    name: schemeData.name,
+    category: schemeData.category,
+    what_you_get: schemeData.what_you_get,
+    benefit_amount: schemeData.benefit_amount,
+    eligibility: schemeData.eligibility,
+    how_to_apply: schemeData.how_to_apply,
+    documents: schemeData.documents,
+    official_url: schemeData.official_url || sourceUrl,
+    image_keyword: schemeData.image_keyword,
+    state_name: schemeData.state_name || null,
+    state_code: schemeData.state_code || 'india',
+    is_published: true,
+    source: 'agent',
+    last_updated: new Date().toISOString()
+  };
 
-  const { data: scheme, error } = await supabase
-    .from('schemes')
-    .insert({
-      country_code: country,
-      name: schemeData.name,
-      slug,
-      category: schemeData.category,
-      what_you_get: schemeData.what_you_get,
-      benefit_amount: schemeData.benefit_amount,
-      eligibility: schemeData.eligibility,
-      how_to_apply: schemeData.how_to_apply,
-      documents: schemeData.documents,
-      official_url: schemeData.official_url || sourceUrl,
-      image_keyword: schemeData.image_keyword,
-      image_url: imageUrl,
-      is_published: true,
-      source: 'agent'
-    })
-    .select()
-    .single();
+  if (!existingId) {
+    console.log(`📸 Fetching Unsplash image for new scheme: ${searchKeyword}`);
+    const imageUrl = await fetchUnsplashImage(`${searchKeyword} photograph`);
+    payload.image_url = imageUrl;
+    payload.slug = slug;
+    payload.discovered_at = new Date().toISOString();
+  }
 
+  const query = existingId 
+    ? supabase.from('schemes').update(payload).eq('id', existingId)
+    : supabase.from('schemes').insert(payload);
+
+  const { data: result, error } = await query.select().single();
   if (error) {
-    console.error('Supabase insert error:', error.message);
+    console.error(`Supabase ${existingId ? 'update' : 'insert'} error:`, error.message);
     return null;
   }
 
-  console.log(`✅ Scheme saved: ${schemeData.name}`);
-
-  // Translations are now handled automatically by the generate-content.js script 
-  // running via GitHub Actions, which looks for schemes where content_en is null.
-
-  return scheme;
+  console.log(`✅ Scheme ${existingId ? 'updated' : 'saved'}: ${schemeData.name}`);
+  return result;
 }
 
 // ============================================
 // MAIN AGENT RUNNER
 // ============================================
 async function runFindAgent() {
-  console.log('🤖 SchemeAtlas Scheme Finder Agent Starting...');
-  console.log(`Time: ${new Date().toISOString()}`);
+  console.log('\n🚀 SchemeAtlas Sync Agent Starting...');
+  console.log(`⏰ Start Time: ${new Date().toISOString()}`);
 
-  let newSchemesFound = 0;
+  const stats = {
+    total: 0,
+    new: 0,
+    updated: 0,
+    skipped: 0,
+    errors: 0
+  };
 
-  // Step 1: Fetch all RSS feeds
-  const rssItems = await fetchRSSFeeds();
+  // --- STEP 1: API Discovery (India myScheme) ---
+  const mySchemeItems = await fetchIndiamyScheme();
+  stats.total += mySchemeItems.length;
 
-  // Step 2: Process each item
-  for (const item of rssItems) {
-    // Check if already in DB
-    const exists = await schemeExists(item.title, item.country);
-    if (exists) {
-      console.log(`⏭️  Already exists: ${item.title}`);
-      continue;
+  for (const item of mySchemeItems) {
+    try {
+      const existing = await getExistingScheme(item.name, 'IN');
+      const s = item.raw;
+      
+      const schemeData = {
+        name: item.name,
+        category: mapCategory(item.keyword + ' ' + (s.schemeShortTitle || '')),
+        what_you_get: s.schemeShortTitle || s.description || '',
+        benefit_amount: s.benefitType || 'Check official site',
+        eligibility: { other: s.eligibility || '', categories: s.beneficiary || [] },
+        how_to_apply: { steps: s.applicationProcess ? [s.applicationProcess] : ['Visit myscheme.gov.in'] },
+        documents: s.documents ? (Array.isArray(s.documents) ? s.documents : [s.documents]) : [],
+        official_url: s.schemeUrl || 'https://myscheme.gov.in',
+        image_keyword: `${item.keyword} india government`,
+        state_name: item.state_name,
+        state_code: item.state_code || 'india',
+        is_scheme: true
+      };
+
+      if (existing) {
+        const hasChanged = 
+          existing.category !== schemeData.category || 
+          existing.benefit_amount !== schemeData.benefit_amount ||
+          existing.official_url !== schemeData.official_url;
+
+        if (hasChanged) {
+          console.log(`🔄 Updating myScheme: ${item.name}`);
+          await saveScheme(schemeData, 'IN', schemeData.official_url, existing.id);
+          stats.updated++;
+        } else {
+          stats.skipped++;
+        }
+      } else {
+        console.log(`🆕 New myScheme: ${item.name} (${item.state_code || 'Central'})`);
+        const saved = await saveScheme(schemeData, 'IN', schemeData.official_url);
+        if (saved) stats.new++;
+      }
+      await new Promise(r => setTimeout(r, 200));
+    } catch (e) {
+      console.error(`❌ Error processing myScheme ${item.name}:`, e.message);
+      stats.errors++;
     }
-
-    // Extract scheme details with Gemini
-    console.log(`🔍 Analyzing: ${item.title}`);
-    const schemeData = await extractSchemeDetails(item);
-
-    if (!schemeData.is_scheme) {
-      console.log(`❌ Not a scheme: ${item.title}`);
-      continue;
-    }
-
-    // Save to Supabase
-    const saved = await saveScheme(schemeData, item.country, item.link);
-    if (saved) {
-      newSchemesFound++;
-    }
-
-    // Delay between API calls
-    await new Promise(r => setTimeout(r, 2000));
   }
 
-  console.log(`\n✅ Agent Complete. New schemes found: ${newSchemesFound}`);
-  return newSchemesFound;
+  // --- STEP 2: RSS Discovery (All Countries) ---
+  const rssItems = await fetchRSSFeeds();
+  stats.total += rssItems.length;
+
+  for (const item of rssItems) {
+    try {
+      const existing = await getExistingScheme(item.title, item.country);
+      if (existing) {
+        console.log(`⏭️  Already exists (RSS): ${item.title}`);
+        stats.skipped++;
+        continue;
+      }
+
+      console.log(`🔍 Analyzing RSS: ${item.title}`);
+      const schemeData = await extractSchemeDetails(item);
+
+      if (!schemeData.is_scheme) {
+        console.log(`❌ Not a scheme: ${item.title}`);
+        stats.skipped++;
+        continue;
+      }
+
+      const saved = await saveScheme(schemeData, item.country, item.link);
+      if (saved) stats.new++;
+      await new Promise(r => setTimeout(r, 1500));
+    } catch (e) {
+      console.error(`❌ Error processing RSS ${item.title}:`, e.message);
+      stats.errors++;
+    }
+  }
+
+  console.log('\n📊 SYNC SUMMARY');
+  console.log('━━━━━━━━━━━━━━');
+  console.log(`Total Handled: ${stats.total}`);
+  console.log(`New Added:     ${stats.new}`);
+  console.log(`Updated:       ${stats.updated}`);
+  console.log(`Skipped:       ${stats.skipped}`);
+  console.log(`Errors:        ${stats.errors}`);
+  console.log('━━━━━━━━━━━━━━');
+  
+  return stats;
 }
 
 // Run the agent
 runFindAgent()
-  .then(count => {
-    console.log(`Done. ${count} new schemes added.`);
+  .then(stats => {
+    console.log(`Done. ${stats.new} new, ${stats.updated} updated.`);
     process.exit(0);
   })
   .catch(err => {

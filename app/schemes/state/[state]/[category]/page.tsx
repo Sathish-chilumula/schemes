@@ -33,8 +33,9 @@ export async function generateMetadata({
 
   if (!stateObj) return { title: 'Not Found' };
 
-  const title = `Government Schemes for ${category} in ${stateObj.name} 2026 | SchemeAtlas`;
-  const description = `Explore all government ${category} schemes and benefits specifically for ${stateObj.name} residents in 2026. Check eligibility, benefits, and how to apply online.`;
+  const currentYear = new Date().getFullYear();
+  const title = `Government Schemes for ${category} in ${stateObj.name} ${currentYear} | SchemeAtlas`;
+  const description = `Explore all government ${category} schemes and benefits specifically for ${stateObj.name} residents in ${currentYear}. Check eligibility, benefits, and how to apply online.`;
 
   return {
     title,
@@ -82,7 +83,7 @@ export default async function PSEOPage({
 
   const introContent = pseoData?.intro_content || `
     Government ${categorySlug} programs in ${stateObj.name} are designed to provide direct financial aid, 
-    subsidies, and welfare support to eligible residents. These 2026 schemes aim to improve 
+    subsidies, and welfare support to eligible residents. These ${new Date().getFullYear()} schemes aim to improve 
     social welfare, reduce economic inequality, and empower the local community in ${stateObj.name}.
     By applying for these benefits, families and individuals can access critical resources 
     backed by state and central ministries.
@@ -110,7 +111,7 @@ export default async function PSEOPage({
           </nav>
           
           <h1 className="text-4xl md:text-5xl font-extrabold mb-6 leading-tight">
-            Government {categorySlug} Schemes in {stateObj.name} (2026)
+            Government {categorySlug} Schemes in {stateObj.name} ({new Date().getFullYear()})
           </h1>
           
           <div className="bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/20 text-blue-50 text-lg leading-relaxed text-left">
@@ -127,7 +128,7 @@ export default async function PSEOPage({
         <div className="flex flex-col md:flex-row justify-between items-end mb-12 border-b-2 border-slate-200 pb-6">
           <div>
             <h2 className="text-3xl font-bold text-slate-900 mb-2">Available Benefits</h2>
-            <p className="text-slate-600 italic">Last Updated: April 2026</p>
+            <p className="text-slate-600 italic">Last Updated: {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
           </div>
           <p className="text-slate-500 font-medium">Found {filteredSchemes.length} schemes</p>
         </div>
@@ -180,7 +181,7 @@ export default async function PSEOPage({
           <div className="bg-white p-8 rounded-2xl border border-slate-200">
             <h3 className="text-lg font-bold text-slate-800 mb-2">How to apply for {categorySlug} schemes in {stateObj.name}?</h3>
             <p className="text-slate-600 leading-relaxed">
-              Most {categorySlug} schemes in {stateObj.name} for 2026 can be applied for via the official MyScheme portal or the specific state ministry website. ensure you have your Aadhar card, residence proof, and income certificate ready for verification.
+              Most {categorySlug} schemes in {stateObj.name} for {new Date().getFullYear()} can be applied for via the official MyScheme portal or the specific state ministry website. ensure you have your Aadhar card, residence proof, and income certificate ready for verification.
             </p>
           </div>
           <div className="bg-white p-8 rounded-2xl border border-slate-200">

@@ -21,7 +21,13 @@ export async function POST(request: NextRequest) {
       .eq('session_id', session_id)
       .single();
 
-    if (pErr || !profile) return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    if (pErr || !profile) {
+      console.log(`🕒 Profile for session ${session_id} not found yet. Retrying...`);
+      return NextResponse.json({ 
+        status: 'processing', 
+        message: 'Profile sync in progress, please wait...' 
+      }, { status: 202 });
+    }
 
     // Check cached results first
     const { data: cached } = await supabaseAdmin
