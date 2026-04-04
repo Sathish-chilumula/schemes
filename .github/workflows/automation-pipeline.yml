@@ -1,0 +1,82 @@
+# ============================================
+# SCHEMEATLAS — MASTER PIPELINE
+# Runs every 6 hours automatically
+# .github/workflows/automation-pipeline.yml
+# ============================================
+
+name: Master Automation Pipeline
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'   # Every 6 hours
+  workflow_dispatch:          # Manual trigger anytime
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Root Dependencies (Scripts)
+        run: npm install @supabase/supabase-js openai node-fetch
+
+      - name: Install Agent Dependencies
+        working-directory: agents
+        run: npm install
+
+      # ==================================
+      # STEP 1: DISCOVERY
+      # ==================================
+      - name: Stage 1 - Scheme Discovery Agent
+        working-directory: agents
+        run: node findSchemes.js
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL != '' && secrets.SUPABASE_URL || secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
+          APISETU_KEY: ${{ secrets.APISETU_KEY }}
+
+      # ==================================
+      # STEP 2: ENRICHMENT
+      # ==================================
+      - name: Stage 2 - State Enrichment
+        run: node scripts/state-enrichment.js
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+
+      # ==================================
+      # STEP 3: CONTENT GENERATION
+      # ==================================
+      - name: Stage 3 - Content Writing & Translation
+        run: node scripts/generate-content.js
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+
+      # ==================================
+      # STEP 5: DEPLOY
+      # ==================================
+      - name: Stage 4 - Cloudflare Deployment Trigger
+        if: success() && github.event_name != 'pull_request'
+        run: |
+          curl -X POST "${{ secrets.CLOUDFLARE_DEPLOY_HOOK }}"
+
+      - name: Pipeline Report
+        if: always()
+        run: |
+          echo "Pipeline completed at $(date)"
