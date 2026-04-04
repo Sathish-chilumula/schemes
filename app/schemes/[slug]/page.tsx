@@ -15,9 +15,10 @@ const COUNTRY_NAMES: Record<string, string> = {
   'KE': 'Kenya',
 };
 
-function cleanMarkdown(text: string): string {
+function cleanMarkdown(text: any): string {
   if (!text) return '';
-  return text
+  const str = typeof text === 'string' ? text : JSON.stringify(text);
+  return str
     .replace(/#{1,6}\s/g, '')
     .replace(/\*\*/g, '')
     .replace(/\*/g, '')
@@ -47,13 +48,17 @@ function generateFAQSchema(scheme: any) {
       question: `How to apply for ${name}?`,
       answer: Array.isArray(scheme.how_to_apply)
         ? scheme.how_to_apply.flat().join(' ')
-        : scheme.how_to_apply || 'Visit the official government portal to apply online.'
+        : typeof scheme.how_to_apply === 'object'
+          ? Object.values(scheme.how_to_apply || {}).filter(v => typeof v === 'string').join(' ')
+          : scheme.how_to_apply || 'Visit the official government portal to apply online.'
     },
     {
       question: `What documents are needed for ${name}?`,
       answer: Array.isArray(scheme.documents)
         ? scheme.documents.join(', ')
-        : scheme.documents || 'Aadhaar card, income certificate and relevant identity proof.'
+        : typeof scheme.documents === 'object'
+          ? Object.values(scheme.documents || {}).filter(v => typeof v === 'string').join(', ')
+          : scheme.documents || 'Aadhaar card, income certificate and relevant identity proof.'
     },
     {
       question: `Is ${name} available in ${new Date().getFullYear()}?`,
