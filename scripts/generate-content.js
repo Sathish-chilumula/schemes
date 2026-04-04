@@ -95,21 +95,25 @@ async function main() {
   console.log('🚀 Automated Scheme Content Generator (Groq LLaMA)');
   console.log('━'.repeat(55));
   
-  // Fetch up to 25 schemes without English content
-  const { data: schemes, error } = await supabase
+  // Fetch up to 1000 published schemes to check which ones need formatting
+  const { data: allSchemes, error } = await supabase
     .from('schemes')
     .select('*')
-    .is('content_en', null)
     .eq('is_published', true)
-    .limit(25);
+    .limit(1000);
   
   if (error) { console.error('❌ Fetch error:', error.message); process.exit(1); }
+  
+  const schemes = allSchemes.filter(s => 
+    !s.content_en || !(s.content_en.includes('Q:') && s.content_en.includes('A:'))
+  ).slice(0, 15);
+
   if (!schemes || schemes.length === 0) {
-    console.log('✅ All schemes already have content! Nothing to do.');
+    console.log('✅ All schemes already have Q&A content! Nothing to do.');
     process.exit(0);
   }
   
-  console.log(`📋 Found ${schemes.length} schemes needing content.\n`);
+  console.log(`📋 Found ${schemes.length} schemes needing Q&A formatting.\n`);
   
   let successCount = 0;
   let failCount = 0;
@@ -125,17 +129,30 @@ async function main() {
     try {
       const eligStr = typeof scheme.eligibility === 'object' ? JSON.stringify(scheme.eligibility) : scheme.eligibility || 'Not specified';
       
-      const enPrompt = `Write a government scheme guide in Q&A format for citizens with these exact questions:
-1. What is ${scheme.name}?
-2. Who is eligible for ${scheme.name}?
-3. How much benefit will you get?
-4. How to apply for ${scheme.name}?
-5. What documents are needed to apply?
-6. When will you receive the benefit?
-7. What is the last date to apply?
-8. Is ${scheme.name} still active and available?
+      const enPrompt = `Write a government scheme guide in strict Q&A format for citizens using exactly these 8 questions:
+Q: What is ${scheme.name}?
+Q: Who is eligible for ${scheme.name}?
+Q: How much benefit will you get?
+Q: How to apply for ${scheme.name}?
+Q: What documents are needed to apply?
+Q: When will you receive the benefit?
+Q: What is the last date to apply?
+Q: Is ${scheme.name} still active and available?
 
-For each question write a clear answer in 2-4 sentences. Write for ordinary citizens in simple language. Keep total under 700 words. Be factual.\n\nScheme details:\nName: ${scheme.name}\nCountry: ${scheme.country_code}\nEligibility: ${eligStr}\nBenefit: ${scheme.benefit_amount || 'Not specified'}\nCategory: ${scheme.category || 'Not specified'}`;
+Rules:
+- Prefix every single question with EXACTLY "Q: " (do not use numbers).
+- Prefix every single answer with EXACTLY "A: ".
+- Write a clear, short answer in 2-4 sentences for each.
+- Do NOT use any markdown symbols like **, ##, or bullet points. Use plain text.
+- Keep the total output under 600 words.
+- Be factual and simple.
+
+Scheme details:
+Name: ${scheme.name}
+Country: ${scheme.country_code}
+Eligibility: ${eligStr}
+Benefit: ${scheme.benefit_amount || 'Not specified'}
+Category: ${scheme.category || 'Not specified'}`;
 
       console.log('   ⏳ Generating English content...');
       const contentEn = await callLLM(enPrompt);
@@ -152,7 +169,12 @@ For each question write a clear answer in 2-4 sentences. Write for ordinary citi
       if (localLang && localLang !== 'en') {
         const langName = LANGUAGE_NAMES[localLang];
         console.log(`   ⏳ Translating to ${langName}...`);
-        const localPrompt = `Translate this Q&A scheme guide to ${langName}. Keep every question as a question in ${langName}. Keep all numbers, amounts, dates and URLs unchanged. Do not remove any section:\n\n${contentEn}`;
+        const localPrompt = `Translate this strict Q&A scheme guide to ${langName}.
+Rules:
+- Keep the exact prefixes "Q:" and "A:" in English (do not translate these prefixes).
+- Translate the question and answer text accurately to ${langName}.
+- Keep all numbers, amounts, dates, and URLs unchanged.
+- Do not use markdown like ** or ##.\n\nOriginal:\n${contentEn}`;
         const translated = await callLLM(localPrompt);
         
         if (localLang === 'hi') { contentHi = translated; }
@@ -178,6 +200,11 @@ For each question write a clear answer in 2-4 sentences. Write for ordinary citi
     } catch (err) {
       console.error(`   ❌ Failed:`, err.message);
       failCount++;
+    }
+
+    if (i < schemes.length - 1) {
+      console.log('   ⏳ Waiting 3s before next scheme...');
+      await delay(3000);
     }
     console.log('');
   }

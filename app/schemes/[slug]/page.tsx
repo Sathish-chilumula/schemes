@@ -7,26 +7,104 @@ import { Metadata } from 'next';
 import { SchemeContent } from './SchemeContent';
 import { slugify } from '@/lib/seo';
 
-function getCountryFullName(code: string): string {
-  const map: Record<string, string> = {
-    IN: 'India', GB: 'United Kingdom', US: 'United States', NG: 'Nigeria', KE: 'Kenya',
+const COUNTRY_NAMES: Record<string, string> = {
+  'IN': 'India',
+  'GB': 'United Kingdom', 
+  'US': 'United States',
+  'NG': 'Nigeria',
+  'KE': 'Kenya',
+};
+
+function cleanMarkdown(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/#{1,6}\s/g, '')
+    .replace(/\*\*/g, '')
+    .replace(/\*/g, '')
+    .replace(/[-•]\s/g, '')
+    .replace(/📌|💰|👥|🚫|📄|📝|⚠️|💡|❓|🌟/g, '')
+    .replace(/\n+/g, ' ')
+    .trim();
+}
+
+function generateFAQSchema(scheme: any) {
+  const cleanContent = cleanMarkdown(scheme.content_en || '');
+  const name = scheme.name;
+  const location = scheme.state_name || COUNTRY_NAMES[scheme.country_code] || 'India';
+  
+  const faqs = [
+    {
+      question: `What is ${name}?`,
+      answer: cleanContent.substring(0, 300) || `${name} is a government scheme that provides support to eligible citizens in ${location}.`
+    },
+    {
+      question: `Who is eligible for ${name}?`,
+      answer: typeof scheme.eligibility === 'string'
+        ? scheme.eligibility
+        : scheme.eligibility?.other || `Citizens of ${location} meeting the scheme criteria are eligible.`
+    },
+    {
+      question: `How to apply for ${name}?`,
+      answer: Array.isArray(scheme.how_to_apply)
+        ? scheme.how_to_apply.flat().join(' ')
+        : scheme.how_to_apply || 'Visit the official government portal to apply online.'
+    },
+    {
+      question: `What documents are needed for ${name}?`,
+      answer: Array.isArray(scheme.documents)
+        ? scheme.documents.join(', ')
+        : scheme.documents || 'Aadhaar card, income certificate and relevant identity proof.'
+    },
+    {
+      question: `Is ${name} available in ${new Date().getFullYear()}?`,
+      answer: `Yes, ${name} is currently active and accepting applications in ${new Date().getFullYear()}. Visit the official portal for the latest updates and deadlines.`
+    },
+  ];
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    'mainEntity': faqs.map(faq => ({
+      '@type': 'Question',
+      'name': faq.question,
+      'acceptedAnswer': {
+        '@type': 'Answer',
+        'text': cleanMarkdown(faq.answer).substring(0, 400),
+      }
+    }))
   };
-  return map[code] || code;
 }
 
 
 
 export async function generateStaticParams() {
   const supabase = supabaseAdmin();
-  const { data: schemes } = await supabase
-    .from('schemes')
-    .select('slug')
-    .not('slug', 'is', null)
-    .eq('is_published', true);
+  const allParams: { slug: string }[] = [];
+  let from = 0;
+  const step = 1000;
 
-  return schemes?.map((scheme) => ({
-    slug: scheme.slug,
-  })) ?? [];
+  while (true) {
+    const { data: schemes, error } = await supabase
+      .from('schemes')
+      .select('slug')
+      .not('slug', 'is', null)
+      .eq('is_published', true)
+      .range(from, from + step - 1);
+
+    if (error || !schemes || schemes.length === 0) {
+      break;
+    }
+
+    allParams.push(...schemes.map((scheme) => ({ slug: scheme.slug })));
+
+    if (schemes.length < step) {
+      break;
+    }
+
+    from += step;
+  }
+
+  return allParams;
 }
 
 export async function generateMetadata({ 
@@ -38,18 +116,22 @@ export async function generateMetadata({
   const supabase = supabaseAdmin();
   const { data: scheme } = await supabase
     .from('schemes')
-    .select('name, content_en, what_you_get, country_code, ministry, local_language')
+    .select('name, content_en, state_name, country_code, ministry, slug, local_language')
     .eq('slug', resolvedParams.slug)
     .single();
 
   if (!scheme) return {};
 
-  const description = scheme.content_en
-    ? scheme.content_en.substring(0, 160).replace(/\n/g, ' ')
-    : scheme.what_you_get?.substring(0, 160) || `Learn about ${scheme.name} - eligibility, benefits and how to apply.`;
+  const rawDesc = scheme.content_en || '';
+  const cleanDesc = cleanMarkdown(rawDesc).substring(0, 160);
+
+  const location = scheme.state_name || 'India';
+  const title = `${scheme.name} ${new Date().getFullYear()} - Eligibility, Benefits & How to Apply | SchemeAtlas`;
+  const description = cleanDesc.length > 50
+    ? cleanDesc
+    : `Learn about ${scheme.name} - who can apply, benefit amount and how to apply in ${location} ${new Date().getFullYear()}.`;
 
   const baseUrl = `https://schemeatlas.com/schemes/${resolvedParams.slug}`;
-  const currentUrl = baseUrl;
 
   const languages: Record<string, string> = {
     en: baseUrl,
@@ -61,16 +143,22 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${scheme.name} ${new Date().getFullYear()} - Eligibility, Benefits & How to Apply | SchemeAtlas`,
+    title,
     description,
+    keywords: `${scheme.name}, government scheme, ${location}, eligibility, how to apply, benefits ${new Date().getFullYear()}`,
     openGraph: {
-      title: `${scheme.name} ${new Date().getFullYear()} | SchemeAtlas`,
+      title,
       description,
-      url: currentUrl,
+      url: baseUrl,
       type: 'article',
     },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+    },
     alternates: {
-      canonical: currentUrl,
+      canonical: baseUrl,
       languages,
     },
   };
@@ -123,56 +211,26 @@ export default async function SchemeDetailPage({
     '@context': 'https://schema.org',
     '@type': 'GovernmentService',
     name: scheme.name,
-    description: (scheme.content_en || scheme.what_you_get || '').substring(0, 160).replace(/\n/g, ' '),
+    description: cleanMarkdown(scheme.content_en || '').substring(0, 250),
     provider: {
       '@type': 'GovernmentOrganization',
-      name: scheme.ministry || scheme.category || 'Government',
+      name: scheme.ministry || 'Government of India',
     },
     areaServed: {
       '@type': scheme.state_name ? 'State' : 'Country',
-      name: scheme.state_name || scheme.country_code,
+      name: scheme.state_name || COUNTRY_NAMES[scheme.country_code] || scheme.country_code,
     },
     audience: {
       '@type': 'Audience',
-      audienceType: (typeof scheme.eligibility === 'string' ? scheme.eligibility : JSON.stringify(scheme.eligibility)).substring(0, 100),
+      audienceType: typeof scheme.eligibility === 'string'
+        ? scheme.eligibility.substring(0, 150)
+        : scheme.eligibility?.other || 'Indian citizens',
     },
     serviceType: "Government Benefit",
     url: `https://schemeatlas.com/schemes/${scheme.slug}`,
   };
 
-  const parseQAContent = (content: string) => {
-    if (!content) return [];
-    const sections: { question: string; answer: string }[] = [];
-    const parts = content.split(/(?=(?:\*\*?)?(?:Q\d+:|\d+\.)\s*)/i);
-    for (const part of parts) {
-      const trimmed = part.trim();
-      if (!trimmed) continue;
-      const lines = trimmed.split('\n');
-      const questionLine = lines[0]?.trim() || '';
-      const answerLines = lines.slice(1).join('\n').trim();
-      if (questionLine && answerLines) {
-        const question = questionLine.replace(/^\d+\.\s*/, '').replace(/\*\*/g, '').replace(/Q\d+:\s*/i, '').trim();
-        const answer = answerLines.replace(/\*\*/g, '').trim();
-        if (question.length > 3) sections.push({ question, answer });
-      }
-    }
-    return sections;
-  };
-
-  const qaSections = scheme.content_en ? parseQAContent(scheme.content_en) : [];
-  
-  const faqSchema = qaSections.length > 0 ? {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: qaSections.map(qa => ({
-      '@type': 'Question',
-      name: qa.question,
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: qa.answer
-      }
-    }))
-  } : null;
+  const faqSchema = generateFAQSchema(scheme);
 
   return (
     <main className="min-h-screen bg-slate-50 font-sans">

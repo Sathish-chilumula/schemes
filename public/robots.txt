@@ -1,13 +1,11 @@
 # *
 User-agent: *
 Allow: /
-Disallow: /results/
 
 # *
 User-agent: *
 Disallow: /saved
 Disallow: /api/
-Disallow: /results/
 
 # Host
 Host: https://schemeatlas.com

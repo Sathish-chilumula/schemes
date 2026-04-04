@@ -4,14 +4,15 @@ import { createClient } from '@supabase/supabase-js';
 // Required for Cloudflare Pages Edge Runtime
 export const runtime = 'edge';
 
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
     process.env.SUPABASE_SERVICE_KEY || 'placeholder-key'
   );
 
   try {
-    const { session_id } = await request.json();
+    const { searchParams } = new URL(request.url);
+    const session_id = searchParams.get('session_id');
     if (!session_id) return NextResponse.json({ error: 'session_id required' }, { status: 400 });
 
     // Get user profile
