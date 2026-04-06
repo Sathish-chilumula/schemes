@@ -199,8 +199,9 @@ Benefit: ${scheme.benefit_amount || 'Not specified'}
 Category: ${scheme.category || 'Not specified'}`;
 
       let contentEn = scheme.content_en;
-      const hasOverview = contentEn && contentEn.indexOf('Q:') > 100;
-      const needsEn = !contentEn || contentEn.length < 300 || !(contentEn.includes('Q:') && contentEn.includes('A:')) || contentEn.includes('**') || contentEn.includes('#') || !hasOverview;
+      const possessesNewFormat = contentEn && contentEn.includes('Pro Tips / Insights') && contentEn.includes('Who Should Apply');
+      // FORCE RENEWAL: If is_seo_optimized is false, we always regenerate to ensure 14-point structure
+      const needsEn = !contentEn || contentEn.length < 500 || !possessesNewFormat || contentEn.includes('**') || contentEn.includes('#');
 
       if (needsEn) {
         console.log('   ⏳ Generating English content...');
@@ -251,11 +252,10 @@ Category: ${scheme.category || 'Not specified'}`;
           console.log(`   ⏳ Translating to ${langName}...`);
           const localPrompt = `Translate this comprehensive scheme guide to ${langName}.
 Rules:
-- Keep the exact prefixes "Q:" and "A:" in English (do not translate these prefixes).
-- Translate the text accurately to ${langName} in a natural, human-like conversational tone.
-- Use simple, common words in ${langName}. Avoid formal or highly academic language.
-- Keep all numbers, amounts, dates, and URLs unchanged.
-- NEVER use asterisks (**), hashes (#), or markdown formatting of any kind.\n\nOriginal:\n${contentEn}`;
+- Keep the exact 14-point section headers as provided in the original text (e.g. "Title:", "Summary:", "What is the Scheme?", etc.) but you can translate the header names to ${langName} if appropriate, as long as the 14-point structure is preserved.
+- For FAQs, keep the English prefixes "Q: " and "A: ".
+- Use a natural, human-like conversational tone in ${langName}.
+- NEVER use asterisks (**), hashes (#), or markdown formatting. Use plain text only.\n\nOriginal:\n${contentEn}`;
           const translated = await callLLM(localPrompt);
           
           if (isHi) { 

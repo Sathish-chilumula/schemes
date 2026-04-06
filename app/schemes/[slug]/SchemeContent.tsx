@@ -46,7 +46,22 @@ export function SchemeContent({
     let overview = '';
     const qa: { question: string; answer: string }[] = [];
 
-    // Pattern 1: "Q: question?\nA: answer"
+    // Pattern 1: 14-Point Numbered Structure (1. Title:, 2. Summary:, etc.)
+    const numberedPattern = /^(\d+)\.\s+([^:]+):/m;
+    if (numberedPattern.test(content)) {
+      const parts = content.split(/^(\d+)\.\s+([^:]+):/m).filter(p => p.trim());
+      // parts will be [number, heading, body, number, heading, body, ...]
+      for (let i = 0; i < parts.length; i += 3) {
+        if (i + 2 < parts.length) {
+          const heading = parts[i+1].trim();
+          const body = parts[i+2].trim();
+          qa.push({ question: heading, answer: body });
+        }
+      }
+      return { overview: '', qa };
+    }
+
+    // Pattern 2: "Q: question?\nA: answer"
     if (content.includes('Q:') && content.includes('A:')) {
       const lines = content.split('\n');
       let currentQ = '';
@@ -73,7 +88,7 @@ export function SchemeContent({
       return { overview, qa };
     }
     
-    // Pattern 2: Old markdown format — convert ## sections to Q&A
+    // Pattern 3: Old markdown format — convert ## sections to Q&A
     const sections = content.split(/##\s+/).filter(s => s.trim().length > 10);
     
     if (sections.length > 0) {
@@ -89,12 +104,10 @@ export function SchemeContent({
           .replace(/[-•]\s/g, '')
           .trim();
         
-        // If there's no body, the 'heading' is probably the whole text
         if (!body && heading.length > 50) {
           return { question: "Overview", answer: heading };
         }
 
-        // Convert heading to question format
         const question = heading.includes('?') 
           ? heading 
           : `What is the ${heading.toLowerCase()} for this scheme?`;
@@ -105,7 +118,7 @@ export function SchemeContent({
       return { overview: '', qa: parsedSections };
     }
 
-    // Fallback: Just return a single Overview section if it's plain text
+    // Fallback
     return { overview: content, qa: [] };
   };
 
