@@ -14,6 +14,8 @@ const key = process.env.SUPABASE_SERVICE_KEY;
 const geminiKey = process.env.GEMINI_API_KEY;
 const openRouterKey = process.env.OPENROUTER_API_KEY;
 const groqKey = process.env.GROQ_API_KEY;
+const cfAccountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+const cfApiToken = process.env.CLOUDFLARE_API_TOKEN;
 
 if (!url || !key) {
   console.error('\n❌ CRITICAL STARTUP ERROR ❌');
@@ -90,6 +92,31 @@ async function generateAICompletion(prompt) {
       if (text) return text;
     } catch (err) {
       console.warn(`⚠️ Tier 3 (Groq) failed: ${err.response?.data?.error?.message || err.message}`);
+    }
+  }
+
+  // --- TIER 4: CLOUDFLARE WORKERS AI ---
+  if (cfAccountId && cfApiToken) {
+    try {
+      console.log('🤖 Attempting Tier 4: Cloudflare Workers AI (Gemma 2 9B)...');
+      const response = await axios.post(
+        `https://api.cloudflare.com/client/v4/accounts/${cfAccountId}/ai/v1/chat/completions`,
+        {
+          model: '@hf/google/gemma-2-9b-it',
+          messages: [{ role: 'user', content: prompt }]
+        },
+        {
+          headers: { 
+            'Authorization': `Bearer ${cfApiToken}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: 15000
+        }
+      );
+      const text = response.data?.result?.response?.trim() || response.data?.choices?.[0]?.message?.content?.trim();
+      if (text) return text;
+    } catch (err) {
+      console.warn(`⚠️ Tier 4 (Cloudflare) failed: ${err.response?.data?.error?.message || err.message}`);
     }
   }
 

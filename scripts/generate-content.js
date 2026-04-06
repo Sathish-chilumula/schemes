@@ -14,6 +14,9 @@ const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
+const CLOUDFLARE_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID;
+const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
+const axios = require('axios');
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY || (!OPENAI_API_KEY && !GROQ_API_KEY)) {
   console.error("❌ Missing required environment variables. Ensure SUPABASE_URL, SUPABASE_SERVICE_KEY, and at least one API key (OPENAI or GROQ) is set.");
@@ -82,6 +85,34 @@ async function callLLM(prompt, retries = 3) {
       }
     }
   }
+  // --- TIER 4: CLOUDFLARE WORKERS AI ---
+  if (CLOUDFLARE_ACCOUNT_ID && CLOUDFLARE_API_TOKEN) {
+    for (let attempt = 0; attempt < retries; attempt++) {
+      try {
+        console.log('     🤖 Attempting Tier 4: Cloudflare Workers AI (Gemma 2 9B)...');
+        const response = await axios.post(
+          `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/v1/chat/completions`,
+          {
+            model: '@hf/google/gemma-2-9b-it',
+            messages: [{ role: 'user', content: prompt }]
+          },
+          {
+            headers: { 
+              'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
+              'Content-Type': 'application/json'
+            },
+            timeout: 20000
+          }
+        );
+        const text = response.data?.result?.response?.trim() || response.data?.choices?.[0]?.message?.content?.trim();
+        if (text && text.length > 100) return text;
+      } catch (err) {
+        console.warn(`     ⚠️ Tier 4 (Cloudflare) failed: ${err.message}`);
+        await delay(4000);
+      }
+    }
+  }
+
   throw new Error('All models exhausted or failed');
 }
 
