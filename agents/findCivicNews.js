@@ -9,6 +9,8 @@
  * AI Providers (cascading fallback):
  *   Tier 1: Gemini 2.0 Flash (free, fast)
  *   Tier 2: Cloudflare Workers AI (free tier, reliable)
+ * 
+ * Translations: English + Hindi + Telugu for all content.
  */
 
 const axios = require('axios');
@@ -22,6 +24,9 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const CLOUDFLARE_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID;
 const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
+
+// Only keep items published within the last 48 hours
+const MAX_AGE_HOURS = 48;
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {
   console.error("❌ Missing SUPABASE environment variables.");
@@ -56,16 +61,52 @@ const parser = new XMLParser();
 
 function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+// Get current year dynamically so feeds never go stale
+const CURRENT_YEAR = new Date().getFullYear();
+
 const RSS_FEEDS = [
-  // Job specific
-  { url: 'https://news.google.com/rss/search?q=government+jobs+notification+india+ssc+upsc+railway+2025+2026&hl=en-IN&gl=IN&ceid=IN:en', type: 'job' },
+  // Job specific — current year only
+  { url: `https://news.google.com/rss/search?q=government+jobs+notification+india+ssc+upsc+railway+${CURRENT_YEAR}&hl=en-IN&gl=IN&ceid=IN:en&when=2d`, type: 'job' },
+  { url: `https://news.google.com/rss/search?q=sarkari+naukri+latest+vacancy+${CURRENT_YEAR}&hl=en-IN&gl=IN&ceid=IN:en&when=2d`, type: 'job' },
   // Aadhaar/Document specific
-  { url: 'https://news.google.com/rss/search?q=Aadhaar+update+UIDAI+PAN+card+deadline+news&hl=en-IN&gl=IN&ceid=IN:en', type: 'news' },
+  { url: `https://news.google.com/rss/search?q=Aadhaar+update+UIDAI+PAN+card+deadline+${CURRENT_YEAR}&hl=en-IN&gl=IN&ceid=IN:en&when=2d`, type: 'alert' },
   // Budget/Cabinet
-  { url: 'https://news.google.com/rss/search?q=cabinet+decisions+india+news+today+pib&hl=en-IN&gl=IN&ceid=IN:en', type: 'news' },
+  { url: `https://news.google.com/rss/search?q=cabinet+decisions+india+today+pib+${CURRENT_YEAR}&hl=en-IN&gl=IN&ceid=IN:en&when=2d`, type: 'news' },
   // Finance/Budget
-  { url: 'https://news.google.com/rss/search?q=india+finance+budget+decisions+highlights+2026&hl=en-IN&gl=IN&ceid=IN:en', type: 'news' }
+  { url: `https://news.google.com/rss/search?q=india+finance+budget+decisions+${CURRENT_YEAR}&hl=en-IN&gl=IN&ceid=IN:en&when=2d`, type: 'budget' }
 ];
+
+// ─── TITLE CLEANER ───────────────────────────────────────────────
+// Strips source website names like "- Adda247", "| Careers360", "- NDTV" etc. from RSS titles
+function cleanTitle(rawTitle) {
+  if (!rawTitle) return '';
+  return rawTitle
+    // Remove " - SourceName" or " | SourceName" at the end
+    .replace(/\s*[-–|]\s*[A-Za-z0-9\s.]+$/, '')
+    // Remove leftover whitespace
+    .trim();
+}
+
+// ─── DATE FRESHNESS CHECK ────────────────────────────────────────
+// Returns true if the item was published within MAX_AGE_HOURS
+function isFreshItem(item) {
+  const pubDate = item.pubDate;
+  if (!pubDate) return true; // If no date, process it anyway (let AI decide relevance)
+  
+  try {
+    const published = new Date(pubDate);
+    const now = new Date();
+    const ageMs = now - published;
+    const ageHours = ageMs / (1000 * 60 * 60);
+    
+    if (ageHours > MAX_AGE_HOURS) {
+      return false;
+    }
+    return true;
+  } catch {
+    return true; // Can't parse date? Let it through.
+  }
+}
 
 // ─── CASCADING AI CALL ────────────────────────────────────────────
 async function callAI(prompt) {
@@ -105,7 +146,7 @@ async function callAI(prompt) {
               'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
               'Content-Type': 'application/json'
             },
-            timeout: 30000
+            timeout: 45000
           }
         );
 
@@ -131,21 +172,30 @@ async function callAI(prompt) {
 // ─── MAIN ─────────────────────────────────────────────────────────
 async function main() {
   console.log("🚀 Civic News & Jobs Agent Starting...");
+  console.log(`📅 Current Year: ${CURRENT_YEAR} | Max Item Age: ${MAX_AGE_HOURS}h`);
   console.log('━'.repeat(55));
   
   let published = 0;
   let skipped = 0;
+  let stale = 0;
   let failed = 0;
 
   for (const feed of RSS_FEEDS) {
     try {
-      console.log(`\n📡 Fetching: ${feed.url}`);
+      console.log(`\n📡 Fetching [${feed.type}]: ${feed.url.substring(0, 80)}...`);
       const res = await axios.get(feed.url, { timeout: 15000 });
       const data = parser.parse(res.data);
       const items = data.rss?.channel?.item || [];
+      console.log(`   Found ${items.length} items in feed`);
 
-      // Process top 10 items per feed to avoid exhaustion
-      for (const item of items.slice(0, 10)) {
+      // Process top 8 items per feed
+      for (const item of items.slice(0, 8)) {
+        // Filter stale items
+        if (!isFreshItem(item)) {
+          stale++;
+          continue;
+        }
+        
         const result = await processItem(item, feed.type);
         if (result === 'published') published++;
         else if (result === 'skipped') skipped++;
@@ -157,12 +207,13 @@ async function main() {
   }
 
   console.log('\n' + '━'.repeat(55));
-  console.log(`🏁 Finished! Published: ${published} | Skipped (existing): ${skipped} | Failed: ${failed}`);
+  console.log(`🏁 Finished! Published: ${published} | Skipped: ${skipped} | Stale (filtered): ${stale} | Failed: ${failed}`);
 }
 
 async function processItem(item, hintType) {
   const sourceUrl = item.link;
-  const title = item.title;
+  const rawTitle = item.title;
+  const cleanedTitle = cleanTitle(rawTitle);
   const sourceHash = crypto.createHash('md5').update(sourceUrl).digest('hex');
 
   // 1. Check if already exists
@@ -174,19 +225,60 @@ async function processItem(item, hintType) {
 
   if (existing) return 'skipped';
 
-  console.log(`\n✨ New Content Found: ${title}`);
+  console.log(`\n✨ New: ${cleanedTitle}`);
 
-  // 2. Extract and Rewrite using AI
-  const aiResult = await rewriteWithAI(title, sourceUrl, hintType);
+  // 2. Generate English content using AI
+  const aiResult = await rewriteWithAI(cleanedTitle, sourceUrl, hintType);
   if (!aiResult) return 'failed';
 
-  // 3. Save to Supabase
+  // 3. Translate to Hindi
+  let contentHi = null;
+  try {
+    console.log(`   ⏳ Translating to Hindi...`);
+    const hiPrompt = `Translate the following government news article to Hindi.
+Rules:
+- Use natural, conversational Hindi. Write as if talking to a friend.
+- Do NOT use any markdown symbols like **, #, or bullet points.
+- Keep the same paragraph structure as the original.
+- Do NOT add any extra sections or headers.
+
+Original:
+${aiResult.content_en}`;
+    contentHi = await callAI(hiPrompt);
+    console.log(`   ✅ Hindi: ${contentHi?.length || 0} chars`);
+  } catch (e) {
+    console.warn(`   ⚠️ Hindi translation failed: ${e.message}`);
+  }
+
+  // 4. Translate to Telugu
+  let contentLocal = null;
+  try {
+    console.log(`   ⏳ Translating to Telugu...`);
+    const tePrompt = `Translate the following government news article to Telugu.
+Rules:
+- Use natural, conversational Telugu. Write as if talking to a friend.
+- Do NOT use any markdown symbols like **, #, or bullet points.
+- Keep the same paragraph structure as the original.
+- Do NOT add any extra sections or headers.
+
+Original:
+${aiResult.content_en}`;
+    contentLocal = await callAI(tePrompt);
+    console.log(`   ✅ Telugu: ${contentLocal?.length || 0} chars`);
+  } catch (e) {
+    console.warn(`   ⚠️ Telugu translation failed: ${e.message}`);
+  }
+
+  // 5. Save to Supabase (with all 3 languages)
   const { error } = await supabase.from('schemes').insert({
     name: aiResult.name,
     slug: aiResult.slug,
     category: aiResult.category,
     country_code: 'IN',
     content_en: aiResult.content_en,
+    content_hi: contentHi,
+    content_local: contentLocal,
+    local_language: 'te',
     what_you_get: aiResult.what_you_get,
     eligibility: aiResult.eligibility,
     how_to_apply: aiResult.how_to_apply,
@@ -201,13 +293,13 @@ async function processItem(item, hintType) {
     console.error(`❌ DB Error: ${error.message}`);
     return 'failed';
   }
-  console.log(`✅ Published: ${aiResult.name} [Type: ${aiResult.category}]`);
+  console.log(`✅ Published: ${aiResult.name} [${aiResult.category}] (EN + HI + TE)`);
   return 'published';
 }
 
 async function rewriteWithAI(title, url, hintType) {
   const prompt = `
-    You are an expert Government News Editor. Rewrite the following government update/job notification into a clear, helpful guide for common citizens.
+    You are an expert Government News Editor for SchemeAtlas. Rewrite the following government update/job notification into a clear, helpful guide for common citizens.
     
     Source Title: "${title}"
     Source URL: "${url}"
@@ -215,8 +307,8 @@ async function rewriteWithAI(title, url, hintType) {
     
     Return ONLY a JSON object with this exact structure:
     {
-      "name": "Short Clear Name (max 10 words)",
-      "slug": "url-friendly-slug",
+      "name": "Short Clear Name (max 10 words). Do NOT include any website names like Adda247, Careers360, NDTV, etc.",
+      "slug": "url-friendly-slug-without-website-names",
       "category": "Choose one: job, news, alert, budget",
       "what_you_get": "For JOBS: Salary/Pay scale. For NEWS: The core benefit or decision summary.",
       "eligibility": {
@@ -228,20 +320,30 @@ async function rewriteWithAI(title, url, hintType) {
         "steps": ["Step 1", "Step 2"],
         "deadline": "Last date if found, else null"
       },
-      "content_en": "A human-like Overview of the decision/job. Wrap this in 2 paragraphs. Do NOT include markdown headers. Just plain text with newlines."
+      "content_en": "A human-like overview of the decision/job in 2-3 paragraphs. Write in friendly, conversational tone. Do NOT include markdown headers, asterisks, or any source website names. Just plain text with newlines."
     }
     
-    IMPORTANT: 
-    - If it's a JOB, provide EXACT vacancy numbers and salary if mention in the title or common knowledge for this post.
+    CRITICAL RULES:
+    - NEVER include source website names (Adda247, Careers360, NDTV, Times of India, Economic Times, BankersAdda, etc.) anywhere in the output.
+    - The "name" field should be a clean, generic government-style title like "SSC CGL 2026 Recruitment Notification" not "SSC CGL 2026 - Adda247".
+    - If it's a JOB, provide EXACT vacancy numbers and salary if mentioned in the title.
     - If it is about a Government Decision (Cabinet), explain exactly how it impacts the ordinary person.
     - Keep formatting simple. NO '#' or '**'.
+    - Only include information relevant to the CURRENT year (${new Date().getFullYear()}).
   `;
 
   try {
     const text = await callAI(prompt);
     // Clear any markdown code block artifacts
     const jsonStr = text.replace(/```json|```/g, '').trim();
-    return JSON.parse(jsonStr);
+    const parsed = JSON.parse(jsonStr);
+
+    // Final safety net: strip any remaining source names from the name/slug
+    const sourcePatterns = /\s*[-–|:]\s*(Adda247|Careers360|NDTV|Times of India|Economic Times|BankersAdda|India Today|The Hindu|Hindustan Times|LiveMint|Jagran Josh|Sarkari Result|FreeJobAlert|Employment News|News18|OneIndia|Moneycontrol).*$/gi;
+    parsed.name = (parsed.name || '').replace(sourcePatterns, '').trim();
+    parsed.slug = (parsed.slug || '').replace(/(adda247|careers360|ndtv|bankersadda|jagran-josh|sarkari-result|freejob)/gi, '').replace(/-+/g, '-').replace(/^-|-$/g, '');
+
+    return parsed;
   } catch (e) {
     console.warn(`⚠️ AI failure for ${title}: ${e.message}`);
     return null;
