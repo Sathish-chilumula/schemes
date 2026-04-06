@@ -112,6 +112,8 @@ export async function generateStaticParams() {
   return allParams;
 }
 
+export const dynamicParams = false;
+
 export async function generateMetadata({ 
   params 
 }: { 

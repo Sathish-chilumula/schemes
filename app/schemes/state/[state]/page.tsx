@@ -12,6 +12,8 @@ export async function generateStaticParams() {
   }));
 }
 
+export const dynamicParams = false;
+
 export async function generateMetadata({ params }: { params: Promise<{ state: string }> }): Promise<Metadata> {
   const resolvedParams = await params;
   const india = COUNTRIES.IN;

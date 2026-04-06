@@ -40,35 +40,43 @@ export function SchemeContent({
   }, []);
 
   const parseQAContent = (content: string) => {
-    if (!content) return [];
+    if (!content) return { overview: '', qa: [] };
     
+    let overview = '';
+    const qa: { question: string; answer: string }[] = [];
+
     // Pattern 1: "Q: question?\nA: answer"
     if (content.includes('Q:') && content.includes('A:')) {
-      const pairs = [];
       const lines = content.split('\n');
       let currentQ = '';
       let currentA = '';
+      let foundFirstQ = false;
       
       for (const line of lines) {
-        if (line.startsWith('Q:') || line.match(/^\d+\.\s+What|Who|How|When|Is /)) {
-          if (currentQ && currentA) pairs.push({ question: currentQ, answer: currentA });
+        const isQuestion = line.startsWith('Q:') || line.match(/^\d+\.\s+What|Who|How|When|Is /);
+        
+        if (isQuestion) {
+          foundFirstQ = true;
+          if (currentQ && currentA) qa.push({ question: currentQ, answer: currentA });
           currentQ = line.replace(/^Q:\s*/, '').replace(/^\d+\.\s*/, '');
           currentA = '';
         } else if (line.startsWith('A:')) {
           currentA = line.replace(/^A:\s*/, '');
+        } else if (!foundFirstQ) {
+          if (line.trim()) overview += (overview ? '\n' : '') + line.trim();
         } else if (currentA && line.trim()) {
           currentA += ' ' + line.trim();
         }
       }
-      if (currentQ && currentA) pairs.push({ question: currentQ, answer: currentA });
-      return pairs;
+      if (currentQ && currentA) qa.push({ question: currentQ, answer: currentA });
+      return { overview, qa };
     }
     
     // Pattern 2: Old markdown format — convert ## sections to Q&A
     const sections = content.split(/##\s+/).filter(s => s.trim().length > 10);
     
     if (sections.length > 0) {
-      return sections.map(section => {
+      const parsedSections = sections.map(section => {
         const lines = section.split('\n').filter(l => l.trim());
         if (lines.length === 0) return null;
         
@@ -91,15 +99,17 @@ export function SchemeContent({
           : `What is the ${heading.toLowerCase()} for this scheme?`;
         
         return { question, answer: body || heading };
-      }).filter(pair => pair && pair.question && pair.answer);
+      }).filter(pair => pair && pair.question && pair.answer) as { question: string; answer: string }[];
+
+      return { overview: '', qa: parsedSections };
     }
 
     // Fallback: Just return a single Overview section if it's plain text
-    return [{ question: "Overview", answer: content }];
+    return { overview: content, qa: [] };
   };
 
   const activeContent = lang === 'hi' ? contentHi : (lang === localLanguage ? contentLocal : contentEn);
-  const qaSections = activeContent ? parseQAContent(activeContent) : [];
+  const { overview, qa: qaSections } = activeContent ? parseQAContent(activeContent) : { overview: '', qa: [] };
 
   const availableLangs: { code: string; label: string }[] = [];
   if (contentEn) availableLangs.push({ code: 'en', label: 'English' });
@@ -156,6 +166,19 @@ export function SchemeContent({
           Share on WhatsApp
         </button>
       </div>
+
+      {overview && (
+        <section className="mb-12 bg-white p-8 sm:p-10 rounded-[2.5rem] border border-slate-200/60 shadow-sm relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-brand-50/50 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110 duration-500"></div>
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mb-6 flex items-center gap-3">
+             <span className="w-1.5 h-8 bg-brand-500 rounded-full"></span>
+             Scheme Overview
+          </h2>
+          <div className="text-slate-700 leading-relaxed text-lg sm:text-xl font-medium whitespace-pre-wrap italic">
+            {formatTextAsParagraphs(overview, "mb-4")}
+          </div>
+        </section>
+      )}
 
       {qaSections.length > 0 ? (
         <article className="mt-8">

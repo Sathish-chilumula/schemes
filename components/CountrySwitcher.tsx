@@ -12,7 +12,7 @@ export function CountrySwitcher({ initialCountry = 'IN' }: { initialCountry?: st
   const handleSelect = (code: string) => {
     setCurrent(code);
     setIsOpen(false);
-    router.push(`/${code}`);
+    router.push(`/${code.toLowerCase()}`);
   };
 
   return (
