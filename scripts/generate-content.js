@@ -109,16 +109,21 @@ async function main() {
     const needsTranslation = local && local !== 'en';
     const missingHi = needsTranslation && local === 'hi' && !s.content_hi;
     const missingLocal = needsTranslation && local !== 'hi' && !s.content_local;
+    
+    // Logic to detect legacy 7-question format or missing 14-point structure
+    const isLegacy = s.content_en && (
+      !s.content_en.includes('Who Should Apply') || 
+      !s.content_en.includes('Pro Tips') ||
+      s.content_en.includes('**') ||
+      s.content_en.includes('#')
+    );
 
     return !s.content_en || 
-           s.content_en.length < 300 || 
-           !(s.content_en.includes('Q:') && s.content_en.includes('A:')) ||
-           s.content_en.indexOf('Q:') < 100 ||
-           s.content_en.includes('**') ||
-           s.content_en.includes('#') ||
+           s.content_en.length < 600 || 
+           isLegacy ||
            missingHi || 
            missingLocal;
-  }).slice(0, 100);
+  }).slice(0, 50); // Processed in batches of 50 as requested
 
   if (!schemes || schemes.length === 0) {
     console.log('✅ All schemes already have Q&A content! Nothing to do.');
@@ -141,24 +146,31 @@ async function main() {
     try {
       const eligStr = typeof scheme.eligibility === 'object' ? JSON.stringify(scheme.eligibility) : scheme.eligibility || 'Not specified';
       
-      const enPrompt = `Write a comprehensive, human-like scheme guide for citizens. Write naturally, as if a helpful government employee is explaining it to a citizen. Do NOT sound like an AI. 
+      const enPrompt = `You are an expert SEO content writer and data validator specializing in government schemes. Write a HIGH-QUALITY, SEO-OPTIMIZED, TRUSTWORTHY scheme guide for citizens.
+Tone: Friendly, conversational, and helpful. Use very short sentences. Avoid formal or complex words. Write as if you are talking to a friend in simple English.
 
-First, write an overview section without any special symbols or formatting. Start directly by explaining what the scheme is, its purpose, and its major benefits in 1-2 engaging paragraphs.
-Then, provide a Q&A section using exactly these 7 questions:
-Q: Who is eligible for ${scheme.name}?
-Q: How much benefit will you get?
-Q: How to apply for ${scheme.name}?
-Q: What documents are needed to apply?
-Q: When will you receive the benefit?
-Q: What is the last date to apply?
-Q: Is ${scheme.name} still active and available?
+Structure Rule: You MUST follow this exact 14-point structure. Use clear labels for each section. 
+DO NOT use any markdown symbols like asterisks (**), hashes (#), or bullet points. Use plain text only.
+
+1. Title: Easy to understand, friendly.
+2. Summary: 5–10 lines. Very simple overview of what it is.
+3. What is the Scheme?: Purpose and Ministry details in simple words.
+4. Key Benefits: Exact money (₹) or facilities. Be very specific about amounts.
+5. Eligibility Criteria: Simple list of who can get it.
+6. Who Should Apply: Real-life examples of people who should join.
+7. Who Should NOT Apply: Clear examples of people who are not allowed.
+8. Documents Required: Clear list of papers needed.
+9. Selection / Approval Process: Step-by-step in plain words.
+10. How to Apply: Simple steps anyone can follow.
+11. Important Dates: Open dates or cycles.
+12. Official Website / Application: Provide the verified URL as plain text. If not verified, write "Visit the official ministry website."
+13. FAQs: 5–7 friendly questions and answers. Use "Q: " and "A: " prefixes.
+14. Pro Tips / Insights: Simple advice to help the user succeed.
 
 Rules:
-- NEVER use asterisks (**), hashes (#), bullet points, or markdown formatting of any kind anywhere in the text.
-- Under the Q&A section, prefix every single question with EXACTLY "Q: "
-- Under the Q&A section, prefix every single answer with EXACTLY "A: "
-- Write clear, concise answers that flow naturally.
-- Keep the total output under 600 words.
+- NEVER use asterisks (**), hashes (#), bullet points, or markdown formatting anywhere.
+- For FAQs, prefix every question with EXACTLY "Q: " and every answer with EXACTLY "A: ".
+- Keep the total output around 600-800 words for depth.
 
 Scheme details:
 Name: ${scheme.name}
@@ -221,6 +233,7 @@ Category: ${scheme.category || 'Not specified'}`;
 Rules:
 - Keep the exact prefixes "Q:" and "A:" in English (do not translate these prefixes).
 - Translate the text accurately to ${langName} in a natural, human-like conversational tone.
+- Use simple, common words in ${langName}. Avoid formal or highly academic language.
 - Keep all numbers, amounts, dates, and URLs unchanged.
 - NEVER use asterisks (**), hashes (#), or markdown formatting of any kind.\n\nOriginal:\n${contentEn}`;
           const translated = await callLLM(localPrompt);
