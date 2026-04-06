@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { GoogleAdSense } from '@/components/GoogleAdSense';
 import { LANG_LABELS } from '@/lib/config';
 
 interface SchemeContentProps {
@@ -174,7 +175,7 @@ export function SchemeContent({
              <span className="w-1.5 h-8 bg-brand-500 rounded-full"></span>
              Scheme Overview
           </h2>
-          <div className="text-slate-700 leading-relaxed text-lg sm:text-xl font-medium whitespace-pre-wrap italic">
+          <div className="text-slate-700 leading-relaxed text-lg sm:text-xl font-medium whitespace-pre-wrap">
             {formatTextAsParagraphs(overview, "mb-4")}
           </div>
         </section>
@@ -182,21 +183,25 @@ export function SchemeContent({
 
       {qaSections.length > 0 ? (
         <article className="mt-8">
+          <GoogleAdSense slot="header_top" className="mb-10" />
           {qaSections.map((pair, index) => (
-            <section key={index} className="mb-10 bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col sm:flex-row gap-6 relative group overflow-hidden">
-              <div className="absolute top-0 left-0 w-1.5 h-full bg-brand-500 transform origin-left transition-transform duration-300"></div>
-              
-              <div className="flex-1">
-                <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-4 flex items-start gap-4">
-                  <span className="text-brand-500 font-extrabold mt-1 text-2xl leading-none">Q.</span>
-                  <span className="leading-snug">{pair.question}</span>
-                </h2>
-                <div className="text-slate-700 leading-relaxed pl-10 text-lg">
-                  {formatTextAsParagraphs(pair.answer, "mb-4")}
+            <div key={index}>
+              <section className="mb-10 bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col sm:flex-row gap-6 relative group overflow-hidden">
+                <div className="absolute top-0 left-0 w-1.5 h-full bg-brand-500 transform origin-left transition-transform duration-300"></div>
+                <div className="flex-1">
+                  <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-4 flex items-start gap-4">
+                    <span className="text-brand-500 font-extrabold mt-1 text-2xl leading-none">Q.</span>
+                    <span className="leading-snug">{pair.question}</span>
+                  </h2>
+                  <div className="text-slate-700 leading-relaxed pl-10 text-lg">
+                    {formatTextAsParagraphs(pair.answer, "mb-4")}
+                  </div>
                 </div>
-              </div>
-            </section>
+              </section>
+              {index === 0 && <GoogleAdSense slot="content_middle" className="mb-10" />}
+            </div>
           ))}
+          <GoogleAdSense slot="article_footer" className="mt-8" />
         </article>
       ) : (
         <article className="prose prose-slate max-w-none prose-h2:text-slate-900 prose-h2:text-xl prose-h2:font-bold prose-h2:mt-10 prose-h2:mb-4">
