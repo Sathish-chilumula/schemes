@@ -46,11 +46,11 @@ async function generateAICompletion(prompt) {
   // --- TIER 1: CLOUDFLARE WORKERS AI ---
   if (cfAccountId && cfApiToken) {
     try {
-      console.log('🤖 Attempting Tier 1: Cloudflare Workers AI (Gemma 4-26b)...');
+      console.log('🤖 Attempting Tier 1: Cloudflare Workers AI (Llama 3.1 8B)...');
       const response = await axios.post(
         `https://api.cloudflare.com/client/v4/accounts/${cfAccountId}/ai/v1/chat/completions`,
         {
-          model: '@cf/google/gemma-4-26b-a4b-it',
+          model: '@cf/meta/llama-3.1-8b-instruct',
           messages: [{ role: 'user', content: prompt }]
         },
         {
@@ -58,13 +58,13 @@ async function generateAICompletion(prompt) {
             'Authorization': `Bearer ${cfApiToken}`,
             'Content-Type': 'application/json'
           },
-          timeout: 15000
+          timeout: 25000
         }
       );
       const text = response.data?.result?.response?.trim() || response.data?.choices?.[0]?.message?.content?.trim();
       if (text) return text;
     } catch (err) {
-      console.warn(`⚠️ Tier 1 (Cloudflare) failed: ${err.response?.data?.error?.message || err.message}`);
+      console.warn(`⚠️ Tier 1 (Cloudflare) failed: ${err.message}`);
     }
   }
 
@@ -367,13 +367,18 @@ const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY || 'mRrS9UjMl45wy4Hy
 async function fetchUnsplashImage(keyword) {
   if (!keyword) return null;
   try {
-    const res = await axios.get(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(keyword)}&client_id=${UNSPLASH_ACCESS_KEY}&per_page=1&orientation=landscape`);
+    // Add context to the keyword for much more "attractive" and relevant results
+    const enhancedKeyword = `${keyword} government and people support india`.substring(0, 60);
+    const res = await axios.get(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(enhancedKeyword)}&client_id=${UNSPLASH_ACCESS_KEY}&per_page=1&orientation=landscape`, { timeout: 10000 });
+    
     if (res.data && res.data.results && res.data.results.length > 0) {
-      return res.data.results[0].urls.regular;
+      const img = res.data.results[0];
+      console.log(`     📸 Found Image for "${keyword}": ${img.urls.regular.split('?')[0]}`);
+      return img.urls.regular;
     }
     return null;
   } catch (error) {
-    console.error('Unsplash API error:', error.message);
+    console.error('     ⚠️ Unsplash API error:', error.message);
     return null;
   }
 }
