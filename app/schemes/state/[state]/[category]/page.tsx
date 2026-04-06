@@ -6,8 +6,6 @@ import { COUNTRIES } from '@/lib/config';
 import { slugify, getIndianStateBySlug, getCanonicalCategory } from '@/lib/seo';
 import { Metadata } from 'next';
 
-export const runtime = 'edge';
-
 export async function generateStaticParams() {
   const india = COUNTRIES.IN;
   const params: { state: string; category: string }[] = [];
