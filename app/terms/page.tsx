@@ -27,6 +27,11 @@ export default function Terms() {
           <p>
             We reserve the right to modify or terminate the SchemeAtlas service for any reason, without notice, at any time. We reserve the right to alter these Terms of Use at any time.
           </p>
+
+          <h3>4. Contact Information</h3>
+          <p>
+            If you have any questions or concerns regarding these Terms of Service, please contact us at: <a href="mailto:contact@schemeatlas.com" className="text-brand-500 underline">contact@schemeatlas.com</a>
+          </p>
         </div>
       </div>
     </div>

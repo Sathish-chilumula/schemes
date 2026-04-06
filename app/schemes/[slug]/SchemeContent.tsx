@@ -122,8 +122,7 @@ export function SchemeContent({
     return { overview: content, qa: [] };
   };
 
-  const activeContent = lang === 'hi' ? contentHi : (lang === localLanguage ? contentLocal : contentEn);
-  const { overview, qa: qaSections } = activeContent ? parseQAContent(activeContent) : { overview: '', qa: [] };
+  // Content parsed dynamically in the render loop for Googlebot SEO DOM visibility
 
   const availableLangs: { code: string; label: string }[] = [];
   if (contentEn) availableLangs.push({ code: 'en', label: 'English' });
@@ -181,61 +180,70 @@ export function SchemeContent({
         </button>
       </div>
 
-      {overview && (
-        <section className="mb-12 bg-white p-8 sm:p-10 rounded-[2.5rem] border border-slate-200/60 shadow-sm relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-brand-50/50 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110 duration-500"></div>
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mb-6 flex items-center gap-3">
-             <span className="w-1.5 h-8 bg-brand-500 rounded-full"></span>
-             Scheme Overview
-          </h2>
-          <div className="text-slate-700 leading-relaxed text-lg sm:text-xl font-medium whitespace-pre-wrap">
-            {formatTextAsParagraphs(overview, "mb-4")}
-          </div>
-        </section>
-      )}
+      {availableLangs.map(l => {
+        const contentForLang = l.code === 'en' ? contentEn : l.code === 'hi' ? contentHi : contentLocal;
+        const { overview, qa } = contentForLang ? parseQAContent(contentForLang) : { overview: '', qa: [] };
 
-      {qaSections.length > 0 ? (
-        <article className="mt-8">
-          <GoogleAdSense slot="header_top" className="mb-10" />
-          {qaSections.map((pair, index) => (
-            <div key={index}>
-              <section className="mb-10 bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col sm:flex-row gap-6 relative group overflow-hidden">
-                <div className="absolute top-0 left-0 w-1.5 h-full bg-brand-500 transform origin-left transition-transform duration-300"></div>
-                <div className="flex-1">
-                  <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-4 flex items-start gap-4">
-                    <span className="text-brand-500 font-extrabold mt-1 text-2xl leading-none">Q.</span>
-                    <span className="leading-snug">{pair.question}</span>
-                  </h2>
-                  <div className="text-slate-700 leading-relaxed pl-10 text-lg">
-                    {formatTextAsParagraphs(pair.answer, "mb-4")}
-                  </div>
+        return (
+          <div key={l.code} className={lang === l.code ? 'block' : 'hidden'}>
+            {overview && (
+              <section className="mb-12 bg-white p-8 sm:p-10 rounded-[2.5rem] border border-slate-200/60 shadow-sm relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-brand-50/50 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110 duration-500"></div>
+                <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mb-6 flex items-center gap-3">
+                   <span className="w-1.5 h-8 bg-brand-500 rounded-full"></span>
+                   Scheme Overview
+                </h2>
+                <div className="text-slate-700 leading-relaxed text-lg sm:text-xl font-medium whitespace-pre-wrap">
+                  {formatTextAsParagraphs(overview, "mb-4")}
                 </div>
               </section>
-              {index === 0 && <GoogleAdSense slot="content_middle" className="mb-10" />}
-            </div>
-          ))}
-          <GoogleAdSense slot="article_footer" className="mt-8" />
-        </article>
-      ) : (
-        <article className="prose prose-slate max-w-none prose-h2:text-slate-900 prose-h2:text-xl prose-h2:font-bold prose-h2:mt-10 prose-h2:mb-4">
-           {fallbackWhatYouGet ? formatTextAsParagraphs(fallbackWhatYouGet, "text-slate-700 mb-4") : null}
-           {eligibilityList.length > 0 && (
-             <>
-               <h2 className="flex items-center gap-2 border-b border-slate-100 pb-2">
-                 <span className="text-2xl">👤</span> Eligibility Criteria
-               </h2>
-               <ul className="space-y-2 !pl-0">
-                 {eligibilityList.map((item, i) => (
-                   <li key={i} className="flex items-start gap-3 text-slate-700 list-none">
-                     <span className="mt-1 w-5 h-5 rounded-full bg-brand-50 text-brand-500 flex items-center justify-center flex-shrink-0 text-xs font-bold">✓</span>
-                     {String(item)}
-                   </li>
-                 ))}
-               </ul>
-             </>
-           )}
-        </article>
-      )}
+            )}
+
+            {qa.length > 0 ? (
+              <article className="mt-8">
+                {lang === l.code && <GoogleAdSense slot="header_top" className="mb-10" />}
+                {qa.map((pair, index) => (
+                  <div key={index}>
+                    <section className="mb-10 bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col sm:flex-row gap-6 relative group overflow-hidden">
+                      <div className="absolute top-0 left-0 w-1.5 h-full bg-brand-500 transform origin-left transition-transform duration-300"></div>
+                      <div className="flex-1">
+                        <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-4 flex items-start gap-4">
+                          <span className="text-brand-500 font-extrabold mt-1 text-2xl leading-none">Q.</span>
+                          <span className="leading-snug">{pair.question}</span>
+                        </h2>
+                        <div className="text-slate-700 leading-relaxed pl-10 text-lg">
+                          {formatTextAsParagraphs(pair.answer, "mb-4")}
+                        </div>
+                      </div>
+                    </section>
+                    {index === 0 && lang === l.code && <GoogleAdSense slot="content_middle" className="mb-10" />}
+                  </div>
+                ))}
+                {lang === l.code && <GoogleAdSense slot="article_footer" className="mt-8" />}
+              </article>
+            ) : (
+              <article className="prose prose-slate max-w-none prose-h2:text-slate-900 prose-h2:text-xl prose-h2:font-bold prose-h2:mt-10 prose-h2:mb-4">
+                 {fallbackWhatYouGet ? formatTextAsParagraphs(fallbackWhatYouGet, "text-slate-700 mb-4") : null}
+                 {eligibilityList.length > 0 && (
+                   <>
+                     <h2 className="flex items-center gap-2 border-b border-slate-100 pb-2">
+                       <span className="text-2xl">👤</span> Eligibility Criteria
+                     </h2>
+                     <ul className="space-y-2 !pl-0">
+                       {eligibilityList.map((item, i) => (
+                         <li key={i} className="flex items-start gap-3 text-slate-700 list-none">
+                           <span className="mt-1 w-5 h-5 rounded-full bg-brand-50 text-brand-500 flex items-center justify-center flex-shrink-0 text-xs font-bold">✓</span>
+                           {String(item)}
+                         </li>
+                       ))}
+                     </ul>
+                   </>
+                 )}
+              </article>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

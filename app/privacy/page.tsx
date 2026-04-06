@@ -13,7 +13,7 @@ export default function PrivacyPolicy() {
       <div className="page-container py-16 text-slate-800 max-w-4xl mx-auto">
         <h1 className="text-4xl font-extrabold mb-8 text-slate-900 border-b pb-4">Privacy Policy</h1>
         <div className="prose prose-slate max-w-none text-slate-600">
-          <p><strong>Last Updated:</strong> April 2025</p>
+          <p><strong>Last Updated:</strong> April 2026</p>
           
           <h3>1. Information We Collect</h3>
           <p>

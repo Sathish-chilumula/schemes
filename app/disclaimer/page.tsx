@@ -33,6 +33,11 @@ export default function Disclaimer() {
           <p>
             SchemeAtlas will <strong>never ask you for money</strong> to process an application or guarantee you a subsidy. Official programs are generally free to apply for. If someone contacts you claiming to represent SchemeAtlas and demands a fee, it is a scam.
           </p>
+
+          <h3>5. Contact Us</h3>
+          <p>
+            If you have questions about this disclaimer, or if you believe any information on our site requires correction, please contact us at: <a href="mailto:contact@schemeatlas.com" className="text-brand-500 underline">contact@schemeatlas.com</a>
+          </p>
         </div>
       </div>
     </div>
