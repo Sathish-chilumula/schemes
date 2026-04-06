@@ -40,69 +40,17 @@ if (geminiKey) {
 }
 
 // ============================================
-// UNIFIED AI COMPLETION (3-TIER FALLBACK)
+// UNIFIED AI COMPLETION (2-TIER FALLBACK)
 // ============================================
 async function generateAICompletion(prompt) {
-  // --- TIER 1: GEMINI SDK ---
-  if (geminiModel) {
-    try {
-      console.log('🤖 Attempting Tier 1: Gemini SDK...');
-      const result = await geminiModel.generateContent(prompt);
-      const text = result.response.text().trim();
-      if (text) return text;
-    } catch (err) {
-      console.warn(`⚠️ Tier 1 (Gemini SDK) failed: ${err.message}`);
-    }
-  }
-
-  // --- TIER 2: OPENROUTER ---
-  if (openRouterKey) {
-    try {
-      console.log('🤖 Attempting Tier 2: OpenRouter...');
-      const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-        model: 'google/gemini-2.0-flash-exp:free',
-        messages: [{ role: 'user', content: prompt }]
-      }, {
-        headers: { 
-          'Authorization': `Bearer ${openRouterKey}`,
-          'HTTP-Referer': 'https://claimit.pages.dev',
-          'X-Title': 'ClaimIt Scheme Atlas'
-        },
-        timeout: 15000 // IMPORTANT to avoid 30 min hang
-      });
-      const text = response.data?.choices?.[0]?.message?.content?.trim();
-      if (text) return text;
-    } catch (err) {
-      console.warn(`⚠️ Tier 2 (OpenRouter) failed: ${err.response?.data?.error?.message || err.message}`);
-    }
-  }
-
-  // --- TIER 3: GROQ ---
-  if (groqKey) {
-    try {
-      console.log('🤖 Attempting Tier 3: Groq (Llama 3.1 8B instant)...');
-      const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
-        model: 'llama-3.1-8b-instant',
-        messages: [{ role: 'user', content: prompt }]
-      }, {
-        headers: { 'Authorization': `Bearer ${groqKey}` },
-        timeout: 15000
-      });
-      const text = response.data?.choices?.[0]?.message?.content?.trim();
-      if (text) return text;
-    } catch (err) {
-      console.warn(`⚠️ Tier 3 (Groq) failed: ${err.response?.data?.error?.message || err.message}`);
-    }
-  }
-
-  // --- TIER 4: CLOUDFLARE WORKERS AI ---
+  // --- TIER 1: CLOUDFLARE WORKERS AI ---
   if (cfAccountId && cfApiToken) {
     try {
-      console.log('🤖 Attempting Tier 4: Cloudflare Workers AI (Gemma 2 9B)...');
+      console.log('🤖 Attempting Tier 1: Cloudflare Workers AI (Gemma 4-26b)...');
       const response = await axios.post(
         `https://api.cloudflare.com/client/v4/accounts/${cfAccountId}/ai/v1/chat/completions`,
         {
-          model: '@cf/google/gemma-2-9b-it', // Fallback if the user's specific quantized one isn't 100% standard, but I'll use theirs
+          model: '@cf/google/gemma-4-26b-a4b-it',
           messages: [{ role: 'user', content: prompt }]
         },
         {
@@ -116,7 +64,25 @@ async function generateAICompletion(prompt) {
       const text = response.data?.result?.response?.trim() || response.data?.choices?.[0]?.message?.content?.trim();
       if (text) return text;
     } catch (err) {
-      console.warn(`⚠️ Tier 4 (Cloudflare) failed: ${err.response?.data?.error?.message || err.message}`);
+      console.warn(`⚠️ Tier 1 (Cloudflare) failed: ${err.response?.data?.error?.message || err.message}`);
+    }
+  }
+
+  // --- TIER 2: GROQ ---
+  if (groqKey) {
+    try {
+      console.log('🤖 Attempting Tier 2: Groq (Llama 3.1 8B instant)...');
+      const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
+        model: 'llama-3.1-8b-instant',
+        messages: [{ role: 'user', content: prompt }]
+      }, {
+        headers: { 'Authorization': `Bearer ${groqKey}` },
+        timeout: 15000
+      });
+      const text = response.data?.choices?.[0]?.message?.content?.trim();
+      if (text) return text;
+    } catch (err) {
+      console.warn(`⚠️ Tier 2 (Groq) failed: ${err.response?.data?.error?.message || err.message}`);
     }
   }
 
