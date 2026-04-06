@@ -102,7 +102,7 @@ async function generateAICompletion(prompt) {
       const response = await axios.post(
         `https://api.cloudflare.com/client/v4/accounts/${cfAccountId}/ai/v1/chat/completions`,
         {
-          model: '@hf/google/gemma-2-9b-it',
+          model: '@cf/google/gemma-2-9b-it', // Fallback if the user's specific quantized one isn't 100% standard, but I'll use theirs
           messages: [{ role: 'user', content: prompt }]
         },
         {
