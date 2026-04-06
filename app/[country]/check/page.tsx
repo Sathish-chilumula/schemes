@@ -2,11 +2,7 @@ import CheckPageClient from './CheckPageClient';
 import { Metadata } from 'next';
 import { COUNTRIES } from '@/lib/config';
 
-export async function generateStaticParams() {
-  return Object.keys(COUNTRIES).map((country) => ({
-    country: country.toLowerCase(),
-  }));
-}
+export const runtime = 'edge';
 
 export async function generateMetadata({ 
   params 

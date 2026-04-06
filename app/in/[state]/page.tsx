@@ -11,6 +11,8 @@ export async function generateStaticParams() {
   }));
 }
 
+export const dynamicParams = false;
+
 const STATE_MAPPING: Record<string, { code: string, name: string }> = {
   'andhra-pradesh': { code: 'AP', name: 'Andhra Pradesh' },
   'arunachal-pradesh': { code: 'AR', name: 'Arunachal Pradesh' },

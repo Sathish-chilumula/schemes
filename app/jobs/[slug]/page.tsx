@@ -4,20 +4,8 @@ import { Navbar } from '@/components/Navbar';
 import { supabaseAdmin } from '@/lib/supabase';
 import { Metadata } from 'next';
 
+export const runtime = 'edge';
 export const dynamicParams = true;
-
-export async function generateStaticParams() {
-  const supabase = supabaseAdmin();
-  const { data: jobs } = await supabase
-    .from('schemes')
-    .select('slug')
-    .eq('is_published', true)
-    .eq('category', 'job');
-  
-  return jobs?.map((job) => ({
-    slug: job.slug,
-  })) || [];
-}
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const resolvedParams = await params;
