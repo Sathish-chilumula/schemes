@@ -5,7 +5,11 @@ import { Navbar } from '@/components/Navbar';
 import { SchemeCard } from '@/components/SchemeCard';
 import { Metadata } from 'next';
 
-export const runtime = 'edge';
+export async function generateStaticParams() {
+  return Object.keys(STATE_MAPPING).map((state) => ({
+    state: state,
+  }));
+}
 
 const STATE_MAPPING: Record<string, { code: string, name: string }> = {
   'andhra-pradesh': { code: 'AP', name: 'Andhra Pradesh' },
