@@ -7,6 +7,8 @@ import { Metadata } from 'next';
 import { SchemeContent } from './SchemeContent';
 import { slugify } from '@/lib/seo';
 
+export const runtime = 'edge';
+
 const COUNTRY_NAMES: Record<string, string> = {
   'IN': 'India',
   'GB': 'United Kingdom', 

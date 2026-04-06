@@ -4,6 +4,8 @@ import { Navbar } from '@/components/Navbar';
 import { supabaseAdmin } from '@/lib/supabase';
 import { Metadata } from 'next';
 
+export const runtime = 'edge';
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const resolvedParams = await params;
   const supabase = supabaseAdmin();
