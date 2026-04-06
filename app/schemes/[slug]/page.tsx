@@ -297,7 +297,7 @@ export default async function SchemeDetailPage({
             {scheme.name}
           </h1>
           
-          <div className="flex flex-wrap items-center gap-4 text-slate-600 mb-2">
+          <div className="flex flex-wrap items-center gap-4 text-slate-600 mb-8">
             <div className="flex items-center bg-blue-50 px-4 py-2 rounded-xl border border-blue-100">
               <span className="flex h-3 w-3 mr-3 items-center justify-center rounded-full bg-blue-100">
                 <span className="h-2 w-2 animate-ping rounded-full bg-blue-600"></span>
@@ -309,6 +309,35 @@ export default async function SchemeDetailPage({
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
               </svg>
               Last Updated: {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+            </div>
+          </div>
+
+          {/* New Hero Image Section */}
+          <div className="w-full h-[300px] md:h-[450px] relative rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white mb-4 group">
+            {scheme.image_url ? (
+               <img 
+                 src={scheme.image_url} 
+                 alt={scheme.name}
+                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+               />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-12 text-center">
+                 <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+                 <div className="relative">
+                    <h2 className="text-white text-3xl md:text-5xl font-black opacity-30 tracking-tighter uppercase italic select-none">
+                      {scheme.name}
+                    </h2>
+                    <div className="mt-4 text-blue-400 font-bold tracking-[0.3em] uppercase text-xs">Official Portal</div>
+                 </div>
+              </div>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent"></div>
+            <div className="absolute bottom-10 left-10 right-10 flex justify-between items-end">
+              <div className="hidden md:block">
+                <span className="bg-white/10 backdrop-blur-md text-white px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest border border-white/20">
+                  {scheme.category || 'General'}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -412,18 +441,38 @@ export default async function SchemeDetailPage({
 
               {/* Related Schemes */}
               {related && related.length > 0 && (
-                <div className="bg-white p-8 rounded-3xl border border-slate-200">
-                  <h3 className="text-xl font-bold text-slate-800 mb-6">Similar Programs</h3>
-                  <div className="space-y-6">
+                <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm overflow-hidden relative">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-full -mr-12 -mt-12 opacity-50"></div>
+                  <h3 className="text-xl font-bold text-slate-800 mb-6 relative z-10 flex items-center gap-2">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+                    Similar Programs
+                  </h3>
+                  <div className="space-y-6 relative z-10">
                     {related.map(r => (
-                      <Link key={r.id} href={`/schemes/${r.slug}`} className="block group">
-                        <h4 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors mb-1">
-                          {r.name}
-                        </h4>
-                        <p className="text-sm text-green-600 font-bold">{r.benefit_amount}</p>
+                      <Link key={r.id} href={`/schemes/${r.slug}`} className="group flex gap-4 items-start">
+                        <div className="w-16 h-16 rounded-2xl overflow-hidden flex-shrink-0 border border-slate-100 shadow-sm group-hover:shadow-md transition-all">
+                          {r.image_url ? (
+                            <img src={r.image_url} alt={r.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+                          ) : (
+                            <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-400 transition-colors">
+                              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l4 4v10a2 2 0 01-2 2z" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors mb-1 line-clamp-2 leading-snug">
+                            {r.name}
+                          </h4>
+                          <p className="text-xs text-green-600 font-extrabold uppercase tracking-tight">{r.benefit_amount || 'View Details'}</p>
+                        </div>
                       </Link>
                     ))}
                   </div>
+                  <Link href="/schemes" className="mt-8 block text-center py-3 rounded-2xl bg-slate-50 text-slate-600 font-bold text-sm hover:bg-slate-100 transition-colors">
+                    View All Schemes →
+                  </Link>
                 </div>
               )}
             </div>

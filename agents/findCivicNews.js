@@ -8,9 +8,7 @@
  * 
  * AI Providers (cascading fallback):
  *   Tier 1: Gemini 2.0 Flash (free, fast)
- *   Tier 2: Cloudflare Workers AI (free tier, reliable)
- * 
- * Translations: English + Hindi + Telugu for all content.
+ *   Tier 2: Cloudflare Workers AI (Llama 3.1 8B - efficient)
  */
 
 const axios = require('axios');
@@ -24,23 +22,20 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const CLOUDFLARE_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID;
 const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
+const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY || 'mRrS9UjMl45wy4Hy-Pm6oMv7TGG55Sb-o6VLDxcJQOA';
 
-// Only keep items published within the last 48 hours
-const MAX_AGE_HOURS = 48;
+// ─── LIMITS ────────────────────────────────────────────────────────
+const MAX_NEW_ITEMS_TOTAL = 50; // Daily cap to preserve AI quota
+const MAX_AGE_HOURS = 48; // Ignore noise older than 2 days
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {
   console.error("❌ Missing SUPABASE environment variables.");
   process.exit(1);
 }
 
-if (!GEMINI_API_KEY && !CLOUDFLARE_API_TOKEN) {
-  console.error("❌ Missing AI provider credentials. Need at least GEMINI_API_KEY or CLOUDFLARE_API_TOKEN.");
-  process.exit(1);
-}
-
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Gemini SDK (optional — only if key is available)
+// Gemini SDK
 let geminiModel = null;
 if (GEMINI_API_KEY) {
   try {
@@ -49,305 +44,219 @@ if (GEMINI_API_KEY) {
     geminiModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     console.log("✅ Gemini 2.0 Flash initialized (Tier 1)");
   } catch (e) {
-    console.warn("⚠️ Gemini SDK init failed:", e.message);
+    console.warn("⚠️ Gemini SDK init failed.");
   }
 }
 
 if (CLOUDFLARE_ACCOUNT_ID && CLOUDFLARE_API_TOKEN) {
-  console.log("✅ Cloudflare Workers AI configured (Tier 2 fallback)");
+  console.log("✅ Cloudflare Workers AI configured (Tier 2 - Llama 3.1 8B)");
 }
 
 const parser = new XMLParser();
-
 function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-// Get current year dynamically so feeds never go stale
 const CURRENT_YEAR = new Date().getFullYear();
 
 const RSS_FEEDS = [
-  // Job specific — current year only
   { url: `https://news.google.com/rss/search?q=government+jobs+notification+india+ssc+upsc+railway+${CURRENT_YEAR}&hl=en-IN&gl=IN&ceid=IN:en&when=2d`, type: 'job' },
   { url: `https://news.google.com/rss/search?q=sarkari+naukri+latest+vacancy+${CURRENT_YEAR}&hl=en-IN&gl=IN&ceid=IN:en&when=2d`, type: 'job' },
-  // Aadhaar/Document specific
   { url: `https://news.google.com/rss/search?q=Aadhaar+update+UIDAI+PAN+card+deadline+${CURRENT_YEAR}&hl=en-IN&gl=IN&ceid=IN:en&when=2d`, type: 'alert' },
-  // Budget/Cabinet
   { url: `https://news.google.com/rss/search?q=cabinet+decisions+india+today+pib+${CURRENT_YEAR}&hl=en-IN&gl=IN&ceid=IN:en&when=2d`, type: 'news' },
-  // Finance/Budget
   { url: `https://news.google.com/rss/search?q=india+finance+budget+decisions+${CURRENT_YEAR}&hl=en-IN&gl=IN&ceid=IN:en&when=2d`, type: 'budget' }
 ];
 
-// ─── TITLE CLEANER ───────────────────────────────────────────────
-// Strips source website names like "- Adda247", "| Careers360", "- NDTV" etc. from RSS titles
-function cleanTitle(rawTitle) {
-  if (!rawTitle) return '';
-  return rawTitle
-    // Remove " - SourceName" or " | SourceName" at the end
-    .replace(/\s*[-–|]\s*[A-Za-z0-9\s.]+$/, '')
-    // Remove leftover whitespace
-    .trim();
-}
-
-// ─── DATE FRESHNESS CHECK ────────────────────────────────────────
-// Returns true if the item was published within MAX_AGE_HOURS
-function isFreshItem(item) {
-  const pubDate = item.pubDate;
-  if (!pubDate) return true; // If no date, process it anyway (let AI decide relevance)
-  
+// ─── IMAGE FETCHING (UNSPLASH) ────────────────────────────────────
+async function fetchUnsplashImage(keyword) {
+  if (!keyword) return null;
   try {
-    const published = new Date(pubDate);
-    const now = new Date();
-    const ageMs = now - published;
-    const ageHours = ageMs / (1000 * 60 * 60);
+    // We add "clean" keywords for better results
+    const cleanKeyword = `${keyword} government office buildings india`.substring(0, 50);
+    const res = await axios.get(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(cleanKeyword)}&client_id=${UNSPLASH_ACCESS_KEY}&per_page=1&orientation=landscape`, { timeout: 8000 });
     
-    if (ageHours > MAX_AGE_HOURS) {
-      return false;
+    if (res.data && res.data.results && res.data.results.length > 0) {
+      const img = res.data.results[0];
+      console.log(`     📸 Found Image: ${img.urls.regular.split('?')[0]}`);
+      return img.urls.regular;
     }
-    return true;
-  } catch {
-    return true; // Can't parse date? Let it through.
+    return null;
+  } catch (error) {
+    console.error('     ⚠️ Unsplash API Error:', error.message);
+    return null;
   }
 }
 
 // ─── CASCADING AI CALL ────────────────────────────────────────────
 async function callAI(prompt) {
-  // --- TIER 1: Gemini 2.0 Flash ---
+  // TIER 1: Gemini
   if (geminiModel) {
-    for (let attempt = 0; attempt < 2; attempt++) {
-      try {
-        console.log(`     🤖 Tier 1: Gemini 2.0 Flash (attempt ${attempt + 1})...`);
-        const result = await geminiModel.generateContent(prompt);
-        const text = result.response.text();
-        if (text && text.length > 100) return text;
-      } catch (e) {
-        const isQuota = e.message?.includes('429') || e.message?.includes('quota') || e.message?.includes('RESOURCE_EXHAUSTED');
-        if (isQuota) {
-          console.warn('     ⚠️ Gemini quota exhausted — falling through to Tier 2');
-          break; // Don't retry, jump to Cloudflare immediately
-        }
-        console.warn(`     ⚠️ Gemini attempt ${attempt + 1} failed: ${e.message}`);
-        await delay(3000);
+    try {
+      const result = await geminiModel.generateContent(prompt);
+      const text = result.response.text();
+      if (text && text.length > 50) return text;
+    } catch (e) {
+      if (e.message?.includes('429') || e.message?.includes('quota')) {
+        console.warn('     ⏳ Gemini Quota Reached. Falling back to Cloudflare...');
+      } else {
+        console.error('     ⚠️ Gemini Error:', e.message);
       }
     }
   }
 
-  // --- TIER 2: Cloudflare Workers AI ---
+  // TIER 2: Cloudflare (Efficient Llama 3.1 8B)
   if (CLOUDFLARE_ACCOUNT_ID && CLOUDFLARE_API_TOKEN) {
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        console.log(`     🤖 Tier 2: Cloudflare Workers AI (attempt ${attempt + 1})...`);
-        const response = await axios.post(
-          `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/v1/chat/completions`,
-          {
-            model: '@cf/google/gemma-4-26b-a4b-it',
-            messages: [{ role: 'user', content: prompt }]
-          },
-          {
-            headers: {
-              'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
-              'Content-Type': 'application/json'
-            },
-            timeout: 45000
-          }
-        );
-
-        // Cloudflare returns in two possible shapes depending on the endpoint
-        const text = response.data?.choices?.[0]?.message?.content?.trim()
-          || response.data?.result?.response?.trim();
-
-        if (text && text.length > 100) {
-          console.log(`     ✅ Cloudflare returned ${text.length} chars`);
-          return text;
+    try {
+      const response = await axios.post(
+        `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/v1/chat/completions`,
+        {
+          model: '@cf/meta/llama-3.1-8b-instruct',
+          messages: [{ role: 'user', content: prompt }]
+        },
+        {
+          headers: { 'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`, 'Content-Type': 'application/json' },
+          timeout: 40000
         }
-        console.warn(`     ⚠️ Cloudflare returned empty/short response`);
-      } catch (e) {
-        console.warn(`     ⚠️ Cloudflare attempt ${attempt + 1} failed: ${e.response?.data?.errors?.[0]?.message || e.message}`);
-        await delay(4000);
-      }
+      );
+      return response.data?.choices?.[0]?.message?.content || response.data?.result?.response;
+    } catch (e) {
+      console.error('     ⚠️ Cloudflare Error:', e.message);
     }
   }
-
-  throw new Error('All AI providers exhausted');
+  return null;
 }
 
-// ─── MAIN ─────────────────────────────────────────────────────────
+// ─── TITLE & FRESHNESS HELPERS ────────────────────────────────────
+function cleanTitle(rawTitle) {
+  return (rawTitle || '').replace(/\s*[-–|:]\s*(Adda247|Careers360|NDTV|Times of India|Hindustan Times|Jagran Josh|LiveMint|Sarkari Result|FreeJobAlert|Employment News|Moneycontrol|India Today).*$/gi, '').trim();
+}
+
+function isFresh(pubDate) {
+  if (!pubDate) return true;
+  const published = new Date(pubDate);
+  return (new Date() - published) / (1000 * 60 * 60) <= MAX_AGE_HOURS;
+}
+
+// ─── MAIN RUNNER ───────────────────────────────────────────────────
 async function main() {
-  console.log("🚀 Civic News & Jobs Agent Starting...");
-  console.log(`📅 Current Year: ${CURRENT_YEAR} | Max Item Age: ${MAX_AGE_HOURS}h`);
-  console.log('━'.repeat(55));
+  console.log("🚀 Civic News Discovery Agent Starting...");
+  console.log(`📊 Session Cap: ${MAX_NEW_ITEMS_TOTAL} new articles`);
   
-  let published = 0;
-  let skipped = 0;
-  let stale = 0;
-  let failed = 0;
+  let newPublishedCount = 0;
 
   for (const feed of RSS_FEEDS) {
+    if (newPublishedCount >= MAX_NEW_ITEMS_TOTAL) break;
+
     try {
-      console.log(`\n📡 Fetching [${feed.type}]: ${feed.url.substring(0, 80)}...`);
+      console.log(`\n📡 Checking: ${feed.url.substring(0, 70)}...`);
       const res = await axios.get(feed.url, { timeout: 15000 });
       const data = parser.parse(res.data);
       const items = data.rss?.channel?.item || [];
-      console.log(`   Found ${items.length} items in feed`);
 
-      // Process top 8 items per feed
-      for (const item of items.slice(0, 8)) {
-        // Filter stale items
-        if (!isFreshItem(item)) {
-          stale++;
-          continue;
-        }
+      for (const item of items.slice(0, 15)) {
+        if (newPublishedCount >= MAX_NEW_ITEMS_TOTAL) break;
+        if (!isFresh(item.pubDate)) continue;
+
+        const sourceHash = crypto.createHash('md5').update(item.link).digest('hex');
         
+        // Deduplicate check (URL Hash + Slug)
+        const { data: existing } = await supabase.from('schemes').select('id').eq('source_hash', sourceHash).single();
+        if (existing) continue;
+
+        // Peak ahead for slug collision
+        const tempSlug = item.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').substring(0, 50);
+        const { data: existingSlug } = await supabase.from('schemes').select('id').eq('slug', `${tempSlug}-in`).single();
+        if (existingSlug) continue;
+
         const result = await processItem(item, feed.type);
-        if (result === 'published') published++;
-        else if (result === 'skipped') skipped++;
-        else failed++;
+        if (result === 'published') newPublishedCount++;
       }
     } catch (e) {
       console.error(`❌ Feed failure: ${e.message}`);
     }
   }
-
-  console.log('\n' + '━'.repeat(55));
-  console.log(`🏁 Finished! Published: ${published} | Skipped: ${skipped} | Stale (filtered): ${stale} | Failed: ${failed}`);
+  
+  console.log('\n━'.repeat(50));
+  console.log(`🏁 FINISHED! Total Published This Run: ${newPublishedCount}`);
 }
 
 async function processItem(item, hintType) {
-  const sourceUrl = item.link;
-  const rawTitle = item.title;
-  const cleanedTitle = cleanTitle(rawTitle);
-  const sourceHash = crypto.createHash('md5').update(sourceUrl).digest('hex');
+  const cleanedTitle = cleanTitle(item.title);
+  console.log(`\n✨ NEW: ${cleanedTitle}`);
 
-  // 1. Check if already exists
-  const { data: existing } = await supabase
-    .from('schemes')
-    .select('id')
-    .eq('source_hash', sourceHash)
-    .single();
+  // 1. Generate English
+  const englishContent = await rewriteWithAI(cleanedTitle, item.link, hintType);
+  if (!englishContent) return 'failed';
 
-  if (existing) return 'skipped';
+  // 2. Fetch Visual Image (Attractive content)
+  const imageUrl = await fetchUnsplashImage(`${englishContent.name} government job india`);
 
-  console.log(`\n✨ New: ${cleanedTitle}`);
-
-  // 2. Generate English content using AI
-  const aiResult = await rewriteWithAI(cleanedTitle, sourceUrl, hintType);
-  if (!aiResult) return 'failed';
-
-  // 3. Translate to Hindi
-  let contentHi = null;
+  // 3. Generate Translations (Optional fallbacks)
+  let hiContent = null;
+  let teContent = null;
+  
   try {
-    console.log(`   ⏳ Translating to Hindi...`);
-    const hiPrompt = `Translate the following government news article to Hindi.
-Rules:
-- Use natural, conversational Hindi. Write as if talking to a friend.
-- Do NOT use any markdown symbols like **, #, or bullet points.
-- Keep the same paragraph structure as the original.
-- Do NOT add any extra sections or headers.
-
-Original:
-${aiResult.content_en}`;
-    contentHi = await callAI(hiPrompt);
-    console.log(`   ✅ Hindi: ${contentHi?.length || 0} chars`);
+    console.log(`   ⏳ Translating to Hindi & Telugu...`);
+    const transPrompt = `Translate the following government overview into Hindi and Telugu. Respond with ONLY valid JSON: {"hi": "Hindi text", "te": "Telugu text"}\n\n${englishContent.content_en}`;
+    const transText = await callAI(transPrompt);
+    if (transText) {
+      const transJson = JSON.parse(transText.replace(/```json|```/g, ''));
+      hiContent = transJson.hi;
+      teContent = transJson.te;
+    }
   } catch (e) {
-    console.warn(`   ⚠️ Hindi translation failed: ${e.message}`);
+    console.warn('   ⚠️ Translation step skipped or failed.');
   }
 
-  // 4. Translate to Telugu
-  let contentLocal = null;
-  try {
-    console.log(`   ⏳ Translating to Telugu...`);
-    const tePrompt = `Translate the following government news article to Telugu.
-Rules:
-- Use natural, conversational Telugu. Write as if talking to a friend.
-- Do NOT use any markdown symbols like **, #, or bullet points.
-- Keep the same paragraph structure as the original.
-- Do NOT add any extra sections or headers.
-
-Original:
-${aiResult.content_en}`;
-    contentLocal = await callAI(tePrompt);
-    console.log(`   ✅ Telugu: ${contentLocal?.length || 0} chars`);
-  } catch (e) {
-    console.warn(`   ⚠️ Telugu translation failed: ${e.message}`);
-  }
-
-  // 5. Save to Supabase (with all 3 languages)
+  // 4. Save to Database
   const { error } = await supabase.from('schemes').insert({
-    name: aiResult.name,
-    slug: aiResult.slug,
-    category: aiResult.category,
-    country_code: 'IN',
-    content_en: aiResult.content_en,
-    content_hi: contentHi,
-    content_local: contentLocal,
+    name: englishContent.name,
+    slug: englishContent.slug,
+    category: englishContent.category,
+    content_en: englishContent.content_en,
+    content_hi: hiContent,
+    content_local: teContent,
     local_language: 'te',
-    what_you_get: aiResult.what_you_get,
-    eligibility: aiResult.eligibility,
-    how_to_apply: aiResult.how_to_apply,
-    source_url: sourceUrl,
-    source_hash: sourceHash,
+    image_url: imageUrl,
+    what_you_get: englishContent.what_you_get,
+    eligibility: englishContent.eligibility,
+    how_to_apply: englishContent.how_to_apply,
+    source_url: item.link,
+    source_hash: crypto.createHash('md5').update(item.link).digest('hex'),
     is_published: true,
     is_central: true,
+    country_code: 'IN',
     is_active: true
   });
 
   if (error) {
-    console.error(`❌ DB Error: ${error.message}`);
+    console.error(`   ❌ DB Error: ${error.message}`);
     return 'failed';
   }
-  console.log(`✅ Published: ${aiResult.name} [${aiResult.category}] (EN + HI + TE)`);
+  
+  console.log(`   ✅ PUBLISHED: ${englishContent.name}`);
   return 'published';
 }
 
 async function rewriteWithAI(title, url, hintType) {
-  const prompt = `
-    You are an expert Government News Editor for SchemeAtlas. Rewrite the following government update/job notification into a clear, helpful guide for common citizens.
-    
-    Source Title: "${title}"
-    Source URL: "${url}"
-    Hinted Category: ${hintType}
-    
-    Return ONLY a JSON object with this exact structure:
-    {
-      "name": "Short Clear Name (max 10 words). Do NOT include any website names like Adda247, Careers360, NDTV, etc.",
-      "slug": "url-friendly-slug-without-website-names",
-      "category": "Choose one: job, news, alert, budget",
-      "what_you_get": "For JOBS: Salary/Pay scale. For NEWS: The core benefit or decision summary.",
-      "eligibility": {
-        "vacancies": "For JOBS: Number of posts (e.g. 500+). For NEWS: null",
-        "audience": "Who is affected / Who can apply",
-        "impact": "For NEWS: What exactly changes for citizens?"
-      },
-      "how_to_apply": {
-        "steps": ["Step 1", "Step 2"],
-        "deadline": "Last date if found, else null"
-      },
-      "content_en": "A human-like overview of the decision/job in 2-3 paragraphs. Write in friendly, conversational tone. Do NOT include markdown headers, asterisks, or any source website names. Just plain text with newlines."
-    }
-    
-    CRITICAL RULES:
-    - NEVER include source website names (Adda247, Careers360, NDTV, Times of India, Economic Times, BankersAdda, etc.) anywhere in the output.
-    - The "name" field should be a clean, generic government-style title like "SSC CGL 2026 Recruitment Notification" not "SSC CGL 2026 - Adda247".
-    - If it's a JOB, provide EXACT vacancy numbers and salary if mentioned in the title.
-    - If it is about a Government Decision (Cabinet), explain exactly how it impacts the ordinary person.
-    - Keep formatting simple. NO '#' or '**'.
-    - Only include information relevant to the CURRENT year (${new Date().getFullYear()}).
-  `;
+  const prompt = `Rewrite this government news into a citizen-friendly guide. NO markdown headers or asterisks. JSON only:
+  Title: "${title}"
+  URL: "${url}"
+  Type: ${hintType}
+  
+  JSON Format: 
+  {
+    "name": "Clean name (no source names)",
+    "slug": "url-slug",
+    "category": "job/news/alert/budget",
+    "what_you_get": "Core benefit or salary",
+    "eligibility": "Who can apply as string",
+    "how_to_apply": "Simple steps as string",
+    "content_en": "2-3 friendly paragraphs"
+  }`;
 
   try {
     const text = await callAI(prompt);
-    // Clear any markdown code block artifacts
-    const jsonStr = text.replace(/```json|```/g, '').trim();
-    const parsed = JSON.parse(jsonStr);
-
-    // Final safety net: strip any remaining source names from the name/slug
-    const sourcePatterns = /\s*[-–|:]\s*(Adda247|Careers360|NDTV|Times of India|Economic Times|BankersAdda|India Today|The Hindu|Hindustan Times|LiveMint|Jagran Josh|Sarkari Result|FreeJobAlert|Employment News|News18|OneIndia|Moneycontrol).*$/gi;
-    parsed.name = (parsed.name || '').replace(sourcePatterns, '').trim();
-    parsed.slug = (parsed.slug || '').replace(/(adda247|careers360|ndtv|bankersadda|jagran-josh|sarkari-result|freejob)/gi, '').replace(/-+/g, '-').replace(/^-|-$/g, '');
-
-    return parsed;
-  } catch (e) {
-    console.warn(`⚠️ AI failure for ${title}: ${e.message}`);
-    return null;
-  }
+    if (!text) return null;
+    return JSON.parse(text.replace(/```json|```/g, ''));
+  } catch (e) { return null; }
 }
 
-main().catch(e => { console.error('💥 Fatal error:', e); process.exit(1); });
+main().catch(e => console.error(e));

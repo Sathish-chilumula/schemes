@@ -93,7 +93,7 @@ async function callLLM(prompt, retries = 3) {
         const response = await axios.post(
           `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/v1/chat/completions`,
           {
-            model: '@cf/google/gemma-4-26b-a4b-it',
+            model: '@cf/meta/llama-3.1-8b-instruct',
             messages: [{ role: 'user', content: prompt }]
           },
           {
