@@ -43,6 +43,10 @@ const LANGUAGE_NAMES = {
   'or': 'Odia', 'as': 'Assamese', 'hi': 'Hindi',
   'sw': 'Swahili', 'yo': 'Yoruba', 'ha': 'Hausa', 'es': 'Spanish',
 };
+
+// Target Regions for Triple Translation (EN, HI, TE)
+const TRIPLE_TRANSLATION_REGIONS = ['TS', 'AP', 'IN-TG', 'IN-TS', 'IN-AP', 'india', 'India', 'IN'];
+
 const COUNTRY_LANGUAGE_MAP = { 'IN': null, 'GB': null, 'US': 'es', 'NG': 'yo', 'KE': 'sw' };
 
 function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
@@ -105,24 +109,8 @@ async function main() {
   if (error) { console.error('❌ Fetch error:', error.message); process.exit(1); }
   
   const schemes = allSchemes.filter(s => {
-    const local = getLocalLanguage(s);
-    const needsTranslation = local && local !== 'en';
-    const missingHi = needsTranslation && local === 'hi' && !s.content_hi;
-    const missingLocal = needsTranslation && local !== 'hi' && !s.content_local;
-    
-    // Logic to detect legacy 7-question format or missing 14-point structure
-    const isLegacy = s.content_en && (
-      !s.content_en.includes('Who Should Apply') || 
-      !s.content_en.includes('Pro Tips') ||
-      s.content_en.includes('**') ||
-      s.content_en.includes('#')
-    );
-
-    return !s.content_en || 
-           s.content_en.length < 600 || 
-           isLegacy ||
-           missingHi || 
-           missingLocal;
+    // We already marked all for re-generation by setting is_seo_optimized = false
+    return s.is_seo_optimized === false;
   }).slice(0, 50); // Processed in batches of 50 as requested
 
   if (!schemes || schemes.length === 0) {
@@ -201,16 +189,17 @@ Category: ${scheme.category || 'Not specified'}`;
       let dbLocalLanguage = scheme.local_language;
       
       let requiredTranslations = [];
+      const sc = scheme.state_code || scheme.state_region || (scheme.is_central ? 'IN' : null);
+      
+      // Triple Translation Rule: Central, TS, and AP always get HI + TE
+      const isTripleTranslate = TRIPLE_TRANSLATION_REGIONS.includes(sc) || scheme.is_central;
+
       if (scheme.country_code === 'IN') {
-        const sc = scheme.state_code || scheme.state_region;
-        const isCentral = scheme.is_central || !sc;
-        
-        if (isCentral) {
-           requiredTranslations = ['hi', 'te'];
+        if (isTripleTranslate) {
+          requiredTranslations = ['hi', 'te'];
         } else {
-           const stateLang = STATE_LANGUAGE_MAP[sc] || 'hi';
-           requiredTranslations = [stateLang];
-           if (stateLang !== 'hi') contentHi = null; // Clean up mistaken Hindi if it's a non-Hindi state
+          const stateLang = STATE_LANGUAGE_MAP[sc] || 'hi';
+          requiredTranslations = [stateLang];
         }
       } else {
         const foreignLang = COUNTRY_LANGUAGE_MAP[scheme.country_code];
@@ -257,6 +246,7 @@ Rules:
           content_hi: contentHi,
           content_local: contentLocal,
           local_language: dbLocalLanguage,
+          is_seo_optimized: true, // Mark as complete
           last_updated: new Date().toISOString()
         })
         .eq('id', scheme.id);
