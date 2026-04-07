@@ -22,6 +22,7 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const CLOUDFLARE_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID;
 const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY || 'mRrS9UjMl45wy4Hy-Pm6oMv7TGG55Sb-o6VLDxcJQOA';
 
 // ─── LIMITS ────────────────────────────────────────────────────────
@@ -50,6 +51,10 @@ if (GEMINI_API_KEY) {
 
 if (CLOUDFLARE_ACCOUNT_ID && CLOUDFLARE_API_TOKEN) {
   console.log("✅ Cloudflare Workers AI configured (Tier 2 - Llama 3.1 8B)");
+}
+
+if (OPENROUTER_API_KEY) {
+  console.log("✅ OpenRouter AI configured (Tier 3 - Gemma 3 4B)");
 }
 
 const parser = new XMLParser();
@@ -115,11 +120,37 @@ async function callAI(prompt) {
           timeout: 40000
         }
       );
-      return response.data?.choices?.[0]?.message?.content || response.data?.result?.response;
+      const text = response.data?.choices?.[0]?.message?.content || response.data?.result?.response;
+      if (text && text.length > 50) return text;
     } catch (e) {
       console.error('     ⚠️ Cloudflare Error:', e.message);
     }
   }
+
+  // TIER 3: OpenRouter (Gemma 3 4B)
+  if (OPENROUTER_API_KEY) {
+    try {
+      const response = await axios.post(
+        'https://openrouter.ai/api/v1/chat/completions',
+        {
+          model: 'google/gemma-3-4b-it:free',
+          messages: [{ role: 'user', content: prompt }]
+        },
+        {
+          headers: { 
+            'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+            'Content-Type': 'application/json',
+            'X-OpenRouter-Title': 'SchemeAtlas Civic News Pipeline'
+          },
+          timeout: 40000
+        }
+      );
+      return response.data?.choices?.[0]?.message?.content;
+    } catch (e) {
+      console.error('     ⚠️ OpenRouter Error:', e.message);
+    }
+  }
+
   return null;
 }
 
@@ -236,20 +267,24 @@ async function processItem(item, hintType) {
 }
 
 async function rewriteWithAI(title, url, hintType) {
-  const prompt = `Rewrite this government news into a citizen-friendly guide. NO markdown headers or asterisks. JSON only:
+  const prompt = `You are a helpful friend writing for a citizen who needs clear information. 
+  Rewrite this government update in VERY SIMPLE English (8th-grade level). 
+  Imagine you are explaining it to a neighbor. Use friendly, human-like language. 
+  Avoid technical jargon. NO markdown headers or asterisks.
+
   Title: "${title}"
   URL: "${url}"
   Type: ${hintType}
   
   JSON Format: 
   {
-    "name": "Clean name (no source names)",
+    "name": "Simple, clean name of the job or news",
     "slug": "url-slug",
     "category": "job/news/alert/budget",
-    "what_you_get": "Core benefit or salary",
-    "eligibility": "Who can apply as string",
-    "how_to_apply": "Simple steps as string",
-    "content_en": "2-3 friendly paragraphs"
+    "what_you_get": "In 1 sentence: What is the benefit or salary?",
+    "eligibility": "In 1-2 simple sentences: Who can apply?",
+    "how_to_apply": "3-4 very simple steps as a single string",
+    "content_en": "2-3 very friendly, human paragraphs explaining why this matters and what to do next."
   }`;
 
   try {
