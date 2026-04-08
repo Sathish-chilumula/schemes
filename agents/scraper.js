@@ -74,8 +74,9 @@ async function fetchMyGovRSS() {
 }
 
 // ==========================================
-// 2. UNSPLASH IMAGE FETCHING
+// 2. IMAGE FETCHING (PEXELS + UNSPLASH FALLBACK)
 // ==========================================
+const PEXELS_API_KEY = process.env.PEXELS_API_KEY || 'ew5YCrng0KjGO4zOZvLg2Vq4XNJ20arQsBERm9v10Ydz4hWsDQpYIx42';
 const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY || 'mRrS9UjMl45wy4Hy-Pm6oMv7TGG55Sb-o6VLDxcJQOA';
 
 async function fetchUnsplashImage(keyword) {
@@ -85,10 +86,28 @@ async function fetchUnsplashImage(keyword) {
     if (data && data.results && data.results.length > 0) {
       return data.results[0].urls.regular;
     }
-    return null; // fallback will be used on UI
+    return null;
   } catch (error) {
     console.error('Unsplash API error:', error);
     return null;
+  }
+}
+
+async function fetchSchemeImage(keyword) {
+  if (!keyword) return null;
+  try {
+    const cleanKeyword = `${keyword} india`.substring(0, 50);
+    const res = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(cleanKeyword)}&per_page=1&orientation=landscape`, {
+      headers: { Authorization: PEXELS_API_KEY }
+    });
+    const data = await res.json();
+    if (data && data.photos && data.photos.length > 0) {
+      return data.photos[0].src.large;
+    }
+    
+    return await fetchUnsplashImage(keyword);
+  } catch (error) {
+    return await fetchUnsplashImage(keyword);
   }
 }
 
@@ -205,7 +224,7 @@ async function main() {
 
     // Enhance with Unsplash Image
     console.log(`[IMAGE] Fetching image for category: ${schemeData.category}`);
-    const imageUrl = await fetchUnsplashImage(schemeData.category + ' india');
+    const imageUrl = await fetchSchemeImage(schemeData.category + ' india');
 
     console.log(`[DB] Inserting: ${schemeData.name}`);
 

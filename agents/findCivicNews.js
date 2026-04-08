@@ -69,23 +69,47 @@ const RSS_FEEDS = [
   { url: `https://news.google.com/rss/search?q=india+finance+budget+decisions+${CURRENT_YEAR}&hl=en-IN&gl=IN&ceid=IN:en&when=2d`, type: 'budget' }
 ];
 
-// ─── IMAGE FETCHING (UNSPLASH) ────────────────────────────────────
+// ─── IMAGE FETCHING (PEXELS + UNSPLASH FALLBACK) ────────────────
+const PEXELS_API_KEY = process.env.PEXELS_API_KEY || 'ew5YCrng0KjGO4zOZvLg2Vq4XNJ20arQsBERm9v10Ydz4hWsDQpYIx42';
+
 async function fetchUnsplashImage(keyword) {
-  if (!keyword) return null;
   try {
-    // We add "clean" keywords for better results
     const cleanKeyword = `${keyword} government office buildings india`.substring(0, 50);
     const res = await axios.get(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(cleanKeyword)}&client_id=${UNSPLASH_ACCESS_KEY}&per_page=1&orientation=landscape`, { timeout: 8000 });
-    
     if (res.data && res.data.results && res.data.results.length > 0) {
-      const img = res.data.results[0];
-      console.log(`     📸 Found Image: ${img.urls.regular.split('?')[0]}`);
-      return img.urls.regular;
+      return res.data.results[0].urls.regular;
     }
     return null;
   } catch (error) {
-    console.error('     ⚠️ Unsplash API Error:', error.message);
     return null;
+  }
+}
+
+async function fetchSchemeImage(keyword) {
+  if (!keyword) return null;
+  try {
+    const cleanKeyword = `${keyword} india professional`.substring(0, 50);
+    const res = await axios.get(`https://api.pexels.com/v1/search?query=${encodeURIComponent(cleanKeyword)}&per_page=1&orientation=landscape`, {
+      headers: { Authorization: PEXELS_API_KEY },
+      timeout: 10000
+    });
+    
+    if (res.data && res.data.photos && res.data.photos.length > 0) {
+      const img = res.data.photos[0];
+      console.log(`     📸 Found Pexels Image: ${img.src.large}`);
+      return img.src.large;
+    }
+    
+    // Fallback to Unsplash
+    console.log(`     ⚠️ Pexels returned no results. Falling back to Unsplash...`);
+    const unsplashUrl = await fetchUnsplashImage(keyword);
+    if (unsplashUrl) console.log(`     📸 Found Unsplash Image (Fallback): ${unsplashUrl}`);
+    return unsplashUrl;
+  } catch (error) {
+    console.log(`     🔄 Pexels API failed. Falling back to Unsplash...`);
+    const unsplashUrl = await fetchUnsplashImage(keyword);
+    if (unsplashUrl) console.log(`     📸 Found Unsplash Image (Fallback): ${unsplashUrl}`);
+    return unsplashUrl;
   }
 }
 
@@ -217,7 +241,7 @@ async function processItem(item, hintType) {
   if (!englishContent) return 'failed';
 
   // 2. Fetch Visual Image (Attractive content)
-  const imageUrl = await fetchUnsplashImage(`${englishContent.name} government job india`);
+  const imageUrl = await fetchSchemeImage(`${englishContent.name} government job india`);
 
   // 3. Generate Translations (Optional fallbacks)
   let hiContent = null;

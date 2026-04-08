@@ -14,6 +14,7 @@ export async function generateStaticParams() {
 export const dynamicParams = false;
 
 const STATE_MAPPING: Record<string, { code: string, name: string }> = {
+  // States
   'andhra-pradesh': { code: 'AP', name: 'Andhra Pradesh' },
   'arunachal-pradesh': { code: 'AR', name: 'Arunachal Pradesh' },
   'assam': { code: 'AS', name: 'Assam' },
@@ -24,13 +25,13 @@ const STATE_MAPPING: Record<string, { code: string, name: string }> = {
   'haryana': { code: 'HR', name: 'Haryana' },
   'himachal-pradesh': { code: 'HP', name: 'Himachal Pradesh' },
   'jharkhand': { code: 'JH', name: 'Jharkhand' },
-  'jammu-kashmir': { code: 'JK', name: 'Jammu & Kashmir' },
   'karnataka': { code: 'KA', name: 'Karnataka' },
   'kerala': { code: 'KL', name: 'Kerala' },
   'madhya-pradesh': { code: 'MP', name: 'Madhya Pradesh' },
   'maharashtra': { code: 'MH', name: 'Maharashtra' },
   'manipur': { code: 'MN', name: 'Manipur' },
   'meghalaya': { code: 'ML', name: 'Meghalaya' },
+  'mizoram': { code: 'MZ', name: 'Mizoram' },
   'nagaland': { code: 'NL', name: 'Nagaland' },
   'odisha': { code: 'OR', name: 'Odisha' },
   'punjab': { code: 'PB', name: 'Punjab' },
@@ -41,14 +42,35 @@ const STATE_MAPPING: Record<string, { code: string, name: string }> = {
   'tripura': { code: 'TR', name: 'Tripura' },
   'uttar-pradesh': { code: 'UP', name: 'Uttar Pradesh' },
   'uttarakhand': { code: 'UK', name: 'Uttarakhand' },
-  'west-bengal': { code: 'WB', name: 'West Bengal' }
+  'west-bengal': { code: 'WB', name: 'West Bengal' },
+  
+  // Union Territories
+  'andaman-and-nicobar-islands': { code: 'AN', name: 'Andaman and Nicobar Islands' },
+  'chandigarh': { code: 'CH', name: 'Chandigarh' },
+  'dadra-and-nagar-haveli': { code: 'DN', name: 'Dadra and Nagar Haveli and Daman and Diu' },
+  'delhi': { code: 'DL', name: 'Delhi' },
+  'jammu-kashmir': { code: 'JK', name: 'Jammu & Kashmir' },
+  'ladakh': { code: 'LA', name: 'Ladakh' },
+  'lakshadweep': { code: 'LD', name: 'Lakshadweep' },
+  'puducherry': { code: 'PY', name: 'Puducherry' },
 };
 
-
+function getNormalizedStateSlug(stateParam: string): string | null {
+  const lower = stateParam.toLowerCase();
+  if (STATE_MAPPING[lower]) return lower;
+  // Check if it matches a state code
+  for (const [slug, info] of Object.entries(STATE_MAPPING)) {
+    if (info.code.toLowerCase() === lower || info.name.toLowerCase().replace(/\s+/g, '-') === lower) {
+      return slug;
+    }
+  }
+  return null;
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ state: string }> }): Promise<Metadata> {
   const { state } = await params;
-  const stateInfo = STATE_MAPPING[state];
+  const normalizedSlug = getNormalizedStateSlug(state);
+  const stateInfo = normalizedSlug ? STATE_MAPPING[normalizedSlug] : null;
   
   if (!stateInfo) return {};
 
@@ -56,14 +78,22 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
     title: `${stateInfo.name} Government Schemes 2025 | SchemeAtlas`,
     description: `Complete list of active government schemes, welfare programs and financial aid currently available in ${stateInfo.name} for 2025.`,
     alternates: {
-      canonical: `https://schemeatlas.com/in/${state}`,
+      canonical: `https://schemeatlas.com/in/${normalizedSlug}`,
     },
   };
 }
 
 export default async function StatePage({ params }: { params: Promise<{ state: string }> }) {
   const { state } = await params;
-  const stateInfo = STATE_MAPPING[state];
+  const normalizedSlug = getNormalizedStateSlug(state);
+  
+  // If the parameter isn't strictly the canonical lowercase slug, redirect to it
+  if (normalizedSlug && normalizedSlug !== state) {
+    const { redirect } = await import('next/navigation');
+    redirect(`/in/${normalizedSlug}`);
+  }
+
+  const stateInfo = normalizedSlug ? STATE_MAPPING[normalizedSlug] : null;
   
   if (!stateInfo) notFound();
 

@@ -117,19 +117,42 @@ const RSS_SOURCES = {
 // INDIA: myScheme.gov.in API CONFIG
 // ============================================
 const INDIAN_STATES = [
-  { code: 'AP', name: 'Andhra Pradesh' }, { code: 'AR', name: 'Arunachal Pradesh' }, { code: 'AS', name: 'Assam' },
-  { code: 'BR', name: 'Bihar' }, { code: 'CG', name: 'Chhattisgarh' }, { code: 'GA', name: 'Goa' },
-  { code: 'GJ', name: 'Gujarat' }, { code: 'HR', name: 'Haryana' }, { code: 'HP', name: 'Himachal Pradesh' },
-  { code: 'JH', name: 'Jharkhand' }, { code: 'KA', name: 'Karnataka' }, { code: 'KL', name: 'Kerala' },
-  { code: 'MP', name: 'Madhya Pradesh' }, { code: 'MH', name: 'Maharashtra' }, { code: 'MN', name: 'Manipur' },
-  { code: 'ML', name: 'Meghalaya' }, { code: 'MZ', name: 'Mizoram' }, { code: 'NL', name: 'Nagaland' },
-  { code: 'OR', name: 'Odisha' }, { code: 'PB', name: 'Punjab' }, { code: 'RJ', name: 'Rajasthan' },
-  { code: 'SK', name: 'Sikkim' }, { code: 'TN', name: 'Tamil Nadu' }, { code: 'TS', name: 'Telangana' },
-  { code: 'TR', name: 'Tripura' }, { code: 'UP', name: 'Uttar Pradesh' }, { code: 'UK', name: 'Uttarakhand' },
-  { code: 'WB', name: 'West Bengal' }, { code: 'DL', name: 'Delhi' }, { code: 'JK', name: 'Jammu and Kashmir' },
-  { code: 'AN', name: 'Andaman and Nicobar Islands' }, { code: 'CH', name: 'Chandigarh' },
-  { code: 'DN', name: 'Dadra & Nagar Haveli and Daman & Diu' }, { code: 'LA', name: 'Ladakh' },
-  { code: 'LD', name: 'Lakshadweep' }, { code: 'PY', name: 'Puducherry' }
+  { code: 'AP', name: 'Andhra Pradesh', language: 'te' },
+  { code: 'AR', name: 'Arunachal Pradesh', language: 'en' },
+  { code: 'AS', name: 'Assam', language: 'as' },
+  { code: 'BR', name: 'Bihar', language: 'hi' },
+  { code: 'CG', name: 'Chhattisgarh', language: 'hi' },
+  { code: 'GA', name: 'Goa', language: 'kok' },
+  { code: 'GJ', name: 'Gujarat', language: 'gu' },
+  { code: 'HR', name: 'Haryana', language: 'hi' },
+  { code: 'HP', name: 'Himachal Pradesh', language: 'hi' },
+  { code: 'JH', name: 'Jharkhand', language: 'hi' },
+  { code: 'KA', name: 'Karnataka', language: 'kn' },
+  { code: 'KL', name: 'Kerala', language: 'ml' },
+  { code: 'MP', name: 'Madhya Pradesh', language: 'hi' },
+  { code: 'MH', name: 'Maharashtra', language: 'mr' },
+  { code: 'MN', name: 'Manipur', language: 'en' },
+  { code: 'ML', name: 'Meghalaya', language: 'en' },
+  { code: 'MZ', name: 'Mizoram', language: 'en' },
+  { code: 'NL', name: 'Nagaland', language: 'en' },
+  { code: 'OR', name: 'Odisha', language: 'or' },
+  { code: 'PB', name: 'Punjab', language: 'pa' },
+  { code: 'RJ', name: 'Rajasthan', language: 'hi' },
+  { code: 'SK', name: 'Sikkim', language: 'en' },
+  { code: 'TN', name: 'Tamil Nadu', language: 'ta' },
+  { code: 'TS', name: 'Telangana', language: 'te' },
+  { code: 'TR', name: 'Tripura', language: 'bn' },
+  { code: 'UP', name: 'Uttar Pradesh', language: 'hi' },
+  { code: 'UK', name: 'Uttarakhand', language: 'hi' },
+  { code: 'WB', name: 'West Bengal', language: 'bn' },
+  { code: 'DL', name: 'Delhi', language: 'hi' },
+  { code: 'JK', name: 'Jammu and Kashmir', language: 'en' },
+  { code: 'AN', name: 'Andaman and Nicobar Islands', language: 'en' },
+  { code: 'CH', name: 'Chandigarh', language: 'pa' },
+  { code: 'DN', name: 'Dadra & Nagar Haveli and Daman & Diu', language: 'gu' },
+  { code: 'LA', name: 'Ladakh', language: 'en' },
+  { code: 'LD', name: 'Lakshadweep', language: 'ml' },
+  { code: 'PY', name: 'Puducherry', language: 'ta' }
 ];
 
 const MINISTRIES = [
@@ -235,8 +258,9 @@ async function fetchIndiamyScheme() {
             allSchemes.push({
               name: s.schemeName || s.title,
               keyword,
-              state_code: `IN-${state.code}`,
+              state_code: state.code,
               state_name: state.name,
+              local_language: state.language || null,
               raw: s
             });
           }
@@ -360,26 +384,52 @@ function createSlug(name, country) {
 }
 
 // ============================================
-// UNSPLASH INTEGRATION
+// IMAGE INTEGRATION (PEXELS + UNSPLASH FALLBACK)
 // ============================================
+const PEXELS_API_KEY = process.env.PEXELS_API_KEY || 'ew5YCrng0KjGO4zOZvLg2Vq4XNJ20arQsBERm9v10Ydz4hWsDQpYIx42';
 const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY || 'mRrS9UjMl45wy4Hy-Pm6oMv7TGG55Sb-o6VLDxcJQOA';
 
 async function fetchUnsplashImage(keyword) {
-  if (!keyword) return null;
   try {
-    // Add context to the keyword for much more "attractive" and relevant results
     const enhancedKeyword = `${keyword} government and people support india`.substring(0, 60);
     const res = await axios.get(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(enhancedKeyword)}&client_id=${UNSPLASH_ACCESS_KEY}&per_page=1&orientation=landscape`, { timeout: 10000 });
-    
     if (res.data && res.data.results && res.data.results.length > 0) {
       const img = res.data.results[0];
-      console.log(`     📸 Found Image for "${keyword}": ${img.urls.regular.split('?')[0]}`);
       return img.urls.regular;
     }
     return null;
   } catch (error) {
     console.error('     ⚠️ Unsplash API error:', error.message);
     return null;
+  }
+}
+
+async function fetchSchemeImage(keyword) {
+  if (!keyword) return null;
+  try {
+    const enhancedKeyword = `${keyword} indian people`.substring(0, 60);
+    const res = await axios.get(`https://api.pexels.com/v1/search?query=${encodeURIComponent(enhancedKeyword)}&per_page=1&orientation=landscape`, {
+      headers: { Authorization: PEXELS_API_KEY },
+      timeout: 10000
+    });
+    
+    if (res.data && res.data.photos && res.data.photos.length > 0) {
+      const img = res.data.photos[0];
+      console.log(`     📸 Found Pexels Image for "${keyword}": ${img.src.large}`);
+      return img.src.large;
+    }
+    
+    // If Pexels returns empty, fallback
+    console.log(`     ⚠️ Pexels returned no results. Falling back to Unsplash...`);
+    return await fetchUnsplashImage(keyword);
+  } catch (error) {
+    console.error('     ⚠️ Pexels API error:', error.message);
+    console.log(`     🔄 Falling back to Unsplash...`);
+    const unsplashUrl = await fetchUnsplashImage(keyword);
+    if (unsplashUrl) {
+      console.log(`     📸 Found Unsplash Image (Fallback) for "${keyword}": ${unsplashUrl}`);
+    }
+    return unsplashUrl;
   }
 }
 
@@ -403,14 +453,15 @@ async function saveScheme(schemeData, country, sourceUrl, existingId = null) {
     image_keyword: schemeData.image_keyword,
     state_name: schemeData.state_name || null,
     state_code: schemeData.state_code || 'india',
+    local_language: schemeData.local_language || null,
     is_published: true,
     source: 'agent',
     last_updated: new Date().toISOString()
   };
 
   if (!existingId) {
-    console.log(`📸 Fetching Unsplash image for new scheme: ${searchKeyword}`);
-    const imageUrl = await fetchUnsplashImage(`${searchKeyword} photograph`);
+    console.log(`📸 Fetching image for new scheme: ${searchKeyword}`);
+    const imageUrl = await fetchSchemeImage(`${searchKeyword} photograph`);
     payload.image_url = imageUrl;
     payload.slug = slug;
     payload.discovered_at = new Date().toISOString();

@@ -17,11 +17,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/disclaimer',
   ];
 
-  // 2. Country Index Pages
-  const countryPaths = Object.keys(COUNTRIES).flatMap(code => [
-    `/${code}`,
-    `/${code}/check`
+  // 2. Country & State Index Pages
+  const _countryPaths = Object.keys(COUNTRIES).flatMap(code => [
+    `/${code.toLowerCase()}`,
+    `/${code.toLowerCase()}/check`
   ]);
+
+  const statePaths = COUNTRIES['IN']?.states?.map(state => `/in/${state.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`) || [];
+
+  const countryPaths = [..._countryPaths, ...statePaths];
 
   const allStaticRoutes = [...staticPaths, ...countryPaths].map(route => ({
     url: `${SITE_URL}${route}`,

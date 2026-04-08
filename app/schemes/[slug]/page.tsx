@@ -264,12 +264,12 @@ export default async function SchemeDetailPage({
             {stateSlug && (
               <>
                 <span className="text-slate-300">/</span>
-                <Link href={`/schemes/state/${stateSlug}`} className="hover:text-blue-600 transition-colors capitalize">
+                <Link href={`/in/${stateSlug}`} className="hover:text-blue-600 transition-colors capitalize">
                   {scheme.state_name}
                 </Link>
                 <span className="text-slate-300">/</span>
                 <Link 
-                  href={`/schemes/state/${stateSlug}/${categorySlug}`} 
+                  href={`/in/${stateSlug}?category=${categorySlug}`} 
                   className="hover:text-blue-600 transition-colors capitalize"
                 >
                   {scheme.category || 'General'}
@@ -279,12 +279,12 @@ export default async function SchemeDetailPage({
             {!stateSlug && (
               <>
                 <span className="text-slate-300">/</span>
-                <Link href="/schemes/state/india" className="hover:text-blue-600 transition-colors capitalize">
+                <Link href="/in/india" className="hover:text-blue-600 transition-colors capitalize">
                   Central
                 </Link>
                 <span className="text-slate-300">/</span>
                 <Link 
-                  href={`/schemes/state/india/${categorySlug}`} 
+                  href={`/in/india?category=${categorySlug}`} 
                   className="hover:text-blue-600 transition-colors capitalize"
                 >
                   {scheme.category || 'General'}
