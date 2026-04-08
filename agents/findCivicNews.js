@@ -249,7 +249,12 @@ async function processItem(item, hintType) {
   
   try {
     console.log(`   ⏳ Translating to Hindi & Telugu...`);
-    const transPrompt = `Translate the following government overview into Hindi and Telugu. Respond with ONLY valid JSON: {"hi": "Hindi text", "te": "Telugu text"}\n\n${englishContent.content_en}`;
+    const transPrompt = `Translate the following government overview into Hindi and Telugu. 
+Rules for translation:
+- Do NOT use formal, pure, or textbook language. 
+- Use a highly conversational, everyday spoken style. 
+- Blend in common English words (like "apply", "online", "website", "jobs", "documents") so it is extremely easy for everyone to understand.
+Respond with ONLY valid JSON: {"hi": "Hindi text", "te": "Telugu text"}\n\n${englishContent.content_en}`;
     const transText = await callAI(transPrompt);
     if (transText) {
       const transJson = JSON.parse(transText.replace(/```json|```/g, ''));

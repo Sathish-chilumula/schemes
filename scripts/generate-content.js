@@ -252,9 +252,10 @@ Category: ${scheme.category || 'Not specified'}`;
           console.log(`   ⏳ Translating to ${langName}...`);
           const localPrompt = `Translate this comprehensive scheme guide to ${langName}.
 Rules:
-- Keep the exact 14-point section headers as provided in the original text (e.g. "Title:", "Summary:", "What is the Scheme?", etc.) but you can translate the header names to ${langName} if appropriate, as long as the 14-point structure is preserved.
+- Keep the exact 14-point section headers as provided in the original text. You can translate the header names to ${langName} if appropriate, as long as the 14-point structure is preserved.
 - For FAQs, keep the English prefixes "Q: " and "A: ".
-- Use a natural, human-like conversational tone in ${langName}.
+- VERY IMPORTANT: Do NOT use pure, formal, or tricky textbook ${langName}. Use a highly conversational, everyday spoken style.
+- Blend in common English words (like "apply", "online", "website", "documents", "eligibility", "benefits") so it is extremely easy for everyone to understand.
 - NEVER use asterisks (**), hashes (#), or markdown formatting. Use plain text only.\n\nOriginal:\n${contentEn}`;
           const translated = await callLLM(localPrompt);
           
