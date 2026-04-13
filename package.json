@@ -8,9 +8,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "pages:build": "npx @opennextjs/cloudflare build --dangerouslyUseUnsupportedNextVersion",
-    "preview": "npm run pages:build && wrangler dev",
-    "deploy": "npm run pages:build && wrangler deploy",
+    "pages:build": "npx @cloudflare/next-on-pages",
+    "preview": "npm run pages:build && wrangler pages dev .vercel/output/static",
+    "deploy": "npm run pages:build && wrangler pages deploy .vercel/output/static --project-name schemeatlas",
     "agents:find": "node agents/findSchemes.js",
     "agents:social": "node agents/postSocial.js",
     "agents:generate": "node scripts/generate-content.js",
@@ -32,7 +32,7 @@
     "rss-parser": "^3.13.0"
   },
   "devDependencies": {
-    "@opennextjs/cloudflare": "^1.19.1",
+    "@cloudflare/next-on-pages": "^1.11.3",
     "@playwright/test": "^1.42.1",
     "@types/node": "^20.14.14",
     "@types/react": "^18.3.3",
