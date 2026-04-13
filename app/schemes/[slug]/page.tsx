@@ -92,55 +92,64 @@ export async function generateMetadata({
   params: { slug: string } 
 }): Promise<Metadata> {
   const resolvedParams = params;
-  const supabase = supabaseAdmin();
-  const { data: scheme } = await supabase
-    .from('schemes')
-    .select('name, content_en, state_name, country_code, ministry, slug, local_language')
-    .eq('slug', resolvedParams.slug)
-    .single();
-
-  if (!scheme) return {};
-
-  const rawDesc = scheme.content_en || '';
-  const cleanDesc = cleanMarkdown(rawDesc).substring(0, 160);
-
-  const location = scheme.state_name || 'India';
-  const title = `${scheme.name} ${new Date().getFullYear()} - Eligibility, Benefits & How to Apply | SchemeAtlas`;
-  const description = cleanDesc.length > 50
-    ? cleanDesc
-    : `Learn about ${scheme.name} - who can apply, benefit amount and how to apply in ${location} ${new Date().getFullYear()}.`;
-
-  const baseUrl = `https://schemeatlas.com/schemes/${resolvedParams.slug}`;
-
-  const languages: Record<string, string> = {
-    en: baseUrl,
-    hi: `${baseUrl}?lang=hi`,
-  };
   
-  if (scheme.local_language && scheme.local_language !== 'hi') {
-    languages[scheme.local_language] = `${baseUrl}?lang=${scheme.local_language}`;
-  }
+  try {
+    const supabase = supabaseAdmin();
+    const { data: scheme } = await supabase
+      .from('schemes')
+      .select('name, content_en, state_name, country_code, ministry, slug, local_language')
+      .eq('slug', resolvedParams.slug)
+      .single();
 
-  return {
-    title,
-    description,
-    keywords: `${scheme.name}, government scheme, ${location}, eligibility, how to apply, benefits ${new Date().getFullYear()}`,
-    openGraph: {
+    if (!scheme) return { title: 'Scheme Not Found' };
+
+    const rawDesc = scheme.content_en || '';
+    const cleanDesc = cleanMarkdown(rawDesc).substring(0, 160);
+
+    const location = scheme.state_name || 'India';
+    const title = `${scheme.name} ${new Date().getFullYear()} - Eligibility, Benefits & How to Apply | SchemeAtlas`;
+    const description = cleanDesc.length > 50
+      ? cleanDesc
+      : `Learn about ${scheme.name} - who can apply, benefit amount and how to apply in ${location} ${new Date().getFullYear()}.`;
+
+    const baseUrl = `https://schemeatlas.com/schemes/${resolvedParams.slug}`;
+
+    const languages: Record<string, string> = {
+      en: baseUrl,
+      hi: `${baseUrl}?lang=hi`,
+    };
+    
+    if (scheme.local_language && scheme.local_language !== 'hi') {
+      languages[scheme.local_language] = `${baseUrl}?lang=${scheme.local_language}`;
+    }
+
+    return {
       title,
       description,
-      url: baseUrl,
-      type: 'article',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
-    },
-    alternates: {
-      canonical: baseUrl,
-      languages,
-    },
-  };
+      keywords: `${scheme.name}, government scheme, ${location}, eligibility, how to apply, benefits ${new Date().getFullYear()}`,
+      openGraph: {
+        title,
+        description,
+        url: baseUrl,
+        type: 'article',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+      },
+      alternates: {
+        canonical: baseUrl,
+        languages,
+      },
+    };
+  } catch (error) {
+    console.error('Metadata generation error:', error);
+    return {
+      title: 'Scheme Details | SchemeAtlas',
+      description: 'View government scheme details, eligibility, and application process.',
+    };
+  }
 }
 
 export default async function SchemeDetailPage({ 
