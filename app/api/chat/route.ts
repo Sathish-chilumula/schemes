@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 
-export const runtime = 'edge';
+
 
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
