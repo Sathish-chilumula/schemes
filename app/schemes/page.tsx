@@ -2,7 +2,7 @@ import { supabaseAdmin, type Scheme } from '@/lib/supabase';
 import { SchemesClient } from './SchemesClient';
 import { Metadata } from 'next';
 
-export const revalidate = 3600; // ISR: revalidate every hour
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'All Government Schemes 2025 | SchemeAtlas',
