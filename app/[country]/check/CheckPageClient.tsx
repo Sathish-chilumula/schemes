@@ -9,8 +9,8 @@ import { Navbar } from '@/components/Navbar';
 
 const STEPS = ['Profile', 'Income & Work', 'Location', 'Done'];
 
-export default function CheckPageClient({ params }: { params: Promise<{ country: string }> }) {
-  const { country } = use(params);
+export default function CheckPageClient({ params }: { params: { country: string } }) {
+  const { country } = params;
   const countryCode = country.toUpperCase();
   const countryConfig = COUNTRIES[countryCode];
   const router = useRouter();

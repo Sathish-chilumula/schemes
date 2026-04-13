@@ -7,8 +7,8 @@ import { COUNTRIES, CATEGORIES } from '@/lib/config';
 import { SchemeCard } from '@/components/SchemeCard';
 import { Navbar } from '@/components/Navbar';
 
-export default function CountryPageClient({ params }: { params: Promise<{ country: string }> }) {
-  const { country } = use(params);
+export default function CountryPageClient({ params }: { params: { country: string } }) {
+  const { country } = params;
   const countryCode = country.toUpperCase();
   const countryConfig = COUNTRIES[countryCode];
 

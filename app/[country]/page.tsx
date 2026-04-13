@@ -7,12 +7,12 @@ export const revalidate = 3600;
 
 // Removed generateStaticParams allowing dynamic usage
 
-export async function generateMetadata({ 
+export function generateMetadata({ 
   params 
 }: { 
-  params: Promise<{ country: string }> 
-}): Promise<Metadata> {
-  const { country } = await params;
+  params: { country: string } 
+}): Metadata {
+  const { country } = params;
   const countryCode = country.toUpperCase();
   const config = COUNTRIES[countryCode];
   const countryName = config?.name || countryCode;
@@ -37,12 +37,12 @@ export async function generateMetadata({
   };
 }
 
-export default async function CountryPage({ 
+export default function CountryPage({ 
   params 
 }: { 
-  params: Promise<{ country: string }> 
+  params: { country: string } 
 }) {
-  const { country } = await params;
+  const { country } = params;
   const countryCode = country.toUpperCase();
   const config = COUNTRIES[countryCode];
   const countryName = config?.name || countryCode;
