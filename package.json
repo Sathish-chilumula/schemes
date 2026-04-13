@@ -9,8 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "pages:build": "npx @opennextjs/cloudflare",
-    "preview": "npm run pages:build && wrangler pages dev .open-next/worker",
-    "deploy": "npm run pages:build && wrangler pages deploy .open-next/worker",
+    "preview": "npm run pages:build && wrangler dev",
+    "deploy": "npm run pages:build && wrangler deploy",
     "agents:find": "node agents/findSchemes.js",
     "agents:social": "node agents/postSocial.js",
     "agents:generate": "node scripts/generate-content.js",
@@ -32,7 +32,7 @@
     "rss-parser": "^3.13.0"
   },
   "devDependencies": {
-    "@opennextjs/cloudflare": "^0.3.5",
+    "@opennextjs/cloudflare": "^1.19.1",
     "@playwright/test": "^1.42.1",
     "@types/node": "^20.14.14",
     "@types/react": "^18.3.3",
