@@ -3,6 +3,7 @@ import { JobsClient } from './JobsClient';
 import { Metadata } from 'next';
 
 export const revalidate = 3600; // ISR: revalidate every hour
+export const runtime = 'edge';
 
 export const metadata: Metadata = {
   title: 'Government Job Recruitment 2025-26 | Latest Vacancies & Notifications',

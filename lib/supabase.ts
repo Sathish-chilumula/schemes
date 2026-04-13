@@ -16,17 +16,23 @@ let _supabase: SupabaseClient | null = null;
 export function getSupabase() {
   if (!_supabase) {
     if (!supabaseUrl) {
-      throw new Error('NEXT_PUBLIC_SUPABASE_URL is not set');
+      console.warn('NEXT_PUBLIC_SUPABASE_URL is not set. Supabase client will be unavailable during this phase.');
+      return null;
     }
     _supabase = createClient(supabaseUrl, supabaseAnonKey);
   }
   return _supabase;
 }
 
-// Keep backward-compatible export (lazy)
+// Keep backward-compatible export (lazy proxy)
 export const supabase = new Proxy({} as SupabaseClient, {
   get(_target, prop) {
-    return (getSupabase() as any)[prop];
+    const client = getSupabase();
+    if (!client) {
+      // Return a dummy object if client is unavailable to prevent crashes
+      return () => ({ data: null, error: { message: 'Supabase URL not set' }, count: 0 });
+    }
+    return (client as any)[prop];
   },
 });
 
@@ -36,7 +42,9 @@ export function supabaseAdmin() {
   const serviceKey = (process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim();
   
   if (!url) {
-    throw new Error('NEXT_PUBLIC_SUPABASE_URL is not set');
+    console.warn('NEXT_PUBLIC_SUPABASE_URL is not set. supabaseAdmin will be unavailable during this phase.');
+    // Return a proxy/client that doesn't throw
+    return createClient('https://placeholder-project.supabase.co', 'placeholder-key');
   }
   return createClient(url, serviceKey);
 }
