@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "pages:build": "npx @opennextjs/cloudflare",
+    "pages:build": "npx @opennextjs/cloudflare build",
     "preview": "npm run pages:build && wrangler dev",
     "deploy": "npm run pages:build && wrangler deploy",
     "agents:find": "node agents/findSchemes.js",
