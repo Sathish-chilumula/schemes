@@ -7,6 +7,7 @@ const nextConfig = {
       { protocol: 'https', hostname: 'images.pexels.com' },
     ],
   },
+  output: 'standalone',
 };
 
 module.exports = nextConfig;
