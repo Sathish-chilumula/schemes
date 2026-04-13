@@ -150,17 +150,34 @@ export default async function SchemeDetailPage({
 }) {
   const resolvedParams = params;
   
-  const supabase = supabaseAdmin();
-  const { data: scheme } = await supabase
-    .from('schemes')
-    .select('*')
-    .eq('slug', resolvedParams.slug)
-    .single();
+  try {
+    const supabase = supabaseAdmin();
+    const { data: scheme, error: schemeError } = await supabase
+      .from('schemes')
+      .select('*')
+      .eq('slug', resolvedParams.slug)
+      .single();
 
-  if (!scheme) notFound();
+    if (schemeError || !scheme) {
+      console.error('Scheme fetch error:', schemeError);
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+          <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border border-red-100">
+            <h1 className="text-2xl font-bold text-red-600 mb-4">Scheme Not Found</h1>
+            <p className="text-slate-600 mb-6">We couldn't find the scheme "{resolvedParams.slug}". It might be unpublished or the link might be broken.</p>
+            <div className="bg-slate-50 p-4 rounded-lg text-xs font-mono text-slate-500 overflow-auto">
+              {schemeError ? `Error: ${schemeError.message}` : 'Status: Record missing or URL misconfigured'}
+            </div>
+            <Link href="/schemes" className="mt-6 block text-center bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
+              Browse All Schemes
+            </Link>
+          </div>
+        </div>
+      );
+    }
 
-  const stateSlug = scheme.state_name ? slugify(scheme.state_name) : null;
-  const categorySlug = scheme.category ? slugify(scheme.category) : 'general';
+    const stateSlug = scheme.state_name ? slugify(scheme.state_name) : null;
+    const categorySlug = scheme.category ? slugify(scheme.category) : 'general';
 
   // Async task to fetch related schemes
   const { data: related } = await supabase
@@ -453,4 +470,41 @@ export default async function SchemeDetailPage({
       </div>
     </main>
   );
+  } catch (err: any) {
+    console.error('Critical Page Error:', err);
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white p-6">
+        <div className="max-w-xl w-full">
+          <h1 className="text-3xl font-bold text-red-500 mb-2">Edge Runtime Error</h1>
+          <p className="text-slate-400 mb-8 text-lg">A critical error occurred while rendering this page at the edge.</p>
+          
+          <div className="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-2xl">
+            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">System Diagnosis</h2>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center pb-2 border-b border-slate-700">
+                <span className="text-slate-300">Supabase URL</span>
+                <span className={process.env.NEXT_PUBLIC_SUPABASE_URL ? "text-green-400" : "text-red-400 font-bold"}>
+                  {process.env.NEXT_PUBLIC_SUPABASE_URL ? "✓ SET" : "⚠ MISSING"}
+                </span>
+              </div>
+              <div className="flex justify-between items-center pb-2 border-b border-slate-700">
+                <span className="text-slate-300">Supabase Key</span>
+                <span className={process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? "text-green-400" : "text-red-400 font-bold"}>
+                  {process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? "✓ SET" : "⚠ MISSING"}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-300">Error Details</span>
+                <span className="text-red-300 text-sm">{err?.message || 'Unknown Exception'}</span>
+              </div>
+            </div>
+          </div>
+          
+          <Link href="/" className="mt-8 inline-block text-blue-400 hover:text-blue-300 underline underline-offset-4">
+            Return to Homepage
+          </Link>
+        </div>
+      </div>
+    );
+  }
 }
