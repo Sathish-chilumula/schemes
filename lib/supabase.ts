@@ -1,7 +1,16 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+function formatUrl(url: string) {
+  if (!url) return '';
+  url = url.trim();
+  if (url && !url.startsWith('http')) {
+    url = `https://${url}`;
+  }
+  return url;
+}
+
+const supabaseUrl = formatUrl(process.env.NEXT_PUBLIC_SUPABASE_URL || '');
+const supabaseAnonKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim();
 
 let _supabase: SupabaseClient | null = null;
 export function getSupabase() {
@@ -22,8 +31,10 @@ export const supabase = new Proxy({} as SupabaseClient, {
 });
 
 export function supabaseAdmin() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-  const serviceKey = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+  const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const url = formatUrl(rawUrl);
+  const serviceKey = (process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim();
+  
   if (!url) {
     throw new Error('NEXT_PUBLIC_SUPABASE_URL is not set');
   }
