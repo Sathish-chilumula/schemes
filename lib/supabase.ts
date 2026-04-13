@@ -9,25 +9,38 @@ function formatUrl(url: string) {
   return url;
 }
 
-const DEFAULT_URL = 'https://placeholder-project.supabase.co';
-const DEFAULT_KEY = 'placeholder-key';
+const DEFAULT_URL = 'https://missing-project-id.supabase.co';
+const DEFAULT_KEY = 'missing-anon-key';
 
 let _supabase: SupabaseClient | null = null;
+
+/**
+ * Gets a Supabase client. 
+ * If environment variables are missing, returns a placeholder client 
+ * that will log warnings instead of crashing during build/initialization.
+ */
 export function getSupabase() {
   if (!_supabase) {
     const url = formatUrl(process.env.NEXT_PUBLIC_SUPABASE_URL || '');
     const key = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim();
 
-    if (!url) {
-      console.warn('NEXT_PUBLIC_SUPABASE_URL is missing. Using placeholder client for build.');
+    if (!url || !key || url.includes('placeholder')) {
+      if (typeof window === 'undefined') {
+        console.warn('⚠️ [Supabase] NEXT_PUBLIC_SUPABASE_URL or ANON_KEY is missing. Using placeholder client.');
+      }
       return createClient(DEFAULT_URL, DEFAULT_KEY);
     }
-    _supabase = createClient(url, key);
+    
+    _supabase = createClient(url, key, {
+      auth: {
+        persistSession: false,
+      }
+    });
   }
   return _supabase;
 }
 
-// Lazy initialization for the shared client
+// Lazy-initialization Proxy to handle property access safely
 export const supabase = new Proxy({} as SupabaseClient, {
   get(_target, prop) {
     const client = getSupabase();
@@ -35,15 +48,25 @@ export const supabase = new Proxy({} as SupabaseClient, {
   },
 });
 
+/**
+ * Gets a Supabase Admin client using the service role key.
+ */
 export function supabaseAdmin() {
   const url = formatUrl(process.env.NEXT_PUBLIC_SUPABASE_URL || '');
   const serviceKey = (process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim();
   
-  if (!url) {
-    console.warn('NEXT_PUBLIC_SUPABASE_URL is missing. Using placeholder admin client for build.');
+  if (!url || !serviceKey || url.includes('placeholder')) {
+    if (typeof window === 'undefined') {
+      console.warn('⚠️ [Supabase] Admin credentials missing. Using placeholder admin client.');
+    }
     return createClient(DEFAULT_URL, DEFAULT_KEY);
   }
-  return createClient(url, serviceKey);
+  
+  return createClient(url, serviceKey, {
+    auth: {
+      persistSession: false,
+    }
+  });
 }
 
 export type Scheme = {

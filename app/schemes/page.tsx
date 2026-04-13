@@ -14,12 +14,24 @@ export const metadata: Metadata = {
 };
 
 export default async function SchemesPage() {
-  const supabase = supabaseAdmin();
-  const { data: schemes } = await supabase
-    .from('schemes')
-    .select('*')
-    .eq('is_published', true)
-    .order('discovered_at', { ascending: false });
+  let schemes: Scheme[] = [];
 
-  return <SchemesClient initialSchemes={schemes || []} />;
+  try {
+    const supabase = supabaseAdmin();
+    const { data, error } = await supabase
+      .from('schemes')
+      .select('*')
+      .eq('is_published', true)
+      .order('discovered_at', { ascending: false });
+
+    if (error) {
+      console.error('Supabase error fetching schemes:', error.message);
+    } else if (data) {
+      schemes = data;
+    }
+  } catch (err) {
+    console.error('Crash fetching schemes:', err);
+  }
+
+  return <SchemesClient initialSchemes={schemes} />;
 }

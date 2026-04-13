@@ -14,30 +14,40 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const supabase = supabaseAdmin();
-  
-  const [
-    { count: schemeCount }, 
-    { count: checkedCount },
-    { data: trendingSchemes },
-    { data: latestSchemes }
-  ] = await Promise.all([
-    supabase.from('schemes').select('*', { count: 'exact', head: true }).eq('is_published', true),
-    supabase.from('eligibility_results').select('*', { count: 'exact', head: true }),
-    supabase.from('schemes').select('*').eq('is_published', true).eq('country_code', 'IN').order('views', { ascending: false }).limit(3),
-    supabase.from('schemes').select('*').eq('is_published', true).eq('country_code', 'IN').order('discovered_at', { ascending: false }).limit(3)
-  ]);
+  let stats = { schemes: 1050, checked: 5840 };
+  let trendingSchemes: any[] = [];
+  let latestSchemes: any[] = [];
 
-  const stats = {
-    schemes: schemeCount || 1050,
-    checked: checkedCount ? checkedCount + 5000 : 5000
-  };
+  try {
+    const supabase = supabaseAdmin();
+    
+    const [
+      { count: schemeCount, error: err1 }, 
+      { count: checkedCount, error: err2 },
+      { data: trending, error: err3 },
+      { data: latest, error: err4 }
+    ] = await Promise.all([
+      supabase.from('schemes').select('*', { count: 'exact', head: true }).eq('is_published', true),
+      supabase.from('eligibility_results').select('*', { count: 'exact', head: true }),
+      supabase.from('schemes').select('*').eq('is_published', true).eq('country_code', 'IN').order('views', { ascending: false }).limit(3),
+      supabase.from('schemes').select('*').eq('is_published', true).eq('country_code', 'IN').order('discovered_at', { ascending: false }).limit(3)
+    ]);
+
+    if (!err1) stats.schemes = schemeCount || 1050;
+    if (!err2) stats.checked = checkedCount ? checkedCount + 5000 : 5000;
+    if (!err3 && trending) trendingSchemes = trending;
+    if (!err4 && latest) latestSchemes = latest;
+
+  } catch (err) {
+    console.error('Failed to fetch homepage data:', err);
+    // Continue with defaults to prevent 500 crash
+  }
 
   return (
     <HomeClient 
       stats={stats} 
-      trendingSchemes={trendingSchemes || []} 
-      latestSchemes={latestSchemes || []} 
+      trendingSchemes={trendingSchemes} 
+      latestSchemes={latestSchemes} 
     />
   );
 }
