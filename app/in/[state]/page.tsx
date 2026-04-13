@@ -80,7 +80,7 @@ export function generateMetadata({ params }: { params: { state: string } }): Met
   };
 }
 
-export default function StatePage({ params }: { params: { state: string } }) {
+export default async function StatePage({ params }: { params: { state: string } }) {
   const { state } = params;
   const normalizedSlug = getNormalizedStateSlug(state);
   

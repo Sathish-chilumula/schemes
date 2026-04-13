@@ -19,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function ResultsPage({ params }: { params: { sessionId: string } }) {
+export default async function ResultsPage({ params }: { params: { sessionId: string } }) {
   const { sessionId } = params;
 
   // Initial fetch on server to reduce client-side waiting

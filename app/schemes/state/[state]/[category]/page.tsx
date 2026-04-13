@@ -12,7 +12,7 @@ export const runtime = 'edge';
 // Removed generateStaticParams to avoid Cloudflare Pages bundle limit issues
 // export const dynamicParams = true;
 
-export function generateMetadata({ 
+export async function generateMetadata({ 
   params 
 }: { 
   params: { state: string; category: string } 

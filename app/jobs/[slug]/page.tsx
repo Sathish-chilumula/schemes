@@ -8,7 +8,7 @@ import { Metadata } from 'next';
 export const dynamicParams = true;
 export const runtime = 'edge';
 
-export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const resolvedParams = params;
   const supabase = supabaseAdmin();
   const { data: job } = await supabase.from('schemes').select('name, content_en').eq('slug', resolvedParams.slug).single();
@@ -19,7 +19,7 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
   };
 }
 
-export default function JobDetailPage({ params }: { params: { slug: string } }) {
+export default async function JobDetailPage({ params }: { params: { slug: string } }) {
   const resolvedParams = params;
   const supabase = supabaseAdmin();
   const { data: job } = await supabase.from('schemes').select('*').eq('slug', resolvedParams.slug).single();
