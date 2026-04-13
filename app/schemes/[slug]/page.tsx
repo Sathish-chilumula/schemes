@@ -81,6 +81,7 @@ function generateFAQSchema(scheme: any) {
 }
 
 export const revalidate = 3600;
+export const runtime = 'edge';
 
 // Removed generateStaticParams to avoid 'Invalid string length' error from Cloudflare Pages
 // when prerendering 15k+ routes statically. Let Next.js render on the Edge dynamically.
@@ -88,9 +89,9 @@ export const revalidate = 3600;
 export async function generateMetadata({ 
   params 
 }: { 
-  params: Promise<{ slug: string }>
+  params: { slug: string } 
 }): Promise<Metadata> {
-  const resolvedParams = await params;
+  const resolvedParams = params;
   const supabase = supabaseAdmin();
   const { data: scheme } = await supabase
     .from('schemes')
@@ -145,9 +146,9 @@ export async function generateMetadata({
 export default async function SchemeDetailPage({ 
   params
 }: { 
-  params: Promise<{ slug: string }>
+  params: { slug: string }
 }) {
-  const resolvedParams = await params;
+  const resolvedParams = params;
   
   const supabase = supabaseAdmin();
   const { data: scheme } = await supabase

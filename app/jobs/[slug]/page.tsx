@@ -6,9 +6,10 @@ import { Metadata } from 'next';
 
 
 export const dynamicParams = true;
+export const runtime = 'edge';
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const resolvedParams = await params;
+export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
+  const resolvedParams = params;
   const supabase = supabaseAdmin();
   const { data: job } = await supabase.from('schemes').select('name, content_en').eq('slug', resolvedParams.slug).single();
   if (!job) return {};
@@ -18,8 +19,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-export default async function JobDetailPage({ params }: { params: Promise<{ slug: string }> }) {
-  const resolvedParams = await params;
+export default function JobDetailPage({ params }: { params: { slug: string } }) {
+  const resolvedParams = params;
   const supabase = supabaseAdmin();
   const { data: job } = await supabase.from('schemes').select('*').eq('slug', resolvedParams.slug).single();
 

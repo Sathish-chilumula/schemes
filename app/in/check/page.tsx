@@ -2,6 +2,9 @@ import CheckPageClient from '../../[country]/check/CheckPageClient';
 import { Metadata } from 'next';
 import { COUNTRIES } from '@/lib/config';
 
+export const runtime = 'edge';
+
+
 
 
 export async function generateMetadata(): Promise<Metadata> {

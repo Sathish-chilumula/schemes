@@ -4,6 +4,7 @@ import { COUNTRIES } from '@/lib/config';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 3600;
+export const runtime = 'edge';
 
 // Removed generateStaticParams allowing dynamic usage
 

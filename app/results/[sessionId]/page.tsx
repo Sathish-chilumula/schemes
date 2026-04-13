@@ -3,6 +3,9 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { ResultsClient } from './ResultsClient';
 import { Metadata } from 'next';
 
+export const runtime = 'edge';
+
+
 
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -16,8 +19,8 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function ResultsPage({ params }: { params: Promise<{ sessionId: string }> }) {
-  const { sessionId } = await params;
+export default function ResultsPage({ params }: { params: { sessionId: string } }) {
+  const { sessionId } = params;
 
   // Initial fetch on server to reduce client-side waiting
   // Note: If the AI is still processing, the client will handle the polling/loading

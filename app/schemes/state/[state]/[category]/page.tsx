@@ -7,16 +7,17 @@ import { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 3600;
+export const runtime = 'edge';
 
 // Removed generateStaticParams to avoid Cloudflare Pages bundle limit issues
 // export const dynamicParams = true;
 
-export async function generateMetadata({ 
+export function generateMetadata({ 
   params 
 }: { 
-  params: Promise<{ state: string; category: string }> 
+  params: { state: string; category: string } 
 }): Promise<Metadata> {
-  const resolvedParams = await params;
+  const resolvedParams = params;
   const stateObj = getIndianStateBySlug(resolvedParams.state);
   const category = resolvedParams.category;
 
@@ -44,9 +45,9 @@ export async function generateMetadata({
 export default async function PSEOPage({ 
   params 
 }: { 
-  params: Promise<{ state: string; category: string }> 
+  params: { state: string; category: string } 
 }) {
-  const resolvedParams = await params;
+  const resolvedParams = params;
   const stateObj = getIndianStateBySlug(resolvedParams.state);
   const categorySlug = resolvedParams.category;
 

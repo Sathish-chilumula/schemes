@@ -5,8 +5,8 @@ import { Navbar } from '@/components/Navbar';
 import { SchemeCard } from '@/components/SchemeCard';
 import { Metadata } from 'next';
 
-export const dynamic = 'force-dynamic';
 export const revalidate = 3600;
+export const runtime = 'edge';
 
 // Removed generateStaticParams allowing edge dynamic rendering
 
@@ -64,8 +64,8 @@ function getNormalizedStateSlug(stateParam: string): string | null {
   return null;
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ state: string }> }): Promise<Metadata> {
-  const { state } = await params;
+export function generateMetadata({ params }: { params: { state: string } }): Metadata {
+  const { state } = params;
   const normalizedSlug = getNormalizedStateSlug(state);
   const stateInfo = normalizedSlug ? STATE_MAPPING[normalizedSlug] : null;
   
@@ -80,8 +80,8 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
   };
 }
 
-export default async function StatePage({ params }: { params: Promise<{ state: string }> }) {
-  const { state } = await params;
+export default function StatePage({ params }: { params: { state: string } }) {
+  const { state } = params;
   const normalizedSlug = getNormalizedStateSlug(state);
   
   // If the parameter isn't strictly the canonical lowercase slug, redirect to it

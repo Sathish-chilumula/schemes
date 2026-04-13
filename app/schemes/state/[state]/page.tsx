@@ -7,11 +7,12 @@ import { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 3600;
+export const runtime = 'edge';
 
 // Removed generateStaticParams to allow dynamic edge rendering
 
-export async function generateMetadata({ params }: { params: Promise<{ state: string }> }): Promise<Metadata> {
-  const resolvedParams = await params;
+export function generateMetadata({ params }: { params: { state: string } }): Metadata {
+  const resolvedParams = params;
   const india = COUNTRIES.IN;
   const stateObj = india.states.find(s => slugify(s.name) === resolvedParams.state);
 
@@ -37,8 +38,8 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
   };
 }
 
-export default async function StateHubPage({ params }: { params: Promise<{ state: string }> }) {
-  const resolvedParams = await params;
+export default function StateHubPage({ params }: { params: { state: string } }) {
+  const resolvedParams = params;
   const india = COUNTRIES.IN;
   const stateObj = india.states.find(s => slugify(s.name) === resolvedParams.state);
 
