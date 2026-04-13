@@ -2,7 +2,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { HomeClient } from './HomeClient';
 import { Metadata } from 'next';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 86400; // ISR: revalidate every 24 hours
 
 export const metadata: Metadata = {
   title: 'SchemeAtlas | Find Government Benefits Instantly',

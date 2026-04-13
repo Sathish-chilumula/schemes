@@ -80,7 +80,6 @@ function generateFAQSchema(scheme: any) {
   };
 }
 
-export const dynamic = 'force-dynamic';
 export const revalidate = 3600;
 
 // Removed generateStaticParams to avoid 'Invalid string length' error from Cloudflare Pages
