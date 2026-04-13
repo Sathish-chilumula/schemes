@@ -32,8 +32,8 @@ export default async function IndiaCheckPage() {
   const config = COUNTRIES['IN'];
   const countryName = config?.name || 'India';
 
-  // We recreate the params promise expected by CheckPageClient
-  const params = Promise.resolve({ country: 'in' });
+  // We pass the synchronous object expected by CheckPageClient
+  const params = { country: 'in' };
 
   return (
     <>
