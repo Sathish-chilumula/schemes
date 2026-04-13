@@ -3,7 +3,6 @@ compatibility_date = "2024-01-01"
 compatibility_flags = [ "nodejs_compat" ]
 pages_build_output_dir = ".vercel/output/static"
 
+# Environment variables should be managed in the Cloudflare Dashboard
+# to avoid publication conflicts and ensure availability at the Edge.
 [vars]
-NEXT_PUBLIC_SITE_URL = "https://schemeatlas.com"
-NEXT_PUBLIC_SUPABASE_URL = "https://yeyxiltooeflnbctjenp.supabase.co"
-NEXT_PUBLIC_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlleXhpbHRvb2VmbG5iY3RqZW5wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MjAxMjgsImV4cCI6MjA5MDA5NjEyOH0.sq8hyVR6o6tAxMTpjpoNKlznfdgxmZcV5i24K3ddQnQ"
