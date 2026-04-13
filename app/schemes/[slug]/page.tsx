@@ -75,6 +75,8 @@ function generateFAQSchema(scheme: any) {
       'acceptedAnswer': {
         '@type': 'Answer',
         'text': cleanMarkdown(faq.answer).substring(0, 400),
+      }
+    }))
   };
 }
 
