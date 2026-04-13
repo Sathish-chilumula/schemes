@@ -9,42 +9,39 @@ function formatUrl(url: string) {
   return url;
 }
 
-const supabaseUrl = formatUrl(process.env.NEXT_PUBLIC_SUPABASE_URL || '');
-const supabaseAnonKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim();
+const DEFAULT_URL = 'https://placeholder-project.supabase.co';
+const DEFAULT_KEY = 'placeholder-key';
 
 let _supabase: SupabaseClient | null = null;
 export function getSupabase() {
   if (!_supabase) {
-    if (!supabaseUrl) {
-      console.warn('NEXT_PUBLIC_SUPABASE_URL is not set. Supabase client will be unavailable during this phase.');
-      return null;
+    const url = formatUrl(process.env.NEXT_PUBLIC_SUPABASE_URL || '');
+    const key = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim();
+
+    if (!url) {
+      console.warn('NEXT_PUBLIC_SUPABASE_URL is missing. Using placeholder client for build.');
+      return createClient(DEFAULT_URL, DEFAULT_KEY);
     }
-    _supabase = createClient(supabaseUrl, supabaseAnonKey);
+    _supabase = createClient(url, key);
   }
   return _supabase;
 }
 
-// Keep backward-compatible export (lazy proxy)
+// Lazy initialization for the shared client
 export const supabase = new Proxy({} as SupabaseClient, {
   get(_target, prop) {
     const client = getSupabase();
-    if (!client) {
-      // Return a dummy object if client is unavailable to prevent crashes
-      return () => ({ data: null, error: { message: 'Supabase URL not set' }, count: 0 });
-    }
     return (client as any)[prop];
   },
 });
 
 export function supabaseAdmin() {
-  const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-  const url = formatUrl(rawUrl);
+  const url = formatUrl(process.env.NEXT_PUBLIC_SUPABASE_URL || '');
   const serviceKey = (process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim();
   
   if (!url) {
-    console.warn('NEXT_PUBLIC_SUPABASE_URL is not set. supabaseAdmin will be unavailable during this phase.');
-    // Return a proxy/client that doesn't throw
-    return createClient('https://placeholder-project.supabase.co', 'placeholder-key');
+    console.warn('NEXT_PUBLIC_SUPABASE_URL is missing. Using placeholder admin client for build.');
+    return createClient(DEFAULT_URL, DEFAULT_KEY);
   }
   return createClient(url, serviceKey);
 }
