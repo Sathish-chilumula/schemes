@@ -2,13 +2,10 @@ import CountryPageClient from './CountryPageClient';
 import { Metadata } from 'next';
 import { COUNTRIES } from '@/lib/config';
 
-export async function generateStaticParams() {
-  return Object.keys(COUNTRIES).map((country) => ({
-    country: country.toLowerCase(),
-  }));
-}
+export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
-export const dynamicParams = false;
+// Removed generateStaticParams allowing dynamic usage
 
 export async function generateMetadata({ 
   params 

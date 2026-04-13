@@ -5,13 +5,10 @@ import { Navbar } from '@/components/Navbar';
 import { SchemeCard } from '@/components/SchemeCard';
 import { Metadata } from 'next';
 
-export async function generateStaticParams() {
-  return Object.keys(STATE_MAPPING).map((state) => ({
-    state: state,
-  }));
-}
+export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
-export const dynamicParams = false;
+// Removed generateStaticParams allowing edge dynamic rendering
 
 const STATE_MAPPING: Record<string, { code: string, name: string }> = {
   // States

@@ -5,14 +5,10 @@ import { COUNTRIES } from '@/lib/config';
 import { slugify } from '@/lib/seo';
 import { Metadata } from 'next';
 
-export async function generateStaticParams() {
-  const india = COUNTRIES.IN;
-  return india.states.map(state => ({
-    state: slugify(state.name),
-  }));
-}
+export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
-export const dynamicParams = false;
+// Removed generateStaticParams to allow dynamic edge rendering
 
 export async function generateMetadata({ params }: { params: Promise<{ state: string }> }): Promise<Metadata> {
   const resolvedParams = await params;

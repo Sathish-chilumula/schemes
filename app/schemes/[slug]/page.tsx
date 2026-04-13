@@ -75,44 +75,14 @@ function generateFAQSchema(scheme: any) {
       'acceptedAnswer': {
         '@type': 'Answer',
         'text': cleanMarkdown(faq.answer).substring(0, 400),
-      }
-    }))
   };
 }
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
-
-export async function generateStaticParams() {
-  const supabase = supabaseAdmin();
-  const allParams: { slug: string }[] = [];
-  let from = 0;
-  const step = 1000;
-
-  while (true) {
-    const { data: schemes, error } = await supabase
-      .from('schemes')
-      .select('slug')
-      .not('slug', 'is', null)
-      .eq('is_published', true)
-      .range(from, from + step - 1);
-
-    if (error || !schemes || schemes.length === 0) {
-      break;
-    }
-
-    allParams.push(...schemes.map((scheme) => ({ slug: scheme.slug })));
-
-    if (schemes.length < step) {
-      break;
-    }
-
-    from += step;
-  }
-
-  return allParams;
-}
-
-export const dynamicParams = false;
+// Removed generateStaticParams to avoid 'Invalid string length' error from Cloudflare Pages
+// when prerendering 15k+ routes statically. Let Next.js render on the Edge dynamically.
 
 export async function generateMetadata({ 
   params 

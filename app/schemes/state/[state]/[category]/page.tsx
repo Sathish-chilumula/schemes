@@ -2,27 +2,14 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
 import { supabaseAdmin, type Scheme } from '@/lib/supabase';
-import { COUNTRIES } from '@/lib/config';
 import { slugify, getIndianStateBySlug, getCanonicalCategory } from '@/lib/seo';
 import { Metadata } from 'next';
 
-export async function generateStaticParams() {
-  const india = COUNTRIES.IN;
-  const params: { state: string; category: string }[] = [];
+export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
-  india.states.forEach(state => {
-    india.categories.forEach(category => {
-      params.push({
-        state: slugify(state.name),
-        category: slugify(category),
-      });
-    });
-  });
-
-  return params;
-}
-
-export const dynamicParams = false;
+// Removed generateStaticParams to avoid Cloudflare Pages bundle limit issues
+// export const dynamicParams = true;
 
 export async function generateMetadata({ 
   params 
