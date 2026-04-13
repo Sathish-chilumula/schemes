@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "pages:build": "npx @opennextjs/cloudflare build --dangerouslyUseUnsupportedNextVersion",
+    "pages:build": "npx @opennextjs/cloudflare build --dangerouslyUseUnsupportedNextVersion && node -e \"const fs=require('fs'); fs.cpSync('.open-next/assets', '.open-next/worker', {recursive: true}); fs.copyFileSync('.open-next/worker.js', '.open-next/worker/_worker.js');\"",
     "preview": "npm run pages:build && wrangler pages dev .open-next/worker",
     "deploy": "npm run pages:build && wrangler pages deploy .open-next/worker",
     "agents:find": "node agents/findSchemes.js",
