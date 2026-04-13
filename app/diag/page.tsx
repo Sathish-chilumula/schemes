@@ -55,7 +55,7 @@ export default async function DiagPage() {
 
       <div style={{ marginTop: '40px', fontSize: '0.8rem', color: '#475569' }}>
         <p>If variables show "false", they are not successfully being injected by Cloudflare's Edge Runtime.</p>
-        <p>Ensure they are added to <strong>Settings -> Functions -> Variables</strong> in the Cloudflare Pages Dashboard.</p>
+        <p>Ensure they are added to <strong>Settings &rarr; Functions &rarr; Variables</strong> in the Cloudflare Pages Dashboard.</p>
       </div>
     </div>
   );
