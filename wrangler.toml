@@ -10,3 +10,21 @@ binding = "ASSETS"
 
 [vars]
 NEXT_PUBLIC_SITE_URL = "https://schemeatlas.com"
+
+# Durable Object bindings required by OpenNext Cloudflare
+[[durable_objects.bindings]]
+name = "NEXT_CACHE_DO_QUEUE"
+class_name = "DOQueueHandler"
+
+[[durable_objects.bindings]]
+name = "NEXT_CACHE_DO_SHARDED"
+class_name = "DOShardedTagCache"
+
+[[durable_objects.bindings]]
+name = "NEXT_CACHE_BUCKET_PURGE"
+class_name = "BucketCachePurge"
+
+# Migrations for SQLite-backed Durable Objects
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["DOQueueHandler", "DOShardedTagCache", "BucketCachePurge"]
