@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-// Required for Cloudflare Pages Edge Runtime
-
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   const supabaseAdmin = createClient(
