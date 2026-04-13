@@ -1,15 +1,33 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+let _supabase: SupabaseClient | null = null;
+export function getSupabase() {
+  if (!_supabase) {
+    if (!supabaseUrl) {
+      throw new Error('NEXT_PUBLIC_SUPABASE_URL is not set');
+    }
+    _supabase = createClient(supabaseUrl, supabaseAnonKey);
+  }
+  return _supabase;
+}
+
+// Keep backward-compatible export (lazy)
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(_target, prop) {
+    return (getSupabase() as any)[prop];
+  },
+});
 
 export function supabaseAdmin() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
-    process.env.SUPABASE_SERVICE_KEY || 'placeholder-service-key'
-  );
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const serviceKey = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+  if (!url) {
+    throw new Error('NEXT_PUBLIC_SUPABASE_URL is not set');
+  }
+  return createClient(url, serviceKey);
 }
 
 export type Scheme = {

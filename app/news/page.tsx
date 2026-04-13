@@ -2,6 +2,8 @@ import { supabaseAdmin, type Scheme } from '@/lib/supabase';
 import { NewsClient } from './NewsClient';
 import { Metadata } from 'next';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Government Decisions & Civic News 2026 | Daily Updates',
   description: 'Stay updated with the latest government decisions, cabinet approvals, policy changes, and important civic announcements for Aadhaar, PAN, and more.',

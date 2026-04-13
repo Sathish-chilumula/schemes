@@ -2,6 +2,8 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { HomeClient } from './HomeClient';
 import { Metadata } from 'next';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'SchemeAtlas | Find Government Benefits Instantly',
   description: 'Instantly find government benefits, schemes, and financial aid you qualify for. Use our free AI eligibility checker across thousands of schemes.',
@@ -9,8 +11,6 @@ export const metadata: Metadata = {
     canonical: 'https://schemeatlas.com',
   },
 };
-
-export const revalidate = 86400; // SSG revalidate daily
 
 export default async function HomePage() {
   const supabase = supabaseAdmin();

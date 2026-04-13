@@ -35,20 +35,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   // 3. Dynamic Scheme Pages
-  // Fetch up to 5000 schemes for the sitemap since Cloudflare Pages limits execution time
-  const { data: schemes } = await supabaseAdmin()
-    .from('schemes')
-    .select('slug, discovered_at')
-    .eq('is_published', true)
-    .order('discovered_at', { ascending: false })
-    .limit(5000);
+  // Skip dynamic routes if Supabase env vars are not configured (e.g. during CI builds)
+  let dynamicRoutes: MetadataRoute.Sitemap = [];
+  
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    try {
+      const { data: schemes } = await supabaseAdmin()
+        .from('schemes')
+        .select('slug, discovered_at')
+        .eq('is_published', true)
+        .order('discovered_at', { ascending: false })
+        .limit(5000);
 
-  const dynamicRoutes = (schemes || []).map(scheme => ({
-    url: `${SITE_URL}/schemes/${scheme.slug}`,
-    lastModified: scheme.discovered_at ? new Date(scheme.discovered_at) : new Date(),
-    changeFrequency: 'weekly' as const,
-    priority: 0.7,
-  }));
+      dynamicRoutes = (schemes || []).map(scheme => ({
+        url: `${SITE_URL}/schemes/${scheme.slug}`,
+        lastModified: scheme.discovered_at ? new Date(scheme.discovered_at) : new Date(),
+        changeFrequency: 'weekly' as const,
+        priority: 0.7,
+      }));
+    } catch (error) {
+      console.warn('⚠️ Failed to fetch schemes for sitemap:', error);
+    }
+  } else {
+    console.warn('⚠️ NEXT_PUBLIC_SUPABASE_URL not set. Skipping dynamic sitemap generation.');
+  }
 
   return [...allStaticRoutes, ...dynamicRoutes];
 }
