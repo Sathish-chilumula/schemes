@@ -6,10 +6,6 @@ import { slugify, getIndianStateBySlug, getCanonicalCategory } from '@/lib/seo';
 import { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 3600;
-export const runtime = 'edge';
-
-// Removed generateStaticParams to avoid Cloudflare Pages bundle limit issues
 // export const dynamicParams = true;
 
 export async function generateMetadata({ 

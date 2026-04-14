@@ -6,7 +6,6 @@ import { Metadata } from 'next';
 
 
 export const dynamicParams = true;
-export const runtime = 'edge';
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const resolvedParams = params;

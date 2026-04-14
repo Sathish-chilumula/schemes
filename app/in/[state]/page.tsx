@@ -5,10 +5,6 @@ import { Navbar } from '@/components/Navbar';
 import { SchemeCard } from '@/components/SchemeCard';
 import { Metadata } from 'next';
 
-export const revalidate = 3600;
-export const runtime = 'edge';
-
-// Removed generateStaticParams allowing edge dynamic rendering
 
 const STATE_MAPPING: Record<string, { code: string, name: string }> = {
   // States

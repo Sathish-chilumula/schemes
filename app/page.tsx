@@ -2,8 +2,6 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { HomeClient } from './HomeClient';
 import { Metadata } from 'next';
 
-export const revalidate = 86400; // ISR: revalidate every 24 hours
-export const runtime = 'edge';
 
 export const metadata: Metadata = {
   title: 'SchemeAtlas | Find Government Benefits Instantly',

@@ -2,8 +2,6 @@ import { supabaseAdmin, type Scheme } from '@/lib/supabase';
 import { NewsClient } from './NewsClient';
 import { Metadata } from 'next';
 
-export const revalidate = 3600; // ISR: revalidate every hour
-export const runtime = 'edge';
 
 export const metadata: Metadata = {
   title: 'Government Decisions & Civic News 2026 | Daily Updates',

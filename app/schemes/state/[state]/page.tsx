@@ -6,10 +6,6 @@ import { slugify } from '@/lib/seo';
 import { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 3600;
-export const runtime = 'edge';
-
-// Removed generateStaticParams to allow dynamic edge rendering
 
 export function generateMetadata({ params }: { params: { state: string } }): Metadata {
   const resolvedParams = params;
