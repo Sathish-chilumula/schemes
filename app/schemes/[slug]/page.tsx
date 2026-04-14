@@ -177,8 +177,8 @@ export default async function SchemeDetailPage({
     .neq('id', scheme.id)
     .limit(3);
 
-  // Increment view count via edge (fire and forget)
-  supabase.rpc('increment_view_count', { scheme_id: scheme.id }).then();
+  // Increment view count via edge (fire and forget safely)
+  supabase.rpc('increment_view_count', { scheme_id: scheme.id }).catch(() => {});
 
   const country = COUNTRIES[scheme.country_code];
   const cat = CATEGORIES[scheme.category];
