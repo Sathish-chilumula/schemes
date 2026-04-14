@@ -59,3 +59,5 @@ export default async function DiagPage() {
     </div>
   );
 }
+
+export const runtime = 'edge';

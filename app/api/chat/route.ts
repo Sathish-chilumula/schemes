@@ -167,3 +167,5 @@ Rules:
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+export const runtime = 'edge';

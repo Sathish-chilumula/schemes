@@ -459,3 +459,5 @@ export default async function SchemeDetailPage({
     </main>
   );
 }
+
+export const runtime = 'edge';

@@ -190,3 +190,5 @@ Return ONLY valid JSON, no other text:
     return NextResponse.json({ error: 'Internal server error: ' + err.message }, { status: 500 });
   }
 }
+
+export const runtime = 'edge';
