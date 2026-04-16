@@ -183,9 +183,32 @@ export default async function SchemeDetailPage({
     const country = COUNTRIES[scheme.country_code];
     const cat = CATEGORIES[scheme.category];
 
-    const eligibilityList: string[] = scheme.eligibility ? (Array.isArray(scheme.eligibility) ? scheme.eligibility : typeof scheme.eligibility === 'object' ? Object.values(scheme.eligibility).filter(Boolean) as string[] : [String(scheme.eligibility)]) : [];
-    const howToApplyList: string[] = scheme.how_to_apply ? (Array.isArray(scheme.how_to_apply) ? scheme.how_to_apply : typeof scheme.how_to_apply === 'object' ? Object.values(scheme.how_to_apply).filter(Boolean) as string[] : [String(scheme.how_to_apply)]) : [];
-    const documents: string[] = scheme.documents ? (Array.isArray(scheme.documents) ? scheme.documents : typeof scheme.documents === 'string' ? JSON.parse(scheme.documents || '[]') : []) : [];
+    // Deeply flatten any data structure into a flat string array.
+    // This handles: string, string[], {steps: [...]}, {other: "...", profession: [...]} etc.
+    const flattenToStrings = (value: any): string[] => {
+      if (!value) return [];
+      if (typeof value === 'string') return value.trim() ? [value.trim()] : [];
+      if (Array.isArray(value)) return value.flatMap(flattenToStrings);
+      if (typeof value === 'object') return Object.values(value).flatMap(flattenToStrings);
+      return [String(value)].filter(Boolean);
+    };
+
+    const eligibilityList: string[] = flattenToStrings(scheme.eligibility);
+    const howToApplyList: string[] = flattenToStrings(scheme.how_to_apply);
+    
+    let documents: string[] = [];
+    try {
+      if (scheme.documents) {
+        if (Array.isArray(scheme.documents)) {
+          documents = flattenToStrings(scheme.documents);
+        } else if (typeof scheme.documents === 'string') {
+          const parsed = JSON.parse(scheme.documents || '[]');
+          documents = flattenToStrings(parsed);
+        } else {
+          documents = flattenToStrings(scheme.documents);
+        }
+      }
+    } catch { documents = []; }
 
     const jsonLd = {
       '@context': 'https://schema.org',
