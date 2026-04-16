@@ -1,0 +1,30 @@
+# ============================================
+# SCHEMEATLAS — PROGRESS TRACKER
+# Shows how many articles are left to fix
+# ============================================
+
+name: "Utility: Check Processing Progress"
+
+on:
+  workflow_dispatch: # Allows manual trigger
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: npm install @supabase/supabase-js
+
+      - name: Run Progress Script
+        run: node scripts/check-progress.js
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
