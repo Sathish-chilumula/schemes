@@ -43,26 +43,34 @@ async function resetIncompleteContent() {
     return;
   }
 
-  // Perform the update
+  // Perform the update in batches of 100 to avoid URL length limits
+  console.log('🔄 Updating in batches...');
   const targetIds = targets.map(t => t.id);
-  const { error } = await supabase
-    .from('schemes')
-    .update({ 
-      is_seo_optimized: false, 
-      // We clear them so the Master Pipeline has a clean slate to write 14-points
-      content_en: null, 
-      content_hi: null, 
-      content_local: null,
-      last_enriched_at: null 
-    })
-    .in('id', targetIds);
+  const BATCH_SIZE = 100;
+  let totalUpdated = 0;
 
-  if (error) {
-    console.error('❌ Update failed:', error.message);
-  } else {
-    console.log(`✅ SUCCESS: ${count} items identified and reset.`);
-    console.log('💡 They will now be picked up by the Master Automation Pipeline.');
+  for (let i = 0; i < targetIds.length; i += BATCH_SIZE) {
+    const batch = targetIds.slice(i, i + BATCH_SIZE);
+    const { error } = await supabase
+      .from('schemes')
+      .update({ 
+        is_seo_optimized: false, 
+        content_en: null, 
+        content_hi: null, 
+        content_local: null,
+        last_enriched_at: null 
+      })
+      .in('id', batch);
+
+    if (error) {
+      console.error(`❌ Batch update failed (index ${i}):`, error.message);
+    } else {
+      totalUpdated += batch.length;
+      console.log(`✅ Updated ${totalUpdated}/${count} items...`);
+    }
   }
+
+  console.log(`🎉 SUCCESS: ${totalUpdated} items reset and ready for Master Pipeline.`);
 }
 
 resetIncompleteContent();
