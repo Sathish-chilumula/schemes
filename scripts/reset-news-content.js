@@ -19,45 +19,50 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const TARGET_CATEGORIES = ['job', 'news', 'alert', 'budget'];
 
-async function resetNewsContent() {
-  console.log('🚀 Starting Targeted Content Reset...');
-  console.log(`📂 Categories: ${TARGET_CATEGORIES.join(', ')}`);
-
-  // First, count how many we are about to target
-  const { count, error: countError } = await supabase
+async function resetIncompleteContent() {
+  console.log('🚀 Starting Surgical Content Reset...');
+  
+  // High-precision filter: 
+  // 1. Items in news/job categories (usually created by the civic pipeline)
+  // 2. OR any item where English, Hindi, or Local content is missing
+  const { data: targets, error: fetchError } = await supabase
     .from('schemes')
-    .select('*', { count: 'exact', head: true })
-    .in('category', TARGET_CATEGORIES);
+    .select('id, name, category, content_en')
+    .or(`category.in.(${TARGET_CATEGORIES.join(',')}),content_en.is.null,content_hi.is.null,content_local.is.null`);
 
-  if (countError) {
-    console.error('❌ Error counting targets:', countError.message);
+  if (fetchError) {
+    console.error('❌ Error identifying targets:', fetchError.message);
     return;
   }
 
-  console.log(`📊 Found ${count} items to reset.`);
+  const count = targets?.length || 0;
+  console.log(`📊 Identified ${count} articles that are incomplete or from News/Jobs pipeline.`);
 
   if (count === 0) {
-    console.log('✅ No items found in these categories. Nothing to reset.');
+    console.log('✅ No incomplete articles found. Everything is healthy!');
     return;
   }
 
   // Perform the update
-  const { data, error } = await supabase
+  const targetIds = targets.map(t => t.id);
+  const { error } = await supabase
     .from('schemes')
     .update({ 
       is_seo_optimized: false, 
+      // We clear them so the Master Pipeline has a clean slate to write 14-points
       content_en: null, 
       content_hi: null, 
-      content_local: null 
+      content_local: null,
+      last_enriched_at: null 
     })
-    .in('category', TARGET_CATEGORIES);
+    .in('id', targetIds);
 
   if (error) {
     console.error('❌ Update failed:', error.message);
   } else {
-    console.log(`✅ SUCCESS: ${count} items marked for regeneration.`);
-    console.log('💡 You can now run "npm run agents:generate" to fill them with 14-point content.');
+    console.log(`✅ SUCCESS: ${count} items identified and reset.`);
+    console.log('💡 They will now be picked up by the Master Automation Pipeline.');
   }
 }
 
-resetNewsContent();
+resetIncompleteContent();

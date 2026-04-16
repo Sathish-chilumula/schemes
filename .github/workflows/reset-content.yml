@@ -3,7 +3,7 @@
 # Use this to clear news/jobs content for regeneration
 # ============================================
 
-name: "Utility: Reset News/Jobs Content"
+name: "Utility: Surgical Identification & Reset"
 
 on:
   workflow_dispatch: # Allows manual trigger from GitHub Actions tab
