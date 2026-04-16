@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
-<url><loc>https://schemeatlas.com/admin</loc><lastmod>2026-04-16T07:29:10.757Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-<url><loc>https://schemeatlas.com/sitemap.xml</loc><lastmod>2026-04-16T07:29:10.758Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-<url><loc>https://schemeatlas.com/about</loc><lastmod>2026-04-16T07:29:10.758Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-<url><loc>https://schemeatlas.com/contact</loc><lastmod>2026-04-16T07:29:10.758Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-<url><loc>https://schemeatlas.com/disclaimer</loc><lastmod>2026-04-16T07:29:10.758Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-<url><loc>https://schemeatlas.com/jobs</loc><lastmod>2026-04-16T07:29:10.758Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-<url><loc>https://schemeatlas.com/news</loc><lastmod>2026-04-16T07:29:10.758Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-<url><loc>https://schemeatlas.com/privacy</loc><lastmod>2026-04-16T07:29:10.758Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-<url><loc>https://schemeatlas.com</loc><lastmod>2026-04-16T07:29:10.758Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-<url><loc>https://schemeatlas.com/schemes</loc><lastmod>2026-04-16T07:29:10.758Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-<url><loc>https://schemeatlas.com/signup</loc><lastmod>2026-04-16T07:29:10.758Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-<url><loc>https://schemeatlas.com/terms</loc><lastmod>2026-04-16T07:29:10.758Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>https://schemeatlas.com/sitemap.xml</loc><lastmod>2026-04-16T14:59:18.930Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>https://schemeatlas.com/admin</loc><lastmod>2026-04-16T14:59:18.931Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>https://schemeatlas.com/about</loc><lastmod>2026-04-16T14:59:18.931Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>https://schemeatlas.com/contact</loc><lastmod>2026-04-16T14:59:18.931Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>https://schemeatlas.com/disclaimer</loc><lastmod>2026-04-16T14:59:18.931Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>https://schemeatlas.com/jobs</loc><lastmod>2026-04-16T14:59:18.931Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>https://schemeatlas.com/news</loc><lastmod>2026-04-16T14:59:18.931Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>https://schemeatlas.com</loc><lastmod>2026-04-16T14:59:18.931Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>https://schemeatlas.com/privacy</loc><lastmod>2026-04-16T14:59:18.931Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>https://schemeatlas.com/signup</loc><lastmod>2026-04-16T14:59:18.931Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>https://schemeatlas.com/terms</loc><lastmod>2026-04-16T14:59:18.931Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>https://schemeatlas.com/schemes</loc><lastmod>2026-04-16T14:59:18.931Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
 <url><loc>https://schemeatlas.com/schemes/andhra-pradesh-government-free-electricity-scheme-for-weaver-in</loc><lastmod>2026-04-12T07:24:50.493</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://schemeatlas.com/schemes/four-women-welfare-schemes-of-delhi-government-in</loc><lastmod>2026-04-07T13:46:44.061</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://schemeatlas.com/schemes/pension-and-gratuity-arrears-clearance-scheme-ng</loc><lastmod>2026-04-06T10:21:25.41</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
@@ -822,6 +822,7 @@
 <url><loc>https://schemeatlas.com/schemes/nagaland-government-employee-demand-charter-in</loc><lastmod>2026-04-12T18:37:41.37</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://schemeatlas.com/schemes/national-education-policy-for-sts-in</loc><lastmod>2026-04-08T13:11:13.059</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://schemeatlas.com/schemes/various-schemes-launched-to-mark-modis-75th-birthday-in</loc><lastmod>2026-04-14T07:30:53.342</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+<url><loc>https://schemeatlas.com/schemes/women-cash-payout-eclipses-tamil-nadu-interim-budget-in</loc><lastmod>2026-04-16T13:09:25.64</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://schemeatlas.com/schemes/digital-visa-scheme-for-film-and-creative-industry-in</loc><lastmod>2026-04-07T07:19:40.938</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://schemeatlas.com/schemes/insurance-scheme-for-uttarakhand-farmers-in</loc><lastmod>2026-04-07T07:47:27.081</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://schemeatlas.com/schemes/punjab-healthcare-scheme-in</loc><lastmod>2026-04-11T19:13:56.395</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
@@ -861,6 +862,9 @@
 <url><loc>https://schemeatlas.com/schemes/epm-in</loc><lastmod>2026-04-10T18:47:25.581</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://schemeatlas.com/schemes/financial-assistance-scheme-for-families-of-freedom-fighters-in</loc><lastmod>2026-04-08T19:08:14.69</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://schemeatlas.com/schemes/pension-and-gratuity-arrears-clearance-ng</loc><lastmod>2026-04-09T19:28:23.56</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+<url><loc>https://schemeatlas.com/schemes/pig-scheme-in</loc><lastmod>2026-04-16T13:08:53.657</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+<url><loc>https://schemeatlas.com/schemes/jharkhand-government-no-retirement-age-hike-scheme-in</loc><lastmod>2026-04-16T13:08:14.18</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+<url><loc>https://schemeatlas.com/schemes/living-leaders-cm-welfare-programs-in</loc><lastmod>2026-04-16T13:07:12.038</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://schemeatlas.com/schemes/arunodoi-scheme-in</loc><lastmod>2026-04-08T12:59:06.2</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://schemeatlas.com/schemes/sthree-suraksha-scheme-in</loc><lastmod>2026-04-08T13:15:33.121</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://schemeatlas.com/schemes/ecms-sme-futures-in</loc><lastmod>2026-04-11T18:53:44.903</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
@@ -1008,8 +1012,4 @@
 <url><loc>https://schemeatlas.com/schemes/didi-ki-rasoi-in</loc><lastmod>2026-04-12T01:46:41.058</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://schemeatlas.com/schemes/three-financial-schemes-for-women-in-unorganised-sector-in</loc><lastmod>2026-04-06T13:09:33.128</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://schemeatlas.com/schemes/one-time-regularisation-scheme-2025-in</loc><lastmod>2026-04-07T02:08:58.18</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-<url><loc>https://schemeatlas.com/schemes/four-women-welfare-schemes-in</loc><lastmod>2026-04-06T19:31:48.697</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-<url><loc>https://schemeatlas.com/schemes/core-development-centre-and-ai-centre-of-excellence-establis-in</loc><lastmod>2026-04-07T01:45:02.913</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-<url><loc>https://schemeatlas.com/schemes/tsecl-recruitment-scheme-in</loc><lastmod>2026-04-07T13:35:29.771</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-<url><loc>https://schemeatlas.com/schemes/telangana-governments-new-schemes-in</loc><lastmod>2026-04-11T19:19:53.455</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 </urlset>

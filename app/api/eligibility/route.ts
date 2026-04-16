@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
-
 export async function GET(request: NextRequest) {
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
-    process.env.SUPABASE_SERVICE_KEY || 'placeholder-key'
-  );
+  const supabase = supabaseAdmin();
 
   try {
     const { searchParams } = new URL(request.url);
@@ -16,7 +12,7 @@ export async function GET(request: NextRequest) {
     if (!session_id) return NextResponse.json({ error: 'session_id required' }, { status: 400 });
 
     // Get user profile
-    const { data: profile, error: pErr } = await supabaseAdmin
+    const { data: profile, error: pErr } = await supabase
       .from('user_profiles')
       .select('*')
       .eq('session_id', session_id)
@@ -31,13 +27,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Check cached results first
-    const { data: cached } = await supabaseAdmin
+    const { data: cached } = await supabase
       .from('eligibility_results')
       .select('*')
       .eq('profile_id', profile.id);
 
     // Get all schemes for this country
-    const { data: schemes } = await supabaseAdmin
+    const { data: schemes } = await supabase
       .from('schemes')
       .select('id, name, slug, category, eligibility, benefit_amount, what_you_get, official_url, image_keyword')
       .eq('country_code', profile.country_code)
@@ -127,7 +123,7 @@ Return ONLY valid JSON, no other text:
         const parsed = JSON.parse(clean);
 
         // Save result to DB
-        await supabaseAdmin.from('eligibility_results').insert({
+        await supabase.from('eligibility_results').insert({
           profile_id: profile.id,
           scheme_id: scheme.id,
           is_eligible: parsed.is_eligible ?? false,
