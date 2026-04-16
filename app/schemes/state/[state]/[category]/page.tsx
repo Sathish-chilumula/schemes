@@ -182,4 +182,4 @@ export default async function PSEOPage({
   );
 }
 
-export const runtime = 'edge';
+

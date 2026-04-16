@@ -103,4 +103,4 @@ export default function StateHubPage({ params }: { params: { state: string } }) 
   );
 }
 
-export const runtime = 'edge';
+

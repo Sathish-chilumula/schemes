@@ -60,4 +60,4 @@ export default async function DiagPage() {
   );
 }
 
-export const runtime = 'edge';
+

@@ -71,4 +71,4 @@ export default async function ResultsPage({ params }: { params: { sessionId: str
   );
 }
 
-export const runtime = 'edge';
+

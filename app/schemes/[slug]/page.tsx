@@ -159,7 +159,7 @@ export async function generateMetadata({
       },
     };
   } catch (error) {
-    console.error('Metadata generation error:', error);
+    // console.error('Metadata generation error:', error);
     return {
       title: 'Scheme Details | SchemeAtlas',
       description: 'View government scheme details, eligibility, and application process.',
@@ -472,7 +472,7 @@ export default async function SchemeDetailPage({
       </main>
     );
   } catch (error) {
-    console.error('Fatal internal component error for scheme page:', error);
+    // console.error('Fatal internal component error for scheme page:', error);
     return (
       <main className="min-h-screen bg-slate-50 font-sans flex items-center justify-center p-8">
         <div className="text-center max-w-lg">
@@ -491,4 +491,3 @@ export default async function SchemeDetailPage({
   }
 }
 
-export const runtime = 'edge';

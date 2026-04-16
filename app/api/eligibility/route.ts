@@ -191,4 +191,4 @@ Return ONLY valid JSON, no other text:
   }
 }
 
-export const runtime = 'edge';
+

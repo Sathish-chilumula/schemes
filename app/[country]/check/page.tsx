@@ -57,4 +57,4 @@ export default function CheckPage({
   );
 }
 
-export const runtime = 'edge';
+
