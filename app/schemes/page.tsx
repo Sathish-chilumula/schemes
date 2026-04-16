@@ -18,7 +18,7 @@ export default async function SchemesPage() {
     const supabase = supabaseAdmin();
     const { data, error } = await supabase
       .from('schemes')
-      .select('*')
+      .select('id, name, slug, category, country_code, what_you_get, benefit_amount, scheme_type, views, target_group, image_url')
       .eq('is_published', true)
       .order('discovered_at', { ascending: false });
 
