@@ -1,0 +1,30 @@
+# ============================================
+# SCHEMEATLAS — TARGETED CONTENT RESET
+# Use this to clear news/jobs content for regeneration
+# ============================================
+
+name: "Utility: Reset News/Jobs Content"
+
+on:
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+
+jobs:
+  reset:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: npm install @supabase/supabase-js
+
+      - name: Run Reset Script
+        run: node scripts/reset-news-content.js
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
