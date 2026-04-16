@@ -9,17 +9,17 @@ module.exports = {
     require('dotenv').config({ path: '.env.local' });
     require('dotenv').config({ path: '.env' });
     
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL && !process.env.SUPABASE_URL) {
-      console.warn('⚠️ Missing Supabase URL. Skipping dynamic sitemap generation.');
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseKey) {
+      console.warn('⚠️ Missing Supabase config. Skipping dynamic sitemap generation.');
       return [];
     }
 
     // dynamically fetch all slugs
     const { createClient } = require('@supabase/supabase-js');
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_KEY
-    );
+    const supabase = createClient(supabaseUrl, supabaseKey);
     const { data: schemes } = await supabase
       .from('schemes')
       .select('slug, last_updated')
