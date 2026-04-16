@@ -173,4 +173,4 @@ export default async function StatePage({ params }: { params: { state: string } 
   );
 }
 
-
+export const runtime = 'edge';

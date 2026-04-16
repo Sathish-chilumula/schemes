@@ -57,4 +57,4 @@ export default function CountryPage({
   );
 }
 
-
+export const runtime = 'edge';

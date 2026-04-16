@@ -168,4 +168,4 @@ Rules:
   }
 }
 
-
+export const runtime = 'edge';

@@ -133,4 +133,4 @@ export default async function JobDetailPage({ params }: { params: { slug: string
   );
 }
 
-
+export const runtime = 'edge';
