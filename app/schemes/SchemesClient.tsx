@@ -14,11 +14,18 @@ export function SchemesClient({ initialSchemes }: { initialSchemes: Scheme[] }) 
   const [search, setSearch] = useState('');
   const [activeCountry, setActiveCountry] = useState('all');
   const [activeCategory, setActiveCategory] = useState('all');
+  const [activeState, setActiveState] = useState('all');
 
   useEffect(() => {
     let result = initialSchemes;
     if (activeCountry !== 'all') result = result.filter(s => s.country_code === activeCountry);
     if (activeCategory !== 'all') result = result.filter(s => s.category === activeCategory);
+    if (activeState !== 'all') {
+      result = result.filter(s => 
+        (s.state_code === activeState) || 
+        (s.state_codes && s.state_codes.includes(activeState))
+      );
+    }
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter(s =>
@@ -28,9 +35,10 @@ export function SchemesClient({ initialSchemes }: { initialSchemes: Scheme[] }) 
       );
     }
     setFiltered(result);
-  }, [search, activeCountry, activeCategory, initialSchemes]);
+  }, [search, activeCountry, activeCategory, activeState, initialSchemes]);
 
   const allCategories = ['all', ...Array.from(new Set(initialSchemes.map(s => s.category)))];
+  const statesList = activeCountry !== 'all' ? COUNTRIES[activeCountry]?.states || [] : [];
 
   return (
     <div className="min-h-screen">
@@ -61,46 +69,80 @@ export function SchemesClient({ initialSchemes }: { initialSchemes: Scheme[] }) 
             />
           </div>
 
-          {/* Country filter */}
-          <div className="flex gap-2 overflow-x-auto pb-2 mb-2">
-            {ALL_COUNTRIES.map(code => {
-              const c = COUNTRIES[code];
-              return (
-                <button
-                  key={code}
-                  id={`country-${code}`}
-                  onClick={() => setActiveCountry(code)}
-                  className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                    activeCountry === code
-                      ? 'bg-brand-500 text-white shadow-sm'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  {c ? `${c.flag} ${c.name}` : '🌐 All Countries'}
-                </button>
-              );
-            })}
-          </div>
+          <div className="flex flex-col gap-4">
+            {/* Country filter */}
+            <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar items-center">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mr-2">Country</span>
+              {ALL_COUNTRIES.map(code => {
+                const c = COUNTRIES[code];
+                return (
+                  <button
+                    key={code}
+                    id={`country-${code}`}
+                    onClick={() => { setActiveCountry(code); setActiveState('all'); }}
+                    className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                      activeCountry === code
+                        ? 'bg-brand-500 text-white shadow-md'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {c ? `${c.flag} ${c.name}` : '🌐 All Countries'}
+                  </button>
+                );
+              })}
+            </div>
 
-          {/* Category filter */}
-          <div className="flex gap-2 overflow-x-auto pb-1">
-            {allCategories.map(cat => {
-              const catConfig = CATEGORIES[cat];
-              return (
+            {/* State Filter (if applicable) */}
+            {statesList.length > 0 && (
+              <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar items-center animate-fade-in">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mr-2">State</span>
                 <button
-                  key={cat}
-                  id={`cat-${cat}`}
-                  onClick={() => setActiveCategory(cat)}
+                  onClick={() => setActiveState('all')}
                   className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                    activeCategory === cat
-                      ? 'bg-slate-700 text-white'
+                    activeState === 'all'
+                      ? 'bg-blue-600 text-white shadow-sm'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
                 >
-                  {catConfig ? `${catConfig.icon} ${cat}` : '📋 All'}
+                  📍 All States
                 </button>
-              );
-            })}
+                {statesList.map(s => (
+                  <button
+                    key={s.code}
+                    onClick={() => setActiveState(s.code)}
+                    className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      activeState === s.code
+                        ? 'bg-blue-600 text-white shadow-sm'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {s.icon} {s.name}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Category filter */}
+            <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar items-center">
+               <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mr-2">Sector</span>
+              {allCategories.map(cat => {
+                const catConfig = CATEGORIES[cat];
+                return (
+                  <button
+                    key={cat}
+                    id={`cat-${cat}`}
+                    onClick={() => setActiveCategory(cat)}
+                    className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      activeCategory === cat
+                        ? 'bg-slate-700 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {catConfig ? `${catConfig.icon} ${catConfig.label || cat}` : '📋 All Sectors'}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
@@ -113,7 +155,7 @@ export function SchemesClient({ initialSchemes }: { initialSchemes: Scheme[] }) 
             <h2 className="text-xl font-bold text-slate-900 mb-2">No schemes found</h2>
             <p className="text-slate-500 mb-4">Try adjusting your filters</p>
             <button
-              onClick={() => { setSearch(''); setActiveCountry('all'); setActiveCategory('all'); }}
+              onClick={() => { setSearch(''); setActiveCountry('all'); setActiveCategory('all'); setActiveState('all'); }}
               className="btn-secondary"
             >
               Clear all filters
@@ -121,9 +163,16 @@ export function SchemesClient({ initialSchemes }: { initialSchemes: Scheme[] }) 
           </div>
         ) : (
           <>
-            <p className="text-sm text-slate-500 mb-5">
-              Showing <strong>{filtered.length}</strong> of {initialSchemes.length} schemes
-            </p>
+            <div className="flex items-center justify-between mb-5">
+              <p className="text-sm text-slate-500">
+                Showing <strong>{filtered.length}</strong> of {initialSchemes.length} schemes
+              </p>
+              {activeState !== 'all' && (
+                <div className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-100 animate-fade-in">
+                  Filtered by {statesList.find(s => s.code === activeState)?.name}
+                </div>
+              )}
+            </div>
             <div className="grid md:grid-cols-3 gap-5">
               {filtered.map(scheme => (
                 <SchemeCard key={scheme.id} scheme={scheme} />

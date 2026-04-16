@@ -7,8 +7,8 @@
 name: Daily Civic News & Jobs Pipeline
 
 on:
-  schedule:
-    - cron: '0 4 * * *'   # 4 AM UTC Daily
+#   schedule:
+#     - cron: '0 4 * * *'   # 4 AM UTC Daily
   workflow_dispatch:      # Manual trigger
 
 jobs:

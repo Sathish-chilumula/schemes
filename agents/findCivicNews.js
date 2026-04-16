@@ -241,7 +241,10 @@ async function processItem(item, hintType) {
   if (!englishContent) return 'failed';
 
   // 2. Fetch Visual Image (Attractive content)
-  const imageUrl = await fetchSchemeImage(`${englishContent.name} government job india`);
+  const imgKeyword = hintType === 'job' 
+    ? `${englishContent.name} government job recruitment office india` 
+    : `${englishContent.name} government news announcement india`;
+  const imageUrl = await fetchSchemeImage(imgKeyword);
 
   // 3. Generate Translations (Optional fallbacks)
   let hiContent = null;
@@ -296,24 +299,41 @@ Respond with ONLY valid JSON: {"hi": "Hindi text", "te": "Telugu text"}\n\n${eng
 }
 
 async function rewriteWithAI(title, url, hintType) {
-  const prompt = `You are a helpful friend writing for a citizen who needs clear information. 
-  Rewrite this government update in VERY SIMPLE English (8th-grade level). 
-  Imagine you are explaining it to a neighbor. Use friendly, human-like language. 
-  Avoid technical jargon. NO markdown headers or asterisks.
+  const prompt = `You are a helpful friend and expert SEO content writer writing for a citizen who needs clear information. 
+  Rewrite this government update/job in a HIGH-QUALITY, TRUSTWORTHY, and CONVERSATIONAL style (8th-grade level).
+  Write as if you are explaining it to a neighbor. Use short sentences. Avoid technical jargon.
+  
+  Structure Rule: You MUST follow this exact 14-point structure. Use clear numeric labels (e.g. "1. Title:").
+  DO NOT use any markdown symbols like asterisks (**), hashes (#), or bullet points. Use plain text only.
+  
+  1. Title: Very simple, catchy name of the job or news.
+  2. Summary: 5-10 lines. Friendly overview of what it is.
+  3. What is this Update?: Purpose and Department details in simple words.
+  4. Key Benefits / Salary: Exact money (₹) or salary range or benefits. Be specific.
+  5. Eligibility Criteria: Simple list of who can apply / who this affects.
+  6. Who Should Apply: Real-life examples of people who should join or care.
+  7. Who Should NOT Apply: Clear examples of people who are not eligible.
+  8. Documents Required: Clear list of papers needed.
+  9. Selection / Approval Process: Step-by-step in plain words.
+  10. How to Apply: Simple steps anyone can follow.
+  11. Important Dates: Last date to apply or key deadlines.
+  12. Official Website / Link: Provide the verified URL as plain text: ${url}
+  13. FAQs: 3 friendly questions and answers. Use "Q: " and "A: " prefixes.
+  14. Pro Tips: Simple advice to help the user succeed.
 
   Title: "${title}"
   URL: "${url}"
   Type: ${hintType}
-  
-  JSON Format: 
+
+  Respond ONLY with valid JSON in this format:
   {
-    "name": "Simple, clean name of the job or news",
-    "slug": "url-slug",
-    "category": "job/news/alert/budget",
-    "what_you_get": "In 1 sentence: What is the benefit or salary?",
-    "eligibility": "In 1-2 simple sentences: Who can apply?",
-    "how_to_apply": "3-4 very simple steps as a single string",
-    "content_en": "2-3 very friendly, human paragraphs explaining why this matters and what to do next."
+    "name": "Clean short title",
+    "slug": "url-friendly-slug",
+    "category": "${hintType}",
+    "what_you_get": "1-sentence benefit/salary",
+    "eligibility": "1nd-2 sentences who can apply",
+    "how_to_apply": "3-4 simple steps",
+    "content_en": "The FULL 14-point article text exactly as requested above"
   }`;
 
   try {
