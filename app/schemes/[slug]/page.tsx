@@ -29,56 +29,76 @@ function cleanMarkdown(text: any): string {
     .trim();
 }
 
-function generateFAQSchema(scheme: any) {
-  const cleanContent = cleanMarkdown(scheme.content_en || '');
-  const name = scheme.name;
-  const location = scheme.state_name || COUNTRY_NAMES[scheme.country_code] || 'India';
-  
-  const faqs = [
-    {
-      question: `What is ${name}?`,
-      answer: cleanContent.substring(0, 300) || `${name} is a government scheme that provides support to eligible citizens in ${location}.`
-    },
-    {
-      question: `Who is eligible for ${name}?`,
-      answer: typeof scheme.eligibility === 'string'
-        ? scheme.eligibility
-        : scheme.eligibility?.other || `Citizens of ${location} meeting the scheme criteria are eligible.`
-    },
-    {
-      question: `How to apply for ${name}?`,
-      answer: Array.isArray(scheme.how_to_apply)
-        ? scheme.how_to_apply.flat().join(' ')
-        : typeof scheme.how_to_apply === 'object'
-          ? Object.values(scheme.how_to_apply || {}).filter(v => typeof v === 'string').join(' ')
-          : scheme.how_to_apply || 'Visit the official government portal to apply online.'
-    },
-    {
-      question: `What documents are needed for ${name}?`,
-      answer: Array.isArray(scheme.documents)
-        ? scheme.documents.join(', ')
-        : typeof scheme.documents === 'object'
-          ? Object.values(scheme.documents || {}).filter(v => typeof v === 'string').join(', ')
-          : scheme.documents || 'Aadhaar card, income certificate and relevant identity proof.'
-    },
-    {
-      question: `Is ${name} available in ${new Date().getFullYear()}?`,
-      answer: `Yes, ${name} is currently active and accepting applications in ${new Date().getFullYear()}. Visit the official portal for the latest updates and deadlines.`
-    },
-  ];
+function safeString(value: any, fallback = ''): string {
+  if (!value) return fallback;
+  if (typeof value === 'string') return value;
+  if (Array.isArray(value)) {
+    // Flatten and join arrays recursively
+    const flat: string[] = [];
+    const flatten = (v: any) => {
+      if (typeof v === 'string') flat.push(v);
+      else if (Array.isArray(v)) v.forEach(flatten);
+      else if (v && typeof v === 'object') Object.values(v).forEach(flatten);
+    };
+    flatten(value);
+    return flat.join(' ') || fallback;
+  }
+  if (typeof value === 'object') {
+    // Try common keys first
+    if (value.other) return String(value.other);
+    if (value.steps) return safeString(value.steps, fallback);
+    const vals = Object.values(value).filter(v => v && typeof v === 'string');
+    if (vals.length > 0) return vals.join(' ');
+    const allVals = Object.values(value);
+    return safeString(allVals.find(v => v) || null, fallback);
+  }
+  return String(value) || fallback;
+}
 
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    'mainEntity': faqs.map(faq => ({
-      '@type': 'Question',
-      'name': faq.question,
-      'acceptedAnswer': {
-        '@type': 'Answer',
-        'text': cleanMarkdown(faq.answer).substring(0, 400),
-      }
-    }))
-  };
+function generateFAQSchema(scheme: any) {
+  try {
+    const cleanContent = cleanMarkdown(scheme.content_en || '');
+    const name = scheme.name || 'This Scheme';
+    const location = (scheme.state_name || '').replace(/^null\s+/i, '') || COUNTRY_NAMES[scheme.country_code] || 'India';
+    
+    const faqs = [
+      {
+        question: `What is ${name}?`,
+        answer: cleanContent.substring(0, 300) || `${name} is a government scheme that provides support to eligible citizens in ${location}.`
+      },
+      {
+        question: `Who is eligible for ${name}?`,
+        answer: safeString(scheme.eligibility, `Citizens of ${location} meeting the scheme criteria are eligible.`)
+      },
+      {
+        question: `How to apply for ${name}?`,
+        answer: safeString(scheme.how_to_apply, 'Visit the official government portal to apply online.')
+      },
+      {
+        question: `What documents are needed for ${name}?`,
+        answer: safeString(scheme.documents, 'Aadhaar card, income certificate and relevant identity proof.')
+      },
+      {
+        question: `Is ${name} available in ${new Date().getFullYear()}?`,
+        answer: `Yes, ${name} is currently active and accepting applications in ${new Date().getFullYear()}. Visit the official portal for the latest updates and deadlines.`
+      },
+    ];
+
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      'mainEntity': faqs.map(faq => ({
+        '@type': 'Question',
+        'name': faq.question,
+        'acceptedAnswer': {
+          '@type': 'Answer',
+          'text': cleanMarkdown(faq.answer || '').substring(0, 400),
+        }
+      }))
+    };
+  } catch {
+    return null;
+  }
 }
 
 export async function generateMetadata({ 
