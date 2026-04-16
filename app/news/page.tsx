@@ -15,7 +15,7 @@ export default async function NewsPage() {
   const supabase = supabaseAdmin();
   const { data: news } = await supabase
     .from('schemes')
-    .select('*')
+    .select('id, name, slug, category, discovered_at, content_en')
     .eq('is_published', true)
     .in('category', ['news', 'alert', 'budget', 'decision'])
     .order('discovered_at', { ascending: false });

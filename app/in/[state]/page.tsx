@@ -95,15 +95,15 @@ export default async function StatePage({ params }: { params: { state: string } 
   // Try matching against 'state_code', or the generic name in 'state_name'
   const { data: schemes } = await supabase
     .from('schemes')
-    .select('*')
+    .select('id, name, slug, category, country_code, what_you_get, benefit_amount, scheme_type, views, target_group, image_url')
     .eq('is_published', true)
     .eq('country_code', 'IN')
     // Get schemes for this specific state AND central-level schemes
     // Note: To match state precisely, we check state_code or state_name
     .or(`state_code.eq.${stateInfo.code},state_name.ilike.%${stateInfo.name}%`)
-    .order('name', { ascending: true });
+    .order('name', { ascending: true }) as any;
 
-  const stateSchemes = schemes || [];
+  const stateSchemes = (schemes || []) as any[];
 
   return (
     <div className="min-h-screen bg-slate-50">

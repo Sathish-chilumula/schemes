@@ -34,12 +34,12 @@ export function HomeClient({
       setIsSearching(true);
       const { data } = await supabase
         .from('schemes')
-        .select('*')
+        .select('id, name, slug, what_you_get')
         .eq('is_published', true)
         .ilike('name', `%${searchQuery}%`)
         .limit(5);
         
-      if (data) setSearchResults(data);
+      if (data) setSearchResults(data as any);
       setIsSearching(false);
     }, 300); // 300ms debounce
 

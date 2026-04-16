@@ -170,12 +170,14 @@ export default async function SchemeDetailPage({
   // Async task to fetch related schemes
   const { data: related } = await supabase
     .from('schemes')
-    .select('*')
+    .select('id, name, slug, image_url, benefit_amount')
     .eq('country_code', scheme.country_code)
     .eq('category', scheme.category)
     .eq('is_published', true)
     .neq('id', scheme.id)
     .limit(3);
+
+  const relatedSchemes = (related || []) as any[];
 
   // Increment view count via edge (fire and forget safely)
   Promise.resolve(supabase.rpc('increment_view_count', { scheme_id: scheme.id })).catch(() => {});
@@ -425,7 +427,7 @@ export default async function SchemeDetailPage({
                     Similar Programs
                   </h3>
                   <div className="space-y-6 relative z-10">
-                    {related.map(r => (
+                    {relatedSchemes.map(r => (
                       <Link key={r.id} href={`/schemes/${r.slug}`} className="group flex gap-4 items-start">
                         <div className="w-16 h-16 rounded-2xl overflow-hidden flex-shrink-0 border border-slate-100 shadow-sm group-hover:shadow-md transition-all">
                           {r.image_url ? (

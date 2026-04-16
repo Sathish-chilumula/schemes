@@ -27,8 +27,8 @@ export default async function HomePage() {
     ] = await Promise.all([
       supabase.from('schemes').select('*', { count: 'exact', head: true }).eq('is_published', true),
       supabase.from('eligibility_results').select('*', { count: 'exact', head: true }),
-      supabase.from('schemes').select('*').eq('is_published', true).eq('country_code', 'IN').order('views', { ascending: false }).limit(3),
-      supabase.from('schemes').select('*').eq('is_published', true).eq('country_code', 'IN').order('discovered_at', { ascending: false }).limit(3)
+      supabase.from('schemes').select('id, name, slug, category, country_code, what_you_get, benefit_amount, scheme_type, views, target_group, image_url').eq('is_published', true).eq('country_code', 'IN').order('views', { ascending: false }).limit(3),
+      supabase.from('schemes').select('id, name, slug, category, country_code, what_you_get, benefit_amount, scheme_type, views, target_group, image_url').eq('is_published', true).eq('country_code', 'IN').order('discovered_at', { ascending: false }).limit(3)
     ]);
 
     if (!err1) stats.schemes = schemeCount || 1050;

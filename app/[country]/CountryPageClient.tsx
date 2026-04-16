@@ -44,14 +44,15 @@ export default function CountryPageClient({ params }: { params: { country: strin
     // Fetch all published and active schemes for the country
     supabase
       .from('schemes')
-      .select('*')
+      .select('id, name, slug, category, country_code, what_you_get, benefit_amount, scheme_type, views, target_group, image_url, state_codes')
       .eq('country_code', countryCode)
       .eq('is_published', true)
       .eq('is_active', true)
       .order('discovered_at', { ascending: false })
       .then(({ data }) => {
-        setSchemes(data || []);
-        setFiltered(data || []);
+        const schemesData = (data || []) as Scheme[];
+        setSchemes(schemesData);
+        setFiltered(schemesData);
         setLoading(false);
       });
   }, [countryCode, countryConfig]);

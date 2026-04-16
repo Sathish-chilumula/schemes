@@ -15,7 +15,7 @@ export default async function JobsPage() {
   const supabase = supabaseAdmin();
   const { data: jobs } = await supabase
     .from('schemes')
-    .select('*')
+    .select('id, name, slug, what_you_get, eligibility')
     .eq('is_published', true)
     .eq('category', 'job')
     .order('discovered_at', { ascending: false });

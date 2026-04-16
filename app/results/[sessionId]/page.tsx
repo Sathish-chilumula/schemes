@@ -45,7 +45,7 @@ export default async function ResultsPage({ params }: { params: { sessionId: str
   // We still need the schemes joins (just like in the API)
   const { data: schemes } = await supabaseAdmin()
     .from('schemes')
-    .select('*')
+    .select('id, name, slug, category, benefit_amount, official_url, what_you_get')
     .eq('country_code', profile.country_code)
     .eq('is_published', true);
 

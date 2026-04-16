@@ -25,7 +25,7 @@ export default async function SchemesPage() {
     if (error) {
       console.error('Supabase error fetching schemes:', error.message);
     } else if (data) {
-      schemes = data;
+      schemes = data as Scheme[];
     }
   } catch (err) {
     console.error('Crash fetching schemes:', err);

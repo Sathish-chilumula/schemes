@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     // Get all schemes for this country
     const { data: schemes } = await supabaseAdmin
       .from('schemes')
-      .select('*')
+      .select('id, name, slug, category, eligibility, benefit_amount, what_you_get, official_url, image_keyword')
       .eq('country_code', profile.country_code)
       .eq('is_published', true);
 
