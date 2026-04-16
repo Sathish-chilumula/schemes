@@ -37,8 +37,13 @@ export function SchemesClient({ initialSchemes }: { initialSchemes: Scheme[] }) 
     setFiltered(result);
   }, [search, activeCountry, activeCategory, activeState, initialSchemes]);
 
-  const allCategories = ['all', ...Array.from(new Set(initialSchemes.map(s => s.category)))];
-  const statesList = activeCountry !== 'all' ? COUNTRIES[activeCountry]?.states || [] : [];
+  const allCategories = ['all', ...Array.from(new Set(initialSchemes.map(s => s.category)))].filter(c => c && c !== 'null' && c !== 'undefined');
+  
+  // Clean valid categories: Only show categories that we have in our config.ts 
+  // or that are common enough, to avoid the "all all all" issue.
+  const validCategories = allCategories.filter(cat => cat === 'all' || CATEGORIES[cat]);
+
+  const statesList = (activeCountry === 'all' || activeCountry === 'IN') ? COUNTRIES['IN']?.states || [] : COUNTRIES[activeCountry]?.states || [];
 
   return (
     <div className="min-h-screen">
@@ -92,9 +97,9 @@ export function SchemesClient({ initialSchemes }: { initialSchemes: Scheme[] }) 
               })}
             </div>
 
-            {/* State Filter (if applicable) */}
+            {/* State Filter (Visible for India or All) */}
             {statesList.length > 0 && (
-              <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar items-center animate-fade-in">
+              <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar items-center animate-fade-in border-y border-slate-50 py-2">
                 <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mr-2">State</span>
                 <button
                   onClick={() => setActiveState('all')}
@@ -125,7 +130,7 @@ export function SchemesClient({ initialSchemes }: { initialSchemes: Scheme[] }) 
             {/* Category filter */}
             <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar items-center">
                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mr-2">Sector</span>
-              {allCategories.map(cat => {
+              {validCategories.map(cat => {
                 const catConfig = CATEGORIES[cat];
                 return (
                   <button
