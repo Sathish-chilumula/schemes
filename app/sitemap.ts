@@ -42,17 +42,45 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     try {
       const { data: schemes } = await supabaseAdmin()
         .from('schemes')
-        .select('slug, discovered_at')
+        .select('slug, discovered_at, content_hi, content_local, local_language')
         .eq('is_published', true)
         .order('discovered_at', { ascending: false })
-        .limit(5000);
+        .limit(20000); // Sitemaps can handle up to 50k URLs
 
-      dynamicRoutes = (schemes || []).map(scheme => ({
-        url: `${SITE_URL}/schemes/${scheme.slug}`,
-        lastModified: scheme.discovered_at ? new Date(scheme.discovered_at) : new Date(),
-        changeFrequency: 'weekly' as const,
-        priority: 0.7,
-      }));
+      const dynamicRows: MetadataRoute.Sitemap = [];
+
+      for (const scheme of (schemes || [])) {
+        const lastMod = scheme.discovered_at ? new Date(scheme.discovered_at) : new Date();
+
+        // 1. Primary English URL
+        dynamicRows.push({
+          url: `${SITE_URL}/schemes/${scheme.slug}`,
+          lastModified: lastMod,
+          changeFrequency: 'weekly' as const,
+          priority: 0.7,
+        });
+
+        // 2. Hindi Translation URL (if exists)
+        if (scheme.content_hi) {
+          dynamicRows.push({
+            url: `${SITE_URL}/schemes/${scheme.slug}?lang=hi`,
+            lastModified: lastMod,
+            changeFrequency: 'weekly' as const,
+            priority: 0.6,
+          });
+        }
+
+        // 3. Local Language Translation URL (if exists)
+        if (scheme.content_local && scheme.local_language && scheme.local_language !== 'hi' && scheme.local_language !== 'en') {
+          dynamicRows.push({
+            url: `${SITE_URL}/schemes/${scheme.slug}?lang=${scheme.local_language}`,
+            lastModified: lastMod,
+            changeFrequency: 'weekly' as const,
+            priority: 0.6,
+          });
+        }
+      }
+      dynamicRoutes = dynamicRows;
     } catch (error) {
       console.warn('⚠️ Failed to fetch schemes for sitemap:', error);
     }
