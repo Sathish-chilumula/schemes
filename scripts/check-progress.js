@@ -15,39 +15,49 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 async function checkProgress() {
-  console.log('📊 Checking Content Generation Progress...');
+  console.log('📊 Checking Optimized Content Health...');
 
-  // Count Optimized
-  const { count: completed, error: e1 } = await supabase
+  // 1. Fully Optimized (All languages complete)
+  const { count: fullyFixed, error: e1 } = await supabase
     .from('schemes')
     .select('*', { count: 'exact', head: true })
     .eq('is_seo_optimized', true);
 
-  // Count Remaining
-  const { count: remaining, error: e2 } = await supabase
+  // 2. English Done, Missing Translations (Needs Gap-Filling)
+  // We identify these by finding items where content_en exists but is_seo_optimized is false
+  const { count: needsTranslation, error: e2 } = await supabase
     .from('schemes')
     .select('*', { count: 'exact', head: true })
-    .eq('is_seo_optimized', false);
+    .eq('is_seo_optimized', false)
+    .not('content_en', 'is', null);
 
-  if (e1 || e2) {
-    console.error('❌ Error fetching counts:', e1?.message || e2?.message);
+  // 3. Totally Empty / News (Needs Full Rewrite)
+  const { count: broken, error: e3 } = await supabase
+    .from('schemes')
+    .select('*', { count: 'exact', head: true })
+    .eq('is_seo_optimized', false)
+    .is('content_en', null);
+
+  if (e1 || e2 || e3) {
+    console.error('❌ Error fetching counts:', e1?.message || e2?.message || e3?.message);
     return;
   }
 
-  const total = (completed || 0) + (remaining || 0);
-  const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+  const total = (fullyFixed || 0) + (needsTranslation || 0) + (broken || 0);
 
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log(`✅ Completed:  ${completed} articles (14-point SEO)`);
-  console.log(`⏳ Remaining:  ${remaining} articles (Need processing)`);
-  console.log(`📈 Progress:   ${percent}%`);
+  console.log(`🏆 Fully Optimized:   ${fullyFixed} articles (EN + Native OK)`);
+  console.log(`📝 Translation Only:  ${needsTranslation} articles (EN is safe)`);
+  console.log(`⚠️ Empty / Broken:    ${broken} articles (Needs AI write)`);
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   
-  if (remaining > 0) {
-    const runsNeeded = Math.ceil(remaining / 50);
-    console.log(`💡 You need roughly ${runsNeeded} more manual bulk runs to finish.`);
+  if (needsTranslation > 0 || broken > 0) {
+    const totalRemaining = (needsTranslation || 0) + (broken || 0);
+    const runsNeeded = Math.ceil(totalRemaining / 50);
+    console.log(`💡 You have ${totalRemaining} total items to process.`);
+    console.log(`🚀 Estimated ${runsNeeded} more Manual Bulk Runs to 100%.`);
   } else {
-    console.log('🎊 All articles are successfully optimized!');
+    console.log('🎊 All articles are successfully optimized and translated!');
   }
 }
 

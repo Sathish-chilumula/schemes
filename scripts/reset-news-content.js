@@ -43,8 +43,8 @@ async function resetIncompleteContent() {
     return;
   }
 
-  // Perform the update in batches of 100 to avoid URL length limits
-  console.log('🔄 Updating in batches...');
+  // Perform the update in batches of 100
+  console.log('🔄 Flagging items for Gap-Filling (Non-Destructive)...');
   const targetIds = targets.map(t => t.id);
   const BATCH_SIZE = 100;
   let totalUpdated = 0;
@@ -55,9 +55,8 @@ async function resetIncompleteContent() {
       .from('schemes')
       .update({ 
         is_seo_optimized: false, 
-        content_en: null, 
-        content_hi: null, 
-        content_local: null,
+        // WE DO NOT SET CONTENT TO NULL ANYMORE. 
+        // We preserve English so the generator can just add the missing local language.
         last_enriched_at: null 
       })
       .in('id', batch);
@@ -66,11 +65,11 @@ async function resetIncompleteContent() {
       console.error(`❌ Batch update failed (index ${i}):`, error.message);
     } else {
       totalUpdated += batch.length;
-      console.log(`✅ Updated ${totalUpdated}/${count} items...`);
+      console.log(`✅ Flagged ${totalUpdated}/${count} items for review...`);
     }
   }
 
-  console.log(`🎉 SUCCESS: ${totalUpdated} items reset and ready for Master Pipeline.`);
+  console.log(`🎉 SUCCESS: ${totalUpdated} items flagged. The Master Pipeline will now fill in the gaps.`);
 }
 
 resetIncompleteContent();

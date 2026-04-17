@@ -224,12 +224,15 @@ Category: ${scheme.category || 'Not specified'}`;
       const sc = scheme.state_code || scheme.state_region || (scheme.is_central ? 'IN' : null);
       
       // Triple Translation Rule: Central, TS, and AP always get HI + TE
-      const isTripleTranslate = TRIPLE_TRANSLATION_REGIONS.includes(sc) || scheme.is_central;
+      // Triple Translation Rule: ONLY for Central schemes (EN + HI + TE)
+      // For state-specific schemes, only EN + Native State Language
+      const isTripleTranslate = (scheme.is_central === true || sc === 'IN' || sc === 'india');
 
       if (scheme.country_code === 'IN') {
         if (isTripleTranslate) {
           requiredTranslations = ['hi', 'te'];
         } else {
+          // Normal state-specific scheme: Just get the native language
           const stateLang = STATE_LANGUAGE_MAP[sc] || 'hi';
           requiredTranslations = [stateLang];
         }
