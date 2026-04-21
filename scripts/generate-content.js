@@ -12,7 +12,7 @@
 // ─── Tunable batch size ────────────────────────────────────────────────────
 // Each scheme takes ~10-20s (LLM + 3s delay). 60 min Actions timeout.
 // 75 schemes × 20s max = 25 min → safe headroom for retries.
-const BATCH_SIZE = 75;
+const BATCH_SIZE = 50;
 
 const { createClient } = require('@supabase/supabase-js');
 const OpenAI = require('openai');
