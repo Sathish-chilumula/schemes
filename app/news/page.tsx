@@ -12,7 +12,8 @@ export const metadata: Metadata = {
 };
 
 export default async function NewsPage() {
-  const supabase = supabaseAdmin();
+  const supabase = supabaseAdmin({ next: { revalidate: 3600 } });
+
   const { data: news } = await supabase
     .from('schemes')
     .select('id, name, slug, category, discovered_at, content_en')

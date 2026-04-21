@@ -109,7 +109,8 @@ export async function generateMetadata({
   const resolvedParams = params;
   
   try {
-    const supabase = supabaseAdmin();
+    const supabase = supabaseAdmin({ next: { revalidate: 3600 } });
+
     const { data: scheme } = await supabase
       .from('schemes')
       .select('name, content_en, state_name, country_code, slug, local_language')
@@ -175,7 +176,8 @@ export default async function SchemeDetailPage({
   const resolvedParams = params;
   
   try {
-    const supabase = supabaseAdmin();
+    const supabase = supabaseAdmin({ next: { revalidate: 3600 } });
+
     const { data: scheme } = await supabase
       .from('schemes')
       .select('*')

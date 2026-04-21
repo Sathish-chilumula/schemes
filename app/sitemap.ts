@@ -44,7 +44,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   
   if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
     try {
-      const { data: schemes } = await supabaseAdmin()
+      const { data: schemes } = await supabaseAdmin({ next: { revalidate: 300 } })
+
         .from('schemes')
         .select('slug, discovered_at, content_hi, content_local, local_language')
         .eq('is_published', true)

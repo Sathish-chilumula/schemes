@@ -9,7 +9,8 @@ export const dynamicParams = true;
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const resolvedParams = params;
-  const supabase = supabaseAdmin();
+  const supabase = supabaseAdmin({ next: { revalidate: 3600 } });
+
   const { data: news } = await supabase.from('schemes').select('name, content_en').eq('slug', resolvedParams.slug).single();
   if (!news) return {};
   return {
@@ -20,7 +21,8 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 
 export default async function NewsDetailPage({ params }: { params: { slug: string } }) {
   const resolvedParams = params;
-  const supabase = supabaseAdmin();
+  const supabase = supabaseAdmin({ next: { revalidate: 3600 } });
+
   const { data: item } = await supabase.from('schemes').select('*').eq('slug', resolvedParams.slug).single();
 
   if (!item) notFound();

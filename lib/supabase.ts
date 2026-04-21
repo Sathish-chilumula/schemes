@@ -50,8 +50,20 @@ export const supabase = new Proxy({} as SupabaseClient, {
 
 /**
  * Gets a Supabase Admin client using the service role key.
+ *
+ * Pass `fetchOptions` to control Next.js data-cache behaviour per page:
+ *   supabaseAdmin({ cache: 'no-store' })          → always fresh  (homepage, user data)
+ *   supabaseAdmin({ next: { revalidate: 3600 } }) → cached 1 h   (detail/listing pages)
+ *   supabaseAdmin({ next: { revalidate: 300 } })  → cached 5 min (sitemap)
+ *
+ * The Supabase JS client doesn't expose individual fetch calls, so we override
+ * global.fetch on the client instance to inject the cache directive.
  */
-export function supabaseAdmin() {
+type NextFetchOptions =
+  | { cache: RequestCache }
+  | { next: { revalidate?: number | false; tags?: string[] } };
+
+export function supabaseAdmin(fetchOptions?: NextFetchOptions) {
   const url = formatUrl(process.env.NEXT_PUBLIC_SUPABASE_URL || '');
   const serviceKey = (process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim();
   
@@ -65,9 +77,16 @@ export function supabaseAdmin() {
   return createClient(url, serviceKey, {
     auth: {
       persistSession: false,
-    }
+    },
+    ...(fetchOptions && {
+      global: {
+        fetch: (req: RequestInfo | URL, init?: RequestInit) =>
+          fetch(req, { ...init, ...fetchOptions } as RequestInit),
+      },
+    }),
   });
 }
+
 
 export type Scheme = {
   id: string;

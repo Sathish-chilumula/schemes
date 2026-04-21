@@ -12,7 +12,8 @@ export const metadata: Metadata = {
 };
 
 export default async function JobsPage() {
-  const supabase = supabaseAdmin();
+  const supabase = supabaseAdmin({ next: { revalidate: 3600 } });
+
   const { data: jobs } = await supabase
     .from('schemes')
     .select('id, name, slug, what_you_get, eligibility')

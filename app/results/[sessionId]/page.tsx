@@ -24,7 +24,8 @@ export default async function ResultsPage({ params }: { params: { sessionId: str
 
   // Initial fetch on server to reduce client-side waiting
   // Note: If the AI is still processing, the client will handle the polling/loading
-  const { data: profile } = await supabaseAdmin()
+  const { data: profile } = await supabaseAdmin({ cache: 'no-store' })
+
     .from('user_profiles')
     .select('*')
     .eq('session_id', sessionId)
@@ -37,13 +38,15 @@ export default async function ResultsPage({ params }: { params: { sessionId: str
   }
 
   // Get schemes and results
-  const { data: results } = await supabaseAdmin()
+  const { data: results } = await supabaseAdmin({ cache: 'no-store' })
+
     .from('eligibility_results')
     .select('*')
     .eq('profile_id', profile.id);
 
   // We still need the schemes joins (just like in the API)
-  const { data: schemes } = await supabaseAdmin()
+  const { data: schemes } = await supabaseAdmin({ cache: 'no-store' })
+
     .from('schemes')
     .select('id, name, slug, category, benefit_amount, official_url, what_you_get')
     .eq('country_code', profile.country_code)

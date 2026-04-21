@@ -90,7 +90,8 @@ export default async function StatePage({ params }: { params: { state: string } 
   
   if (!stateInfo) notFound();
 
-  const supabase = supabaseAdmin();
+  const supabase = supabaseAdmin({ next: { revalidate: 3600 } });
+
   
   // Try matching against 'state_code', or the generic name in 'state_name'
   const { data: schemes } = await supabase

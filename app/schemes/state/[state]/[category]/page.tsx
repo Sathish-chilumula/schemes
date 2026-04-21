@@ -49,7 +49,8 @@ export default async function PSEOPage({
 
   if (!stateObj) notFound();
 
-  const supabase = supabaseAdmin();
+  const supabase = supabaseAdmin({ next: { revalidate: 3600 } });
+
   
   // Fetch schemes for this state and category
   const { data: schemes } = await supabase

@@ -21,7 +21,8 @@ export default async function HomePage() {
   let latestSchemes: any[] = [];
 
   try {
-    const supabase = supabaseAdmin();
+    const supabase = supabaseAdmin({ cache: 'no-store' });
+
     
     const [
       { count: schemeCount, error: err1 }, 
