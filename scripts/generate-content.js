@@ -1,11 +1,18 @@
 /**
  * SchemeAtlas — Multilingual Content Generator
- * 
+ *
  * Generates Q&A articles for government schemes using Groq (LLaMA 3.1 8B).
  * Each scheme gets: English article + its OWN local language translation only.
- * 
- * Runs via GitHub Actions daily at 2am IST.
+ *
+ * Runs via GitHub Actions every 6 hours (Master Pipeline) or manually.
+ * Scales to any number of schemes — always picks the next BATCH_SIZE that
+ * have is_seo_optimized = false, regardless of total database size.
  */
+
+// ─── Tunable batch size ────────────────────────────────────────────────────
+// Each scheme takes ~10-20s (LLM + 3s delay). 60 min Actions timeout.
+// 75 schemes × 20s max = 25 min → safe headroom for retries.
+const BATCH_SIZE = 75;
 
 const { createClient } = require('@supabase/supabase-js');
 const OpenAI = require('openai');
@@ -129,25 +136,42 @@ function getLocalLanguage(scheme) {
 async function main() {
   console.log('🚀 Automated Scheme Content Generator (Groq LLaMA)');
   console.log('━'.repeat(55));
-  
-  // Fetch ONLY schemes that need processing — filter server-side to avoid
-  // the LIMIT 1000 pagination bug where already-optimized schemes fill
-  // the result window and unoptimized ones are never returned.
+
+  // ── Step 1: Count how many schemes still need processing (no data transfer)
+  const { count: totalRemaining, error: countErr } = await supabase
+    .from('schemes')
+    .select('*', { count: 'exact', head: true })
+    .eq('is_published', true)
+    .eq('is_seo_optimized', false);
+
+  if (countErr) { console.error('❌ Count error:', countErr.message); process.exit(1); }
+
+  console.log(`📊 Pipeline Status: ${totalRemaining} scheme(s) still need content generation.`);
+
+  if (totalRemaining === 0) {
+    console.log('✅ All schemes are fully optimized! Nothing to do.');
+    process.exit(0);
+  }
+
+  const runsLeft = Math.ceil(totalRemaining / BATCH_SIZE);
+  console.log(`🔢 Batch size: ${BATCH_SIZE} | Est. pipeline runs remaining: ${runsLeft}`);
+  console.log('━'.repeat(55));
+
+  // ── Step 2: Fetch the next batch to process (server-side filter — scales to any DB size)
   const { data: schemes, error } = await supabase
     .from('schemes')
     .select('*')
     .eq('is_published', true)
-    .eq('is_seo_optimized', false)  // ← server-side filter (was client-side before!)
-    .limit(50);                      // ← process 50 at a time
-  
-  if (error) { console.error('❌ Fetch error:', error.message); process.exit(1); }
+    .eq('is_seo_optimized', false)
+    .limit(BATCH_SIZE);
 
+  if (error) { console.error('❌ Fetch error:', error.message); process.exit(1); }
   if (!schemes || schemes.length === 0) {
-    console.log('✅ All schemes already have Q&A content! Nothing to do.');
+    console.log('✅ No schemes to process in this batch.');
     process.exit(0);
   }
-  
-  console.log(`📋 Found ${schemes.length} schemes needing Q&A formatting.\n`);
+
+  console.log(`📋 Processing ${schemes.length} schemes this run (${totalRemaining - schemes.length} will remain after).\n`);
   
   let successCount = 0;
   let failCount = 0;
@@ -300,8 +324,18 @@ Rules:
     console.log('');
   }
   
+  const newRemaining = totalRemaining - successCount;
+  const runsStillLeft = Math.ceil(newRemaining / BATCH_SIZE);
+
   console.log('━'.repeat(55));
-  console.log(`🏁 Finished run! Success: ${successCount} | Failed: ${failCount}`);
+  console.log(`🏁 Run complete!  ✅ Success: ${successCount}  ❌ Failed: ${failCount}`);
+  console.log(`📊 Remaining after this run: ~${newRemaining} scheme(s)`);
+  if (newRemaining > 0) {
+    console.log(`🔁 Est. ${runsStillLeft} more pipeline run(s) needed to reach 100%.`);
+    console.log(`   Next run fires automatically (every 6 h) or trigger manually.`);
+  } else {
+    console.log('🎊 All schemes are now fully optimized and translated!');
+  }
 }
 
 main().catch(e => { console.error('💥 Fatal error:', e); process.exit(1); });
