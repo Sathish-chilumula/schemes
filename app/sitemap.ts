@@ -2,6 +2,10 @@ import { MetadataRoute } from 'next';
 import { supabaseAdmin } from '@/lib/supabase';
 import { COUNTRIES } from '@/lib/config';
 
+// Edge Runtime — sitemap is generated fresh on every crawl request.
+// Without this it is baked at build time, hiding new scheme URLs from Google.
+export const runtime = 'edge';
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://schemeatlas.com';
   

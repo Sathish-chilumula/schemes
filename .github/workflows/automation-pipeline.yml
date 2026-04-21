@@ -74,16 +74,32 @@ jobs:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
 
       # ==================================
-      # STEP 5: DEPLOY
+      # STEP 4: DEPLOY (Cloudflare Pages)
       # ==================================
-      - name: Stage 4 - Trigger Cloudflare Workers Deploy
-        if: success() && github.event_name != 'pull_request'
+      # Requires a one-time setup: create a Deploy Hook in the Cloudflare Pages
+      # dashboard (Settings > Builds & deployments > Deploy Hooks > Add Hook)
+      # then add it as CLOUDFLARE_DEPLOY_HOOK_URL in GitHub repository secrets.
+      # All pages already use Edge Runtime so new content appears immediately
+      # in the DB — this rebuild is mainly to keep code + sitemap caches fresh.
+      - name: Stage 4 - Trigger Cloudflare Pages Rebuild
+        if: always()
         run: |
-          curl -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/${{ github.repository }}/actions/workflows/deploy-worker.yml/dispatches \
-            -d '{"ref":"main"}'
+          if [ -n "$DEPLOY_HOOK_URL" ]; then
+            echo "🚀 Triggering Cloudflare Pages rebuild via Deploy Hook..."
+            curl -s -X POST "$DEPLOY_HOOK_URL" | jq .
+            echo "✅ Rebuild triggered!"
+          else
+            echo "⚠️  CLOUDFLARE_DEPLOY_HOOK_URL secret is not set."
+            echo "    To enable automatic Cloudflare rebuilds after each pipeline run:"
+            echo "    1. Go to: Cloudflare Pages → your project → Settings → Builds & deployments"
+            echo "    2. Under 'Deploy Hooks', click 'Add Hook' → name it 'Pipeline' → Save"
+            echo "    3. Copy the generated URL and add it as CLOUDFLARE_DEPLOY_HOOK_URL"
+            echo "       in: GitHub repo → Settings → Secrets and variables → Actions"
+            echo "    NOTE: New schemes still appear live (Edge Runtime) without this rebuild."
+          fi
+        env:
+          DEPLOY_HOOK_URL: ${{ secrets.CLOUDFLARE_DEPLOY_HOOK_URL }}
+
 
       - name: Pipeline Report
         if: always()

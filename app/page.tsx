@@ -2,6 +2,10 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { HomeClient } from './HomeClient';
 import { Metadata } from 'next';
 
+// Edge Runtime — fetches fresh data from Supabase on every request.
+// Without this the page is pre-rendered at Cloudflare build time, freezing
+// the scheme listings until the next GitHub push triggers a new build.
+export const runtime = 'edge';
 
 export const metadata: Metadata = {
   title: 'SchemeAtlas | Find Government Benefits Instantly',
