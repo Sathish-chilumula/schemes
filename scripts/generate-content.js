@@ -130,19 +130,17 @@ async function main() {
   console.log('🚀 Automated Scheme Content Generator (Groq LLaMA)');
   console.log('━'.repeat(55));
   
-  // Fetch up to 1000 published schemes to check which ones need formatting
-  const { data: allSchemes, error } = await supabase
+  // Fetch ONLY schemes that need processing — filter server-side to avoid
+  // the LIMIT 1000 pagination bug where already-optimized schemes fill
+  // the result window and unoptimized ones are never returned.
+  const { data: schemes, error } = await supabase
     .from('schemes')
     .select('*')
     .eq('is_published', true)
-    .limit(1000);
+    .eq('is_seo_optimized', false)  // ← server-side filter (was client-side before!)
+    .limit(50);                      // ← process 50 at a time
   
   if (error) { console.error('❌ Fetch error:', error.message); process.exit(1); }
-  
-  const schemes = allSchemes.filter(s => {
-    // We already marked all for re-generation by setting is_seo_optimized = false
-    return s.is_seo_optimized === false;
-  }).slice(0, 50); // Processed in batches of 50 as requested
 
   if (!schemes || schemes.length === 0) {
     console.log('✅ All schemes already have Q&A content! Nothing to do.');
