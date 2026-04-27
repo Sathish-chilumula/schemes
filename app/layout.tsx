@@ -4,19 +4,20 @@ import { LocationDetector } from '@/components/LocationDetector';
 import { ChatWidget } from '@/components/ChatWidget';
 
 export const metadata: Metadata = {
-  title: 'SchemeAtlas .',
-  description: 'Search every government scheme and benefit you qualify for.',
-  keywords: 'government schemes, benefits, welfare, financial assistance, eligibility checker',
+  title: `SchemeAtlas — Find Every Government Scheme & Benefit You Qualify For ${new Date().getFullYear()}`,
+  description: 'Search 1700+ government schemes and benefits across India and globally. Check eligibility, apply online, and get financial aid. Updated for 2026.',
+  keywords: 'government schemes, benefits, welfare, financial assistance, eligibility checker, scholarships, farmer schemes',
   openGraph: {
-    title: 'SchemeAtlas .',
-    description: 'Millions of people miss out on benefits they qualify for. Check yours free in 2 minutes.',
+    title: 'SchemeAtlas — Find Every Government Scheme You Qualify For',
+    description: 'Millions of people miss out on benefits they qualify for. Check yours free in 2 minutes with our AI checker.',
     type: 'website',
     locale: 'en_US',
+    siteName: 'SchemeAtlas',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'SchemeAtlas .',
-    description: 'Find every government scheme you qualify for. Free. Any country.',
+    title: 'SchemeAtlas — Find Every Government Scheme You Qualify For',
+    description: 'Find every government scheme you qualify for. Free. Updated for 2026.',
   },
   icons: {
     icon: '/icon.png',

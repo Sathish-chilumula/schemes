@@ -4,8 +4,8 @@ import { Metadata } from 'next';
 
 
 export const metadata: Metadata = {
-  title: 'All Government Schemes 2025 | SchemeAtlas',
-  description: 'Browse hundreds of active government schemes, financial aid, and welfare programs across multiple countries. Find benefits by category or country.',
+  title: `All Government Schemes ${new Date().getFullYear()} — Benefits & Eligibility | SchemeAtlas`,
+  description: 'Browse hundreds of active government schemes, financial aid, and welfare programs across multiple countries. Find benefits by category, state, or target group. Updated for 2026.',
   alternates: {
     canonical: 'https://schemeatlas.com/schemes',
   },

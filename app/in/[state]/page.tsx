@@ -4,7 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { Navbar } from '@/components/Navbar';
 import { SchemeCard } from '@/components/SchemeCard';
 import { Metadata } from 'next';
-
+import React from 'react';
 
 const STATE_MAPPING: Record<string, { code: string, name: string }> = {
   // States
@@ -51,7 +51,6 @@ const STATE_MAPPING: Record<string, { code: string, name: string }> = {
 function getNormalizedStateSlug(stateParam: string): string | null {
   const lower = stateParam.toLowerCase();
   if (STATE_MAPPING[lower]) return lower;
-  // Check if it matches a state code
   for (const [slug, info] of Object.entries(STATE_MAPPING)) {
     if (info.code.toLowerCase() === lower || info.name.toLowerCase().replace(/\s+/g, '-') === lower) {
       return slug;
@@ -60,7 +59,7 @@ function getNormalizedStateSlug(stateParam: string): string | null {
   return null;
 }
 
-export function generateMetadata({ params }: { params: { state: string } }): Metadata {
+export async function generateMetadata({ params }: { params: { state: string } }): Promise<Metadata> {
   const { state } = params;
   const normalizedSlug = getNormalizedStateSlug(state);
   const stateInfo = normalizedSlug ? STATE_MAPPING[normalizedSlug] : null;
@@ -68,8 +67,8 @@ export function generateMetadata({ params }: { params: { state: string } }): Met
   if (!stateInfo) return {};
 
   return {
-    title: `${stateInfo.name} Government Schemes 2025 | SchemeAtlas`,
-    description: `Complete list of active government schemes, welfare programs and financial aid currently available in ${stateInfo.name} for 2025.`,
+    title: `${stateInfo.name} Government Schemes ${new Date().getFullYear()} — Eligibility & Benefits | SchemeAtlas`,
+    description: `Browse active government schemes for ${stateInfo.name} residents. Check eligibility, required documents and apply online. Updated ${new Date().getFullYear()}.`,
     alternates: {
       canonical: `https://schemeatlas.com/in/${normalizedSlug}`,
     },
@@ -80,47 +79,70 @@ export default async function StatePage({ params }: { params: { state: string } 
   const { state } = params;
   const normalizedSlug = getNormalizedStateSlug(state);
   
-  // If the parameter isn't strictly the canonical lowercase slug, redirect to it
   if (normalizedSlug && normalizedSlug !== state) {
     const { redirect } = await import('next/navigation');
     redirect(`/in/${normalizedSlug}`);
   }
 
   const stateInfo = normalizedSlug ? STATE_MAPPING[normalizedSlug] : null;
-  
   if (!stateInfo) notFound();
 
   const supabase = supabaseAdmin({ next: { revalidate: 3600 } });
 
-  
-  // Try matching against 'state_code', or the generic name in 'state_name'
   const { data: schemes } = await supabase
     .from('schemes')
     .select('id, name, slug, category, country_code, what_you_get, benefit_amount, scheme_type, views, target_group, image_url')
     .eq('is_published', true)
     .eq('country_code', 'IN')
-    // Get schemes for this specific state AND central-level schemes
-    // Note: To match state precisely, we check state_code or state_name
     .or(`state_code.eq.${stateInfo.code},state_name.ilike.%${stateInfo.name}%`)
     .order('name', { ascending: true }) as any;
 
   const stateSchemes = (schemes || []) as any[];
 
+  const breadcrumbs = [
+    { name: 'Home', item: 'https://schemeatlas.com' },
+    { name: 'India', item: 'https://schemeatlas.com/in/india' },
+    { name: stateInfo.name, item: `https://schemeatlas.com/in/${normalizedSlug}` }
+  ];
+
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    'itemListElement': breadcrumbs.map((b, i) => ({
+      '@type': 'ListItem',
+      'position': i + 1,
+      'name': b.name,
+      'item': b.item
+    }))
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
       <Navbar />
-      
-      <div className="bg-slate-900 border-b border-slate-800 text-white py-12">
-        <div className="page-container text-center md:text-left">
-          <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
-            <Link href="/" className="text-slate-400 hover:text-white">Home</Link>
-            <span className="text-slate-600">›</span>
-            <Link href="/IN" className="text-slate-400 hover:text-white">India</Link>
-            <span className="text-slate-600">›</span>
-            <span className="text-brand-400 font-semibold">{stateInfo.name}</span>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
+
+      <div className="bg-slate-900 text-white pt-32 pb-16">
+        <div className="page-container px-4">
+          <div className="flex items-center justify-center md:justify-start gap-4 mb-8 text-sm">
+            {breadcrumbs.map((b, i) => (
+              <React.Fragment key={i}>
+                {i > 0 && <span className="text-slate-600">/</span>}
+                {i === breadcrumbs.length - 1 ? (
+                  <span className="text-brand-400 font-bold">{b.name}</span>
+                ) : (
+                  <Link href={b.item.replace('https://schemeatlas.com', '')} className="text-slate-400 hover:text-white transition-colors">
+                    {b.name}
+                  </Link>
+                )}
+              </React.Fragment>
+            ))}
           </div>
           <h1 className="text-4xl md:text-5xl font-extrabold mb-4">
-            Government Schemes in <span className="text-brand-500">{stateInfo.name}</span> 2025
+            Government Schemes in <span className="text-brand-500">{stateInfo.name}</span> {new Date().getFullYear()}
           </h1>
           <p className="text-xl text-slate-300 max-w-2xl">
             Browse all active financial aid, educational, and welfare programs exclusively available for citizens in {stateInfo.name}.
@@ -128,7 +150,7 @@ export default async function StatePage({ params }: { params: { state: string } 
         </div>
       </div>
 
-      <div className="page-container py-12">
+      <div className="page-container py-12 px-4">
         <div className="mb-8 flex items-center justify-between">
           <p className="text-slate-600 font-medium">
             Showing <strong className="text-slate-900">{stateSchemes.length}</strong> active schemes for {stateInfo.name}
@@ -174,4 +196,8 @@ export default async function StatePage({ params }: { params: { state: string } 
   );
 }
 
-export const runtime = 'edge';
+export async function generateStaticParams() {
+  return Object.keys(STATE_MAPPING).map((state) => ({
+    state: state,
+  }));
+}

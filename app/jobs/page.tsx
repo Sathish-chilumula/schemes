@@ -4,8 +4,8 @@ import { Metadata } from 'next';
 
 
 export const metadata: Metadata = {
-  title: 'Government Job Recruitment 2025-26 | Latest Vacancies & Notifications',
-  description: 'Find the latest government job notifications, vacancies, and recruitment updates across SSC, UPSC, Railways, and State Departments. Apply for the latest govt jobs today.',
+  title: `Government Job Recruitment ${new Date().getFullYear()} — Latest Vacancies & Notifications | SchemeAtlas`,
+  description: 'Find the latest government job notifications, vacancies, and recruitment updates across India. SSC, UPSC, Railways, and State Departments. Updated daily for 2026.',
   alternates: {
     canonical: 'https://schemeatlas.com/jobs',
   },

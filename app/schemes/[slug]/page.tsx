@@ -7,6 +7,7 @@ import { Metadata } from 'next';
 import { SchemeContent } from './SchemeContent';
 import { slugify } from '@/lib/seo';
 import { ViewCounter } from '@/components/ViewCounter';
+import React from 'react';
 
 const COUNTRY_NAMES: Record<string, string> = {
   'IN': 'India',
@@ -33,7 +34,6 @@ function safeString(value: any, fallback = ''): string {
   if (!value) return fallback;
   if (typeof value === 'string') return value;
   if (Array.isArray(value)) {
-    // Flatten and join arrays recursively
     const flat: string[] = [];
     const flatten = (v: any) => {
       if (typeof v === 'string') flat.push(v);
@@ -44,7 +44,6 @@ function safeString(value: any, fallback = ''): string {
     return flat.join(' ') || fallback;
   }
   if (typeof value === 'object') {
-    // Try common keys first
     if (value.other) return String(value.other);
     if (value.steps) return safeString(value.steps, fallback);
     const vals = Object.values(value).filter(v => v && typeof v === 'string');
@@ -113,7 +112,7 @@ export async function generateMetadata({
 
     const { data: scheme } = await supabase
       .from('schemes')
-      .select('name, content_en, state_name, country_code, slug, local_language')
+      .select('name, content_en, state_name, country_code, slug, local_language, benefit_amount, canonical_slug')
       .eq('slug', resolvedParams.slug)
       .single();
 
@@ -123,10 +122,10 @@ export async function generateMetadata({
     const cleanDesc = cleanMarkdown(rawDesc).substring(0, 160);
 
     const location = scheme.state_name || 'India';
-    const title = `${scheme.name} ${new Date().getFullYear()} - Eligibility, Benefits & How to Apply | SchemeAtlas`;
-    const description = cleanDesc.length > 50
-      ? cleanDesc
-      : `Learn about ${scheme.name} - who can apply, benefit amount and how to apply in ${location} ${new Date().getFullYear()}.`;
+    const currentYear = new Date().getFullYear();
+    const title = `${scheme.name} — Eligibility, Benefits & How to Apply ${currentYear} | SchemeAtlas`;
+    const benefitText = scheme.benefit_amount || 'government benefits';
+    const description = `${scheme.name} provides ${benefitText} for eligible citizens in ${location}. Check eligibility and apply online.`;
 
     const baseUrl = `https://schemeatlas.com/schemes/${resolvedParams.slug}`;
 
@@ -142,7 +141,6 @@ export async function generateMetadata({
     return {
       title,
       description,
-      keywords: `${scheme.name}, government scheme, ${location}, eligibility, how to apply, benefits ${new Date().getFullYear()}`,
       openGraph: {
         title,
         description,
@@ -160,7 +158,6 @@ export async function generateMetadata({
       },
     };
   } catch (error) {
-    // console.error('Metadata generation error:', error);
     return {
       title: 'Scheme Details | SchemeAtlas',
       description: 'View government scheme details, eligibility, and application process.',
@@ -186,11 +183,16 @@ export default async function SchemeDetailPage({
 
     if (!scheme) notFound();
 
+    // Canonical Slug Redirect Logic: If this is a duplicate slug, 301 redirect to the primary one
+    if (scheme.canonical_slug && scheme.canonical_slug !== resolvedParams.slug) {
+      const { redirect } = await import('next/navigation');
+      redirect(`/schemes/${scheme.canonical_slug}`);
+    }
+
     const rawState = (scheme.state_name || '').replace(/^null\s+/i, '');
     const stateSlug = rawState ? slugify(rawState) : null;
     const categorySlug = scheme.category ? slugify(scheme.category) : 'general';
 
-    // Async task to fetch related schemes
     const { data: related } = await supabase
       .from('schemes')
       .select('id, name, slug, image_url, benefit_amount')
@@ -205,8 +207,6 @@ export default async function SchemeDetailPage({
     const country = COUNTRIES[scheme.country_code];
     const cat = CATEGORIES[scheme.category];
 
-    // Deeply flatten any data structure into a flat string array.
-    // This handles: string, string[], {steps: [...]}, {other: "...", profession: [...]} etc.
     const flattenToStrings = (value: any): string[] => {
       if (!value) return [];
       if (typeof value === 'string') return value.trim() ? [value.trim()] : [];
@@ -255,6 +255,34 @@ export default async function SchemeDetailPage({
       url: `https://schemeatlas.com/schemes/${scheme.slug}`,
     };
 
+    const isCentral = !stateSlug || scheme.scheme_type === 'central';
+
+    const breadcrumbs = isCentral 
+      ? [
+          { name: 'Home', item: 'https://schemeatlas.com' },
+          { name: 'Schemes', item: 'https://schemeatlas.com/schemes' },
+          { name: scheme.category || 'General', item: `https://schemeatlas.com/schemes?category=${categorySlug}` },
+          { name: scheme.name, item: `https://schemeatlas.com/schemes/${scheme.slug}` }
+        ]
+      : [
+          { name: 'Home', item: 'https://schemeatlas.com' },
+          { name: 'India', item: 'https://schemeatlas.com/in/india' },
+          { name: rawState, item: `https://schemeatlas.com/in/${stateSlug}` },
+          { name: scheme.category || 'General', item: `https://schemeatlas.com/in/${stateSlug}?category=${categorySlug}` },
+          { name: scheme.name, item: `https://schemeatlas.com/schemes/${scheme.slug}` }
+        ];
+
+    const breadcrumbLd = {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      'itemListElement': breadcrumbs.map((b, i) => ({
+        '@type': 'ListItem',
+        'position': i + 1,
+        'name': b.name,
+        'item': b.item
+      }))
+    };
+
     const faqSchema = generateFAQSchema(scheme);
 
     return (
@@ -265,6 +293,10 @@ export default async function SchemeDetailPage({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
         />
         {faqSchema && (
           <script
@@ -277,39 +309,18 @@ export default async function SchemeDetailPage({
         <div className="bg-white border-b border-slate-200 py-10 shadow-sm">
           <div className="max-w-7xl mx-auto px-4">
             <nav className="flex items-center space-x-2 text-sm text-slate-500 mb-8 font-medium">
-              <Link href="/" className="hover:text-blue-600 transition-colors">Home</Link>
-              <span className="text-slate-300">/</span>
-              <Link href="/schemes" className="hover:text-blue-600 transition-colors">Schemes</Link>
-              {stateSlug && (
-                <>
-                  <span className="text-slate-300">/</span>
-                  <Link href={`/in/${stateSlug}`} className="hover:text-blue-600 transition-colors capitalize">
-                    {rawState}
-                  </Link>
-                  <span className="text-slate-300">/</span>
-                  <Link 
-                    href={`/in/${stateSlug}?category=${categorySlug}`} 
-                    className="hover:text-blue-600 transition-colors capitalize"
-                  >
-                    {scheme.category || 'General'}
-                  </Link>
-                </>
-              )}
-              {!stateSlug && (
-                <>
-                  <span className="text-slate-300">/</span>
-                  <Link href="/in/india" className="hover:text-blue-600 transition-colors capitalize">
-                    Central
-                  </Link>
-                  <span className="text-slate-300">/</span>
-                  <Link 
-                    href={`/in/india?category=${categorySlug}`} 
-                    className="hover:text-blue-600 transition-colors capitalize"
-                  >
-                    {scheme.category || 'General'}
-                  </Link>
-                </>
-              )}
+              {breadcrumbs.map((b, i) => (
+                <React.Fragment key={i}>
+                  {i > 0 && <span className="text-slate-300">/</span>}
+                  {i === breadcrumbs.length - 1 ? (
+                    <span className="text-slate-900 font-bold truncate max-w-[200px]">{b.name}</span>
+                  ) : (
+                    <Link href={b.item.replace('https://schemeatlas.com', '')} className="hover:text-blue-600 transition-colors whitespace-nowrap">
+                      {b.name}
+                    </Link>
+                  )}
+                </React.Fragment>
+              ))}
             </nav>
 
             <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 leading-tight mb-6">
@@ -418,7 +429,7 @@ export default async function SchemeDetailPage({
                     <li className="flex items-start">
                       <span className="text-emerald-500 mr-2 font-bold select-none text-xl leading-none">✓</span>
                       <span className="text-emerald-900 font-medium leading-relaxed italic">
-                        "Residents of {rawState || country?.name || 'Central'} looking for {scheme.category || 'government'} support."
+                        "Residents of {rawState || country?.name || 'India'} looking for {scheme.category || 'government'} support."
                       </span>
                     </li>
                   </ul>
@@ -445,16 +456,12 @@ export default async function SchemeDetailPage({
                     <div className="space-y-6 relative z-10">
                       {relatedSchemes.map(r => (
                         <Link key={r.id} href={`/schemes/${r.slug}`} className="group flex gap-4 items-start">
-                          <div className="w-16 h-16 rounded-2xl overflow-hidden flex-shrink-0 border border-slate-100 shadow-sm group-hover:shadow-md transition-all">
-                            {r.image_url ? (
-                              <img src={r.image_url} alt={r.name} className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400">
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l4 4v10a2 2 0 01-2 2z" />
-                                </svg>
-                              </div>
-                            )}
+                          <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-slate-100 border border-slate-200">
+                             {r.image_url ? (
+                               <img src={r.image_url} alt={r.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+                             ) : (
+                               <div className="w-full h-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs">SA</div>
+                             )}
                           </div>
                           <div className="flex-1 min-w-0">
                             <h4 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors mb-1 line-clamp-2">
@@ -474,7 +481,6 @@ export default async function SchemeDetailPage({
       </main>
     );
   } catch (error) {
-    // console.error('Fatal internal component error for scheme page:', error);
     return (
       <main className="min-h-screen bg-slate-50 font-sans flex items-center justify-center p-8">
         <div className="text-center max-w-lg">
@@ -493,4 +499,16 @@ export default async function SchemeDetailPage({
   }
 }
 
-export const runtime = 'edge';
+export const dynamicParams = true;
+
+export async function generateStaticParams() {
+  const supabase = supabaseAdmin();
+  const { data } = await supabase
+    .from('schemes')
+    .select('slug')
+    .order('views', { ascending: false })
+    .limit(200);
+
+  if (!data) return [];
+  return data.map((s) => ({ slug: s.slug }));
+}

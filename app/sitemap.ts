@@ -2,9 +2,8 @@ import { MetadataRoute } from 'next';
 import { supabaseAdmin } from '@/lib/supabase';
 import { COUNTRIES } from '@/lib/config';
 
-// Edge Runtime — sitemap is generated fresh on every crawl request.
-// Without this it is baked at build time, hiding new scheme URLs from Google.
-export const runtime = 'edge';
+// Removed Edge Runtime to allow static generation during build
+// export const runtime = 'edge';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://schemeatlas.com';
@@ -27,70 +26,76 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     `/${code.toLowerCase()}/check`
   ]);
 
-  const statePaths = COUNTRIES['IN']?.states?.map(state => `/in/${state.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`) || [];
+  const statePaths = COUNTRIES['IN']?.states?.map(state => 
+    `/in/${state.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
+  ) || [];
 
   const countryPaths = [..._countryPaths, ...statePaths];
 
-  const allStaticRoutes = [...staticPaths, ...countryPaths].map(route => ({
+  const allStaticRoutes: MetadataRoute.Sitemap = [...staticPaths, ...countryPaths].map(route => ({
     url: `${SITE_URL}${route}`,
     lastModified: new Date(),
-    changeFrequency: 'daily' as const,
+    changeFrequency: 'daily',
     priority: route === '' ? 1.0 : (route.includes('/check') ? 0.9 : 0.8),
   }));
 
   // 3. Dynamic Scheme Pages
-  // Skip dynamic routes if Supabase env vars are not configured (e.g. during CI builds)
   let dynamicRoutes: MetadataRoute.Sitemap = [];
   
-  if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
-    try {
-      const { data: schemes } = await supabaseAdmin({ next: { revalidate: 300 } })
+  try {
+    const supabase = supabaseAdmin();
+    const { data: schemes } = await supabase
+      .from('schemes')
+      .select('slug, updated_at, content_hi, content_local, local_language')
+      .eq('is_published', true)
+      .order('views', { ascending: false })
+      .limit(45000); // Max sitemap limit is 50k
 
-        .from('schemes')
-        .select('slug, discovered_at, content_hi, content_local, local_language')
-        .eq('is_published', true)
-        .order('discovered_at', { ascending: false })
-        .limit(20000); // Sitemaps can handle up to 50k URLs
+    if (schemes) {
+      schemes.forEach(scheme => {
+        const lastMod = scheme.updated_at ? new Date(scheme.updated_at) : new Date();
+        const baseUrl = `${SITE_URL}/schemes/${scheme.slug}`;
 
-      const dynamicRows: MetadataRoute.Sitemap = [];
+        // Add primary page with multilingual alternates
+        const alternates: any = {
+          en: baseUrl,
+          hi: `${baseUrl}?lang=hi`,
+        };
 
-      for (const scheme of (schemes || [])) {
-        const lastMod = scheme.discovered_at ? new Date(scheme.discovered_at) : new Date();
+        if (scheme.local_language && scheme.local_language !== 'hi' && scheme.local_language !== 'en') {
+          alternates[scheme.local_language] = `${baseUrl}?lang=${scheme.local_language}`;
+        }
 
-        // 1. Primary English URL
-        dynamicRows.push({
-          url: `${SITE_URL}/schemes/${scheme.slug}`,
+        dynamicRoutes.push({
+          url: baseUrl,
           lastModified: lastMod,
-          changeFrequency: 'weekly' as const,
+          changeFrequency: 'weekly',
           priority: 0.7,
+          // alternates: { languages: alternates } // Next.js 14.2+ support
         });
 
-        // 2. Hindi Translation URL (if exists)
+        // Also index translation URLs directly to ensure they are crawled
         if (scheme.content_hi) {
-          dynamicRows.push({
-            url: `${SITE_URL}/schemes/${scheme.slug}?lang=hi`,
+          dynamicRoutes.push({
+            url: `${baseUrl}?lang=hi`,
             lastModified: lastMod,
-            changeFrequency: 'weekly' as const,
+            changeFrequency: 'weekly',
             priority: 0.6,
           });
         }
 
-        // 3. Local Language Translation URL (if exists)
-        if (scheme.content_local && scheme.local_language && scheme.local_language !== 'hi' && scheme.local_language !== 'en') {
-          dynamicRows.push({
-            url: `${SITE_URL}/schemes/${scheme.slug}?lang=${scheme.local_language}`,
+        if (scheme.content_local && scheme.local_language && scheme.local_language !== 'hi') {
+          dynamicRoutes.push({
+            url: `${baseUrl}?lang=${scheme.local_language}`,
             lastModified: lastMod,
-            changeFrequency: 'weekly' as const,
+            changeFrequency: 'weekly',
             priority: 0.6,
           });
         }
-      }
-      dynamicRoutes = dynamicRows;
-    } catch (error) {
-      console.warn('⚠️ Failed to fetch schemes for sitemap:', error);
+      });
     }
-  } else {
-    console.warn('⚠️ NEXT_PUBLIC_SUPABASE_URL not set. Skipping dynamic sitemap generation.');
+  } catch (error) {
+    console.warn('⚠️ Failed to fetch schemes for sitemap:', error);
   }
 
   return [...allStaticRoutes, ...dynamicRoutes];

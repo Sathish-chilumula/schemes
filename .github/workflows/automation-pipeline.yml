@@ -74,14 +74,23 @@ jobs:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
 
       # ==================================
-      # STEP 4: DEPLOY (Cloudflare Pages)
+      # STEP 4: DEDUPLICATION & SEO CLEANUP
+      # ==================================
+      - name: Stage 4 - Deduplication & SEO Cleanup
+        run: node scripts/cleanup-schemes.js
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+
+      # ==================================
+      # STEP 5: DEPLOY (Cloudflare Pages)
       # ==================================
       # Requires a one-time setup: create a Deploy Hook in the Cloudflare Pages
       # dashboard (Settings > Builds & deployments > Deploy Hooks > Add Hook)
       # then add it as CLOUDFLARE_DEPLOY_HOOK_URL in GitHub repository secrets.
       # All pages already use Edge Runtime so new content appears immediately
       # in the DB — this rebuild is mainly to keep code + sitemap caches fresh.
-      - name: Stage 4 - Trigger Cloudflare Pages Rebuild
+      - name: Stage 5 - Trigger Cloudflare Pages Rebuild
         if: always()
         run: |
           if [ -n "$DEPLOY_HOOK_URL" ]; then
