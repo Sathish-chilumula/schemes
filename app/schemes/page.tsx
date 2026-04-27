@@ -2,6 +2,8 @@ import { supabaseAdmin, type Scheme } from '@/lib/supabase';
 import { SchemesClient } from './SchemesClient';
 import { Metadata } from 'next';
 
+export const runtime = 'edge';
+
 
 export const metadata: Metadata = {
   title: `All Government Schemes ${new Date().getFullYear()} — Benefits & Eligibility | SchemeAtlas`,

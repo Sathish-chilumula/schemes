@@ -9,6 +9,8 @@ import { slugify } from '@/lib/seo';
 import { ViewCounter } from '@/components/ViewCounter';
 import React from 'react';
 
+export const runtime = 'edge';
+
 const COUNTRY_NAMES: Record<string, string> = {
   'IN': 'India',
   'GB': 'United Kingdom', 

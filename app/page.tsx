@@ -7,6 +7,7 @@ import { Navbar } from '@/components/Navbar';
 import { HomeSearch } from './HomeSearch';
 import { HomeTabs } from './HomeTabs';
 
+export const runtime = 'edge';
 export const revalidate = 3600; // Revalidate every hour
 
 export const metadata: Metadata = {

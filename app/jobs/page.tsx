@@ -2,6 +2,8 @@ import { supabaseAdmin, type Scheme } from '@/lib/supabase';
 import { JobsClient } from './JobsClient';
 import { Metadata } from 'next';
 
+export const runtime = 'edge';
+
 
 export const metadata: Metadata = {
   title: `Government Job Recruitment ${new Date().getFullYear()} — Latest Vacancies & Notifications | SchemeAtlas`,
