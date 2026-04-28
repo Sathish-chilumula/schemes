@@ -42,6 +42,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             `,
           }}
         />
+        {/* Google AdSense */}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3809505002238691"
+          crossOrigin="anonymous"
+        />
         {/* Google News Subscribe with Google */}
         <script async type="application/javascript" src="https://news.google.com/swg/js/v1/swg-basic.js"></script>
         <script
