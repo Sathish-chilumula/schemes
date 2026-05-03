@@ -17,10 +17,185 @@ interface SchemeContentProps {
   schemeName?: string;
 }
 
-export function SchemeContent({ 
-  contentEn, 
-  contentHi, 
-  contentLocal, 
+interface StructuredContent {
+  intro: string;
+  tableOfContents: string[];
+  sections: { heading: string; content: string }[];
+  faqs: { q: string; a: string }[];
+}
+
+// ─── Try to parse structured JSON (new Money Guide format) ───────────────
+function tryParseStructured(content: string | null): StructuredContent | null {
+  if (!content) return null;
+  try {
+    const parsed = JSON.parse(content);
+    if (parsed && Array.isArray(parsed.sections) && Array.isArray(parsed.faqs) && parsed.intro) {
+      return parsed as StructuredContent;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+// ─── Inline FAQ Accordion ────────────────────────────────────────────────
+function FAQAccordion({ faqs }: { faqs: { q: string; a: string }[] }) {
+  const [open, setOpen] = useState<number | null>(null);
+  return (
+    <div className="space-y-3">
+      {faqs.map((faq, i) => (
+        <div key={i} className="border border-slate-200 rounded-2xl overflow-hidden">
+          <button
+            onClick={() => setOpen(open === i ? null : i)}
+            className="w-full flex items-center justify-between px-6 py-4 text-left bg-white hover:bg-slate-50 transition-colors"
+          >
+            <span className="font-semibold text-slate-800 leading-snug pr-4">{faq.q}</span>
+            <span className={`text-2xl text-brand-500 transition-transform duration-200 flex-shrink-0 ${open === i ? 'rotate-45' : ''}`}>+</span>
+          </button>
+          {open === i && (
+            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 text-slate-700 leading-relaxed">
+              {faq.a}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Structured (Money Guide) Renderer ──────────────────────────────────
+function StructuredRenderer({ content, lang }: { content: StructuredContent; lang: string }) {
+  return (
+    <div>
+      {/* Intro */}
+      {content.intro && (
+        <p className="text-lg sm:text-xl text-slate-700 leading-relaxed font-medium mb-8 p-6 bg-brand-50/40 rounded-2xl border border-brand-100">
+          {content.intro}
+        </p>
+      )}
+
+      {/* Table of Contents */}
+      {content.tableOfContents && content.tableOfContents.length > 0 && (
+        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 mb-10">
+          <div className="font-bold text-slate-700 text-sm uppercase tracking-widest mb-3">📋 In This Guide</div>
+          <ol className="list-none space-y-1">
+            {content.tableOfContents.map((item, i) => (
+              <li key={i}>
+                <a
+                  href={`#section-${i}`}
+                  className="flex items-center gap-2 text-brand-600 hover:text-brand-800 text-sm font-medium py-1 hover:underline transition-colors"
+                >
+                  <span className="text-brand-400 font-bold">{i + 1}.</span>
+                  {item}
+                </a>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+
+      {/* Sections */}
+      <article className="space-y-8 mt-4">
+        {content.sections.map((section, i) => (
+          <div key={i}>
+            <section
+              id={`section-${i}`}
+              className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden group"
+            >
+              <div className="flex items-start gap-0">
+                <div className="w-1.5 self-stretch bg-brand-500 flex-shrink-0 rounded-l-3xl" />
+                <div className="flex-1 p-6 sm:p-8">
+                  <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-4">{section.heading}</h2>
+                  <div className="text-slate-700 leading-relaxed text-base sm:text-lg whitespace-pre-line">
+                    {section.content}
+                  </div>
+                </div>
+              </div>
+            </section>
+            {i === 1 && <GoogleAdSense slot="content_middle" className="my-8" />}
+          </div>
+        ))}
+      </article>
+
+      {/* FAQs */}
+      {content.faqs && content.faqs.length > 0 && (
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold text-slate-900 mb-6">❓ Frequently Asked Questions</h2>
+          <FAQAccordion faqs={content.faqs} />
+        </div>
+      )}
+
+      <GoogleAdSense slot="article_footer" className="mt-10" />
+    </div>
+  );
+}
+
+// ─── Legacy Plain-Text Renderer ─────────────────────────────────────────
+function legacyParseQAContent(content: string) {
+  if (!content) return { overview: '', qa: [] };
+
+  let overview = '';
+  const qa: { question: string; answer: string }[] = [];
+
+  const numberedPattern = /^(\d+)\.\s+([^:]+):/m;
+  if (numberedPattern.test(content)) {
+    const parts = content.split(/^(\d+)\.\s+([^:]+):/m).filter(p => p.trim());
+    for (let i = 0; i < parts.length; i += 3) {
+      if (i + 2 < parts.length) {
+        const heading = parts[i + 1].trim();
+        const body = parts[i + 2].trim();
+        qa.push({ question: heading, answer: body });
+      }
+    }
+    return { overview: '', qa };
+  }
+
+  if (content.includes('Q:') && content.includes('A:')) {
+    const lines = content.split('\n');
+    let currentQ = '';
+    let currentA = '';
+    let foundFirstQ = false;
+    for (const line of lines) {
+      const isQuestion = line.startsWith('Q:') || line.match(/^\d+\.\s+What|Who|How|When|Is /);
+      if (isQuestion) {
+        foundFirstQ = true;
+        if (currentQ && currentA) qa.push({ question: currentQ, answer: currentA });
+        currentQ = line.replace(/^Q:\s*/, '').replace(/^\d+\.\s*/, '');
+        currentA = '';
+      } else if (line.startsWith('A:')) {
+        currentA = line.replace(/^A:\s*/, '');
+      } else if (!foundFirstQ) {
+        if (line.trim()) overview += (overview ? '\n' : '') + line.trim();
+      } else if (currentA && line.trim()) {
+        currentA += ' ' + line.trim();
+      }
+    }
+    if (currentQ && currentA) qa.push({ question: currentQ, answer: currentA });
+    return { overview, qa };
+  }
+
+  const sections = content.split(/##\s+/).filter(s => s.trim().length > 10);
+  if (sections.length > 0) {
+    const parsedSections = sections.map(section => {
+      const lines = section.split('\n').filter(l => l.trim());
+      if (lines.length === 0) return null;
+      const heading = lines[0].replace(/📌|💰|👥|🚫|📄|📝|⚠️|💡|❓|🌟/g, '').trim();
+      const body = lines.slice(1).join('\n').replace(/\*\*/g, '').replace(/[-•]\s/g, '').trim();
+      if (!body && heading.length > 50) return { question: 'Overview', answer: heading };
+      const question = heading.includes('?') ? heading : `What is the ${heading.toLowerCase()} for this scheme?`;
+      return { question, answer: body || heading };
+    }).filter(Boolean) as { question: string; answer: string }[];
+    return { overview: '', qa: parsedSections };
+  }
+
+  return { overview: content, qa: [] };
+}
+
+// ─── Main Component ──────────────────────────────────────────────────────
+export function SchemeContent({
+  contentEn,
+  contentHi,
+  contentLocal,
   localLanguage,
   fallbackWhatYouGet,
   fallbackBenefitAmount,
@@ -31,7 +206,6 @@ export function SchemeContent({
 }: SchemeContentProps) {
   const [lang, setLang] = useState('en');
 
-  // Sync with URL search params on mount if available
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -40,89 +214,12 @@ export function SchemeContent({
     }
   }, []);
 
-  const parseQAContent = (content: string) => {
-    if (!content) return { overview: '', qa: [] };
-    
-    let overview = '';
-    const qa: { question: string; answer: string }[] = [];
-
-    // Pattern 1: 14-Point Numbered Structure (1. Title:, 2. Summary:, etc.)
-    const numberedPattern = /^(\d+)\.\s+([^:]+):/m;
-    if (numberedPattern.test(content)) {
-      const parts = content.split(/^(\d+)\.\s+([^:]+):/m).filter(p => p.trim());
-      // parts will be [number, heading, body, number, heading, body, ...]
-      for (let i = 0; i < parts.length; i += 3) {
-        if (i + 2 < parts.length) {
-          const heading = parts[i+1].trim();
-          const body = parts[i+2].trim();
-          qa.push({ question: heading, answer: body });
-        }
-      }
-      return { overview: '', qa };
-    }
-
-    // Pattern 2: "Q: question?\nA: answer"
-    if (content.includes('Q:') && content.includes('A:')) {
-      const lines = content.split('\n');
-      let currentQ = '';
-      let currentA = '';
-      let foundFirstQ = false;
-      
-      for (const line of lines) {
-        const isQuestion = line.startsWith('Q:') || line.match(/^\d+\.\s+What|Who|How|When|Is /);
-        
-        if (isQuestion) {
-          foundFirstQ = true;
-          if (currentQ && currentA) qa.push({ question: currentQ, answer: currentA });
-          currentQ = line.replace(/^Q:\s*/, '').replace(/^\d+\.\s*/, '');
-          currentA = '';
-        } else if (line.startsWith('A:')) {
-          currentA = line.replace(/^A:\s*/, '');
-        } else if (!foundFirstQ) {
-          if (line.trim()) overview += (overview ? '\n' : '') + line.trim();
-        } else if (currentA && line.trim()) {
-          currentA += ' ' + line.trim();
-        }
-      }
-      if (currentQ && currentA) qa.push({ question: currentQ, answer: currentA });
-      return { overview, qa };
-    }
-    
-    // Pattern 3: Old markdown format — convert ## sections to Q&A
-    const sections = content.split(/##\s+/).filter(s => s.trim().length > 10);
-    
-    if (sections.length > 0) {
-      const parsedSections = sections.map(section => {
-        const lines = section.split('\n').filter(l => l.trim());
-        if (lines.length === 0) return null;
-        
-        const heading = lines[0]
-          .replace(/📌|💰|👥|🚫|📄|📝|⚠️|💡|❓|🌟/g, '')
-          .trim();
-        const body = lines.slice(1).join('\n')
-          .replace(/\*\*/g, '')
-          .replace(/[-•]\s/g, '')
-          .trim();
-        
-        if (!body && heading.length > 50) {
-          return { question: "Overview", answer: heading };
-        }
-
-        const question = heading.includes('?') 
-          ? heading 
-          : `What is the ${heading.toLowerCase()} for this scheme?`;
-        
-        return { question, answer: body || heading };
-      }).filter(pair => pair && pair.question && pair.answer) as { question: string; answer: string }[];
-
-      return { overview: '', qa: parsedSections };
-    }
-
-    // Fallback
-    return { overview: content, qa: [] };
+  const formatTextAsParagraphs = (text: string, baseClassName: string) => {
+    if (!text) return null;
+    return text.split(/\n+/).filter(p => p.trim()).map((p, i) => (
+      <p key={i} className={`${baseClassName} mb-3`.trim()}>{p.trim()}</p>
+    ));
   };
-
-  // Content parsed dynamically in the render loop for Googlebot SEO DOM visibility
 
   const availableLangs: { code: string; label: string }[] = [];
   if (contentEn) availableLangs.push({ code: 'en', label: 'English' });
@@ -131,17 +228,11 @@ export function SchemeContent({
     availableLangs.push({ code: localLanguage, label: LANG_LABELS[localLanguage] || localLanguage });
   }
 
-  const formatTextAsParagraphs = (text: string, baseClassName: string) => {
-    if (!text) return null;
-    return text.split(/\n+/).filter(p => p.trim()).map((p, i) => (
-      <p key={i} className={`${baseClassName} mb-3`.trim()}>{p.trim()}</p>
-    ));
-  };
-
   return (
     <div className="mb-8 scheme-seo-article">
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+      {/* Language switcher + WhatsApp share */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         {availableLangs.length > 1 ? (
           <div className="flex gap-1 bg-slate-100 p-1 rounded-xl w-fit">
             {availableLangs.map(l => (
@@ -167,7 +258,7 @@ export function SchemeContent({
           </div>
         ) : <div />}
 
-        <button 
+        <button
           onClick={() => {
             const url = encodeURIComponent(window.location.href);
             const text = encodeURIComponent(`Check out ${schemeName} on SchemeAtlas: `);
@@ -180,66 +271,81 @@ export function SchemeContent({
         </button>
       </div>
 
+      {/* Content per language */}
       {availableLangs.map(l => {
         const contentForLang = l.code === 'en' ? contentEn : l.code === 'hi' ? contentHi : contentLocal;
-        const { overview, qa } = contentForLang ? parseQAContent(contentForLang) : { overview: '', qa: [] };
+        const structured = tryParseStructured(contentForLang);
 
         return (
           <div key={l.code} className={lang === l.code ? 'block' : 'hidden'}>
-            {overview && (
-              <section className="mb-12 bg-white p-8 sm:p-10 rounded-[2.5rem] border border-slate-200/60 shadow-sm relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-brand-50/50 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110 duration-500"></div>
-                <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mb-6 flex items-center gap-3">
-                   <span className="w-1.5 h-8 bg-brand-500 rounded-full"></span>
-                   Scheme Overview
-                </h2>
-                <div className="text-slate-700 leading-relaxed text-lg sm:text-xl font-medium whitespace-pre-wrap">
-                  {formatTextAsParagraphs(overview, "mb-4")}
-                </div>
-              </section>
-            )}
-
-            {qa.length > 0 ? (
-              <article className="mt-8">
-                {lang === l.code && <GoogleAdSense slot="header_top" className="mb-10" />}
-                {qa.map((pair, index) => (
-                  <div key={index}>
-                    <section className="mb-10 bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col sm:flex-row gap-6 relative group overflow-hidden">
-                      <div className="absolute top-0 left-0 w-1.5 h-full bg-brand-500 transform origin-left transition-transform duration-300"></div>
-                      <div className="flex-1">
-                        <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-4 flex items-start gap-4">
-                          <span className="text-brand-500 font-extrabold mt-1 text-2xl leading-none">Q.</span>
-                          <span className="leading-snug">{pair.question}</span>
-                        </h2>
-                        <div className="text-slate-700 leading-relaxed pl-10 text-lg">
-                          {formatTextAsParagraphs(pair.answer, "mb-4")}
-                        </div>
-                      </div>
-                    </section>
-                    {index === 0 && lang === l.code && <GoogleAdSense slot="content_middle" className="mb-10" />}
-                  </div>
-                ))}
-                {lang === l.code && <GoogleAdSense slot="article_footer" className="mt-8" />}
-              </article>
+            {structured ? (
+              /* ── NEW: Money Guide premium renderer ── */
+              <StructuredRenderer content={structured} lang={l.code} />
             ) : (
-              <article className="prose prose-slate max-w-none prose-h2:text-slate-900 prose-h2:text-xl prose-h2:font-bold prose-h2:mt-10 prose-h2:mb-4">
-                 {fallbackWhatYouGet ? formatTextAsParagraphs(fallbackWhatYouGet, "text-slate-700 mb-4") : null}
-                 {eligibilityList.length > 0 && (
-                   <>
-                     <h2 className="flex items-center gap-2 border-b border-slate-100 pb-2">
-                       <span className="text-2xl">👤</span> Eligibility Criteria
-                     </h2>
-                     <ul className="space-y-2 !pl-0">
-                       {eligibilityList.map((item, i) => (
-                         <li key={i} className="flex items-start gap-3 text-slate-700 list-none">
-                           <span className="mt-1 w-5 h-5 rounded-full bg-brand-50 text-brand-500 flex items-center justify-center flex-shrink-0 text-xs font-bold">✓</span>
-                           {String(item)}
-                         </li>
-                       ))}
-                     </ul>
-                   </>
-                 )}
-              </article>
+              /* ── LEGACY: plain-text Q&A renderer (backward compat) ── */
+              (() => {
+                const { overview, qa } = contentForLang
+                  ? legacyParseQAContent(contentForLang)
+                  : { overview: '', qa: [] };
+                return (
+                  <>
+                    {overview && (
+                      <section className="mb-12 bg-white p-8 sm:p-10 rounded-[2.5rem] border border-slate-200/60 shadow-sm relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-brand-50/50 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110 duration-500" />
+                        <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mb-6 flex items-center gap-3">
+                          <span className="w-1.5 h-8 bg-brand-500 rounded-full" />
+                          Scheme Overview
+                        </h2>
+                        <div className="text-slate-700 leading-relaxed text-lg sm:text-xl font-medium whitespace-pre-wrap">
+                          {formatTextAsParagraphs(overview, 'mb-4')}
+                        </div>
+                      </section>
+                    )}
+                    {qa.length > 0 ? (
+                      <article className="mt-8">
+                        {lang === l.code && <GoogleAdSense slot="header_top" className="mb-10" />}
+                        {qa.map((pair, index) => (
+                          <div key={index}>
+                            <section className="mb-10 bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col sm:flex-row gap-6 relative group overflow-hidden">
+                              <div className="absolute top-0 left-0 w-1.5 h-full bg-brand-500 transform origin-left transition-transform duration-300" />
+                              <div className="flex-1">
+                                <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-4 flex items-start gap-4">
+                                  <span className="text-brand-500 font-extrabold mt-1 text-2xl leading-none">Q.</span>
+                                  <span className="leading-snug">{pair.question}</span>
+                                </h2>
+                                <div className="text-slate-700 leading-relaxed pl-10 text-lg">
+                                  {formatTextAsParagraphs(pair.answer, 'mb-4')}
+                                </div>
+                              </div>
+                            </section>
+                            {index === 0 && lang === l.code && <GoogleAdSense slot="content_middle" className="mb-10" />}
+                          </div>
+                        ))}
+                        {lang === l.code && <GoogleAdSense slot="article_footer" className="mt-8" />}
+                      </article>
+                    ) : (
+                      <article className="prose prose-slate max-w-none prose-h2:text-slate-900 prose-h2:text-xl prose-h2:font-bold prose-h2:mt-10 prose-h2:mb-4">
+                        {fallbackWhatYouGet ? formatTextAsParagraphs(fallbackWhatYouGet, 'text-slate-700 mb-4') : null}
+                        {eligibilityList.length > 0 && (
+                          <>
+                            <h2 className="flex items-center gap-2 border-b border-slate-100 pb-2">
+                              <span className="text-2xl">👤</span> Eligibility Criteria
+                            </h2>
+                            <ul className="space-y-2 !pl-0">
+                              {eligibilityList.map((item, i) => (
+                                <li key={i} className="flex items-start gap-3 text-slate-700 list-none">
+                                  <span className="mt-1 w-5 h-5 rounded-full bg-brand-50 text-brand-500 flex items-center justify-center flex-shrink-0 text-xs font-bold">✓</span>
+                                  {String(item)}
+                                </li>
+                              ))}
+                            </ul>
+                          </>
+                        )}
+                      </article>
+                    )}
+                  </>
+                );
+              })()
             )}
           </div>
         );

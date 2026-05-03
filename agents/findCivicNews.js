@@ -265,17 +265,46 @@ async function processItem(item, hintType) {
   
   try {
     console.log(`   ⏳ Translating to Hindi & Telugu...`);
-    const transPrompt = `Translate the following government overview into Hindi and Telugu. 
-Rules for translation:
-- Do NOT use formal, pure, or textbook language. 
-- Use a highly conversational, everyday spoken style. 
-- Blend in common English words (like "apply", "online", "website", "jobs", "documents") so it is extremely easy for everyone to understand.
-Respond with ONLY valid JSON: {"hi": "Hindi text", "te": "Telugu text"}\n\n${englishContent.content_en}`;
-    const transText = await callAI(transPrompt);
+    // Build a translatable subset of the structured JSON
+    let enForTranslation = englishContent.content_en;
+    let isJsonContent = false;
+    try {
+      const parsed = JSON.parse(englishContent.content_en);
+      if (parsed && parsed.sections) {
+        isJsonContent = true;
+        enForTranslation = JSON.stringify({ intro: parsed.intro, tableOfContents: parsed.tableOfContents, sections: parsed.sections, faqs: parsed.faqs }, null, 2);
+      }
+    } catch (e) { /* plain text */ }
+
+    const transPrompt = isJsonContent
+      ? `You are an expert Hindi and Telugu translator for SchemeAtlas.
+Translate this government guide from English to natural, conversational Hindi AND Telugu.
+Rules:
+- Do NOT use formal, robotic language. Speak like a helpful friend.
+- Blend common English words naturally (apply, online, website, documents, form).
+- Keep all emojis exactly as-is.
+- Keep JSON structure identical — same keys, same array lengths.
+Respond ONLY with valid JSON: {"hi": {<same JSON structure in Hindi>}, "te": {<same JSON structure in Telugu>}}
+
+${enForTranslation}`
+      : `Translate the following government overview into Hindi and Telugu. 
+Rules:
+- Do NOT use formal language. Use conversational everyday style.
+- Blend in common English words (apply, online, website, jobs, documents) so it is extremely easy to understand.
+Respond with ONLY valid JSON: {"hi": "Hindi text", "te": "Telugu text"}\n\n${enForTranslation}`;
+
+    const transText = await callAI(transPrompt, 3000);
     if (transText) {
-      const transJson = JSON.parse(transText.replace(/```json|```/g, ''));
-      hiContent = transJson.hi;
-      teContent = transJson.te;
+      const transJson = JSON.parse(transText.replace(/```json|```/g, '').trim());
+      if (isJsonContent) {
+        // Rebuild full structured JSON for each language
+        const baseParsed = JSON.parse(englishContent.content_en);
+        hiContent = transJson.hi ? JSON.stringify({ ...baseParsed, ...transJson.hi }) : null;
+        teContent = transJson.te ? JSON.stringify({ ...baseParsed, ...transJson.te }) : null;
+      } else {
+        hiContent = transJson.hi;
+        teContent = transJson.te;
+      }
     }
   } catch (e) {
     console.warn('   ⚠️ Translation step skipped or failed.');
@@ -312,48 +341,58 @@ Respond with ONLY valid JSON: {"hi": "Hindi text", "te": "Telugu text"}\n\n${eng
 }
 
 async function rewriteWithAI(title, url, hintType) {
-  const prompt = `You are a helpful friend and expert SEO content writer writing for a citizen who needs clear information. 
-  Rewrite this government update/job in a HIGH-QUALITY, TRUSTWORTHY, and CONVERSATIONAL style (8th-grade level).
-  Write as if you are explaining it to a neighbor. Use short sentences. Avoid technical jargon.
-  
-  Structure Rule: You MUST follow this exact 14-point structure. Use clear numeric labels (e.g. "1. Title:").
-  - Include relevant emojis (🤑, 📈, 🏦, ✅, etc.) and symbols in the headings and content to make it visually appealing and easy to read.
-  DO NOT use any markdown symbols like asterisks (**), hashes (#), or bullet points. Use plain text only.
-  
-  1. Title: Very simple, catchy name of the job or news.
-  2. Summary: 5-10 lines. Friendly overview of what it is.
-  3. What is this Update?: Purpose and Department details in simple words.
-  4. Key Benefits / Salary: Exact money (₹) or salary range or benefits. Be specific.
-  5. Eligibility Criteria: Simple list of who can apply / who this affects.
-  6. Who Should Apply: Real-life examples of people who should join or care.
-  7. Who Should NOT Apply: Clear examples of people who are not eligible.
-  8. Documents Required: Clear list of papers needed.
-  9. Selection / Approval Process: Step-by-step in plain words.
-  10. How to Apply: Simple steps anyone can follow.
-  11. Important Dates: Last date to apply or key deadlines.
-  12. Official Website / Link: Provide the verified URL as plain text: ${url}
-  13. FAQs: 3 friendly questions and answers. Use "Q: " and "A: " prefixes.
-  14. Pro Tips: Simple advice to help the user succeed.
+  const prompt = `You are a senior content writer at SchemeAtlas writing a premium Money Guide-style article.
+Write a comprehensive, 1200-word guide about this government news or job notification.
+Tone: Conversational, authoritative, friendly. Easy to understand.
 
-  Title: "${title}"
-  URL: "${url}"
-  Type: ${hintType}
+Title: "${title}"
+URL: "${url}"
+Type: ${hintType}
 
-  Respond ONLY with valid JSON in this format:
-  {
-    "name": "Clean short title",
-    "slug": "url-friendly-slug",
-    "category": "${hintType}",
-    "what_you_get": "1-sentence benefit/salary",
-    "eligibility": "1nd-2 sentences who can apply",
-    "how_to_apply": "3-4 simple steps",
-    "content_en": "The FULL 14-point article text exactly as requested above"
-  }`;
+RULES:
+- NEVER use markdown symbols (#, *, **). Plain text and emojis only.
+- Be specific with salary/benefits in exact ₹ amounts.
+- No placeholder text.
+
+Return ONLY valid JSON (no markdown fences, no extra text):
+{
+  "name": "Clean, short, catchy title",
+  "slug": "url-friendly-slug-max-8-words",
+  "category": "${hintType}",
+  "what_you_get": "1-sentence summary of benefit or salary",
+  "eligibility": "1-2 sentences on who can apply",
+  "how_to_apply": "3-4 simple steps as plain text",
+  "content_en": {
+    "intro": "2-3 punchy hook sentences explaining what this is and who it affects.",
+    "tableOfContents": ["What Is This?", "Key Benefits 💰", "Who Is Eligible? ✅", "Who Cannot Apply? 🚫", "Documents Required 📄", "How To Apply 📝", "Important Dates 📅", "Pro Tips 💡"],
+    "sections": [
+      {"heading": "📋 What Is This?", "content": "150-word explanation of the news/job and the department behind it."},
+      {"heading": "💰 Key Benefits / Salary", "content": "Exact ₹ salary range or financial benefit. Be specific."},
+      {"heading": "✅ Who Is Eligible?", "content": "Age, qualification, nationality, experience requirements."},
+      {"heading": "🚫 Who Cannot Apply?", "content": "Clear real-life examples of ineligible people."},
+      {"heading": "📄 Documents Required", "content": "Exact list: Aadhaar, degree certificate, experience letter, etc."},
+      {"heading": "📝 How To Apply — Step by Step", "content": "Numbered steps. Mention the official portal URL: ${url}"},
+      {"heading": "📅 Important Dates", "content": "Last date to apply, exam date, result date if known."},
+      {"heading": "💡 Pro Tips", "content": "2 insider tips to improve chances of selection."}
+    ],
+    "faqs": [
+      {"q": "Who can apply for this?", "a": "Direct specific answer."},
+      {"q": "What is the salary or benefit?", "a": "Direct answer with ₹ amount."},
+      {"q": "How to apply online?", "a": "Step-by-step direct answer."},
+      {"q": "What is the last date to apply?", "a": "Direct answer with date if known."}
+    ]
+  }
+}`;
 
   try {
-    const text = await callAI(prompt);
+    const text = await callAI(prompt, 3000);
     if (!text) return null;
-    return JSON.parse(text.replace(/```json|```/g, ''));
+    const parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
+    // Stringify the nested content_en JSON so it can be stored as text in Supabase
+    if (parsed.content_en && typeof parsed.content_en === 'object') {
+      parsed.content_en = JSON.stringify(parsed.content_en);
+    }
+    return parsed;
   } catch (e) { return null; }
 }
 

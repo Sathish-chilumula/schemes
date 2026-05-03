@@ -142,92 +142,119 @@ function getLocalLanguage(scheme) {
 }
 
 async function generateContentEn(scheme) {
-  console.log(`   ✍️ Generating Rich English Content (1200+ words)...`);
-  
+  console.log(`   ✍️ Generating Rich Structured Content (JSON / Money Guide format)...`);
+
   const stateContext = scheme.state_name ? `State: ${scheme.state_name}` : `Central Government (India)`;
   const categoryContext = scheme.category || 'General';
 
-  const prompt = `You are an expert financial and government scheme advisor writing for SchemeAtlas.
-Write a highly detailed, 1200-1500 word comprehensive guide about this government scheme.
-Tone: Conversational, authoritative, yet friendly and very easy to understand (8th-grade level).
+  const prompt = `You are a senior government scheme advisor at SchemeAtlas — India's most trusted scheme discovery platform.
+Write a comprehensive, 1500-word guide that feels like a premium Money Guide article.
+Tone: Conversational, authoritative, friendly. 8th-grade reading level.
 
-Scheme Name: ${scheme.name}
+Scheme: ${scheme.name}
 ${stateContext}
 Category: ${categoryContext}
-Basic Info provided: ${scheme.what_you_get}
-Eligibility clues: ${JSON.stringify(scheme.eligibility)}
-How to apply clues: ${JSON.stringify(scheme.how_to_apply)}
+Basic Info: ${scheme.what_you_get || 'N/A'}
+Eligibility: ${JSON.stringify(scheme.eligibility || {})}
+How to Apply: ${JSON.stringify(scheme.how_to_apply || {})}
 
-REQUIREMENTS:
-- Use real numbers, actual ₹ amounts, real ministry names, and realistic application URLs if you know them.
-- Include relevant emojis (🤑, 📈, 🏦, ✅, etc.) and symbols in the headings and content to make it visually appealing and easy to read.
-- NEVER use markdown like #, *, or bullet points. You must use plain text with numeric headers exactly as below.
+RULES:
+- NEVER use markdown symbols (#, *, **). Plain text and emojis only.
+- Use real ₹ amounts, actual ministry names, real portal URLs where you know them.
+- Be genuinely specific — not a generic template.
+- No placeholder text like "[enter amount here]".
 
-Use this EXACT 10-section structure:
+Return ONLY valid JSON (no markdown code fences, no extra text before or after the JSON):
+{
+  "intro": "2-3 catchy hook sentences: what this scheme is and who it helps.",
+  "tableOfContents": ["What Is This Scheme?", "Key Benefits 💰", "Who Is Eligible? ✅", "Who Cannot Apply? 🚫", "Documents Required 📄", "How To Apply 📝", "Important Dates 📅", "Pro Tips 💡"],
+  "sections": [
+    {"heading": "🏛️ What Is This Scheme?", "content": "200-word explanation mentioning the ministry, launch year, and main objective."},
+    {"heading": "💰 Key Benefits", "content": "Exact ₹ amounts, slabs, units. Be specific and use numbers."},
+    {"heading": "✅ Who Is Eligible?", "content": "Age, income, caste, occupation criteria with exact numbers."},
+    {"heading": "🚫 Who Cannot Apply?", "content": "Clear real-life examples of excluded people."},
+    {"heading": "📄 Documents Required", "content": "Exact list: Aadhaar, income certificate, bank passbook, etc."},
+    {"heading": "📝 How To Apply — Step by Step", "content": "Numbered steps mentioning specific portals or office names."},
+    {"heading": "📅 Important Dates", "content": "2026 application cycles, deadlines, or renewal periods."},
+    {"heading": "💡 Pro Tips", "content": "2 insider tips and common mistakes to avoid."}
+  ],
+  "faqs": [
+    {"q": "Who can apply for ${scheme.name}?", "a": "Specific direct answer."},
+    {"q": "What is the benefit amount under ${scheme.name}?", "a": "Specific direct answer with ₹ amount."},
+    {"q": "How to apply online for ${scheme.name}?", "a": "Step-by-step direct answer."},
+    {"q": "What documents are needed for ${scheme.name}?", "a": "Specific list."},
+    {"q": "Is ${scheme.name} still active in 2026?", "a": "Direct answer with current status."}
+  ]
+}`;
 
-1. SUMMARY:
-(Write 2-3 punchy sentences answering "what is this?" and "who is it for?". Make it catchy.)
-
-2. WHAT IS IT?:
-(Explain the scheme in 200 words. Mention the ministry, launch context, and main objective.)
-
-3. KEY BENEFITS:
-(Detail the exact ₹ amounts, financial benefits, units, or slabs. Be specific and use numbers.)
-
-4. WHO IS ELIGIBLE?:
-(List exact criteria. Age limits, income limits, caste requirements, occupation rules.)
-
-5. WHO CANNOT APPLY?:
-(Give clear examples of people who are excluded so readers don't waste their time.)
-
-6. DOCUMENTS REQUIRED:
-(List exact documents: Aadhaar, income certificate, caste certificate, bank passbook, etc.)
-
-7. HOW TO APPLY - STEP BY STEP:
-(Give a numbered step-by-step process. Mention specific website portals or physical office names.)
-
-8. IMPORTANT DATES:
-(Mention current year application cycles, deadlines, or renewal periods.)
-
-9. FAQs:
-(Provide exactly 5 highly specific Q&A pairs using the exact phrasing people ask on Google.)
-Q: Who can apply for ${scheme.name}?
-A: [direct answer]
-Q: [question 2]
-A: [answer 2]
-...
-
-10. PRO TIPS:
-(Provide 2 insider tips or common mistakes to avoid when applying for this specific scheme.)`;
-
-  return await callLLM(prompt, 2500);
+  const raw = await callLLM(prompt, 3500);
+  try {
+    const cleaned = raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+    if (!parsed.sections || !Array.isArray(parsed.sections) || !parsed.faqs || !parsed.intro) {
+      throw new Error('Missing required JSON fields');
+    }
+    console.log(`   ✅ Structured JSON generated (${parsed.sections.length} sections, ${parsed.faqs.length} FAQs)`);
+    return JSON.stringify(parsed);
+  } catch (e) {
+    console.warn(`   ⚠️ JSON parse failed, storing raw text as fallback: ${e.message}`);
+    return raw;
+  }
 }
 
-async function generateTranslation(text, targetLangCode, scheme) {
+async function generateTranslation(contentEn, targetLangCode, scheme) {
   const langName = LANGUAGE_NAMES[targetLangCode] || targetLangCode;
   console.log(`   🌐 Translating to ${langName}...`);
-  
+
   const categoryContext = scheme.category || 'General';
   const stateContext = scheme.state_name || 'India';
-  
+
   let glossary = '';
   if (targetLangCode === 'te' && categoryContext.includes('business')) glossary = 'Weaver = నేత పనివారు (NOT నాట్యకారుడు)';
   if (targetLangCode === 'te') glossary += '\nScheme = పథకం\nApply = దరఖాస్తు చేయండి\nFree = ఉచిత';
 
-  const prompt = `You are an expert native ${langName} translator translating a government scheme guide for citizens of ${stateContext}.
+  // Detect if content is structured JSON (new format)
+  let parsed = null;
+  try { parsed = JSON.parse(contentEn); } catch (e) { /* plain text path */ }
 
-Rules for translation:
-- Translate the provided English text into natural, highly conversational ${langName}.
-- DO NOT use overly formal, textbook, or poetic language. Speak like a helpful friend.
-- IMPORTANT: Blend in common English words where appropriate (e.g., "apply", "online", "website", "documents", "form") as this is how people actually speak.
-- Maintain the exact same 1-10 section numbering and structure.
-${glossary ? `- GLOSSARY: Follow these specific translations:\n${glossary}` : ''}
+  if (parsed && parsed.sections && parsed.faqs) {
+    // ── JSON PATH: translate text fields, preserve structure ──
+    const toTranslate = { intro: parsed.intro, tableOfContents: parsed.tableOfContents, sections: parsed.sections, faqs: parsed.faqs };
+    const prompt = `You are an expert native ${langName} translator for SchemeAtlas.
+Translate this government scheme guide from English to natural, conversational ${langName}.
 
-Translate the following text:
+Rules:
+- Translate naturally — NOT robotic Google Translate style.
+- Blend common English words where people actually use them (apply, online, website, documents, form, scheme).
+- Keep all emojis exactly as-is.
+- Keep the JSON structure identical — same keys, same array lengths.
+${glossary ? `- GLOSSARY: ${glossary}` : ''}
 
-${text}`;
+Return ONLY valid JSON (no markdown fences) with the translated fields:
+${JSON.stringify(toTranslate, null, 2)}`;
 
-  return await callLLM(prompt, 3000);
+    const raw = await callLLM(prompt, 4000);
+    try {
+      const cleaned = raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+      const translated = JSON.parse(cleaned);
+      return JSON.stringify({ ...parsed, ...translated });
+    } catch (e) {
+      console.warn(`   ⚠️ ${langName} JSON translation parse failed: ${e.message}`);
+      return null;
+    }
+  } else {
+    // ── PLAIN TEXT PATH: backward compat for old format articles ──
+    const prompt = `You are an expert native ${langName} translator for government scheme guides.
+Translate the following English text into natural, conversational ${langName} for citizens of ${stateContext}.
+- Do NOT use formal, textbook language. Speak like a helpful friend.
+- Blend common English words where appropriate.
+- Maintain the exact same numbered structure.
+${glossary ? `- GLOSSARY: ${glossary}` : ''}
+
+Translate:
+${contentEn}`;
+    return await callLLM(prompt, 3000);
+  }
 }
 
 async function runV2Pipeline() {
