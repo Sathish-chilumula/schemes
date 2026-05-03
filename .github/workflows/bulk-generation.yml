@@ -24,8 +24,9 @@ jobs:
         run: npm install @supabase/supabase-js openai node-fetch axios
 
       - name: Run Generator Script
-        run: node scripts/generate-content.js
+        run: node scripts/generate-scheme-content-v2.js 50 --bulk
         env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
