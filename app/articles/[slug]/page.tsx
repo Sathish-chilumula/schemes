@@ -179,7 +179,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
             {/* Intro */}
             {article.intro && (
               <p className="text-[16px] leading-[1.75] text-[var(--text-primary)] font-[500] mb-[32px]">
-                {article.intro}
+                {typeof article.intro === 'string' ? article.intro : (article.intro as any)?.content || (article.intro as any)?.text || ''}
               </p>
             )}
 
@@ -188,23 +188,30 @@ export default async function ArticlePage({ params }: { params: { slug: string }
               <div className="bg-[var(--indigo-light)] rounded-[var(--radius-md)] p-[20px_24px] mb-[32px]">
                 <div className="font-[700] text-[14px] mb-[12px] text-[var(--text-primary)]">📋 In This Article</div>
                 <ol className="list-decimal pl-[20px] text-[14px] text-[var(--indigo)] leading-[2]">
-                  {article.tableOfContents.map((h: string, i: number) => (
-                    <li key={i}>
-                      <a href={`#section-${i}`} className="hover:underline">{h.replace(/<[^>]*>?/gm, '')}</a>
-                    </li>
-                  ))}
+                  {article.tableOfContents.map((h: any, i: number) => {
+                    const label = typeof h === 'string' ? h : (h?.heading || h?.title || `Section ${i + 1}`);
+                    return (
+                      <li key={i}>
+                        <a href={`#section-${i}`} className="hover:underline">{label.replace(/<[^>]*>?/gm, '')}</a>
+                      </li>
+                    );
+                  })}
                 </ol>
               </div>
             )}
 
             {/* Sections */}
             <div className="prose max-w-none mb-[48px]">
-              {article.sections?.map((section: any, i: number) => (
-                <div key={i} id={`section-${i}`}>
-                  <h2 className="text-[22px] font-[700] m-[40px_0_14px] pb-[10px] border-b-2 border-[var(--indigo-light)] text-[var(--text-primary)]" dangerouslySetInnerHTML={{ __html: section.heading }}></h2>
-                  <div className="text-[15px] leading-[1.85] text-[var(--text-primary)] space-y-4" dangerouslySetInnerHTML={{ __html: section.content }}></div>
-                </div>
-              ))}
+              {article.sections?.map((section: any, i: number) => {
+                const heading = typeof section.heading === 'string' ? section.heading : String(section.heading || '');
+                const content = typeof section.content === 'string' ? section.content : String(section.content || '');
+                return (
+                  <div key={i} id={`section-${i}`}>
+                    <h2 className="text-[22px] font-[700] m-[40px_0_14px] pb-[10px] border-b-2 border-[var(--indigo-light)] text-[var(--text-primary)]" dangerouslySetInnerHTML={{ __html: heading }}></h2>
+                    <div className="text-[15px] leading-[1.85] text-[var(--text-primary)] space-y-4" dangerouslySetInnerHTML={{ __html: content }}></div>
+                  </div>
+                );
+              })}
             </div>
 
             {/* FAQs */}

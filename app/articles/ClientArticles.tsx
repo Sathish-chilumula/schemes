@@ -62,7 +62,9 @@ function ArticleList({ articles }: { articles: any[] }) {
                       {article.category || "Guide"}
                     </span>
                     <h3 className="text-[16px] font-[700] my-[10px] leading-[1.4] text-[var(--text-primary)] group-hover:text-[var(--indigo)] transition-colors line-clamp-2">{title}</h3>
-                    <p className="text-[13px] text-[var(--text-muted)] leading-[1.6] mb-[16px] line-clamp-3">{desc}</p>
+                    <p className="text-[13px] text-[var(--text-muted)] leading-[1.6] mb-[16px] line-clamp-3">
+                      {typeof desc === 'string' ? desc : (desc as any)?.content || (desc as any)?.text || ''}
+                    </p>
                     
                     <div className="border-t border-[#F3F4F6] pt-[12px] flex justify-between text-[12px] text-[var(--text-faint)] mt-auto">
                       <span>👀 {views}</span>
