@@ -1,12 +1,15 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { parseStringPromise } from 'xml2js'
+import axios from 'axios'
 
 const GROQ_KEY = process.env.GROQ_API_KEY!
 const GEMINI_KEY = process.env.GEMINI_API_KEY || ''
 const OPENAI_KEY = process.env.OPENAI_API_KEY || ''
+const PEXELS_API_KEY = process.env.PEXELS_API_KEY || ''
 const FORCE_TOPIC = process.env.FORCE_TOPIC || ''
-const PER_RUN = parseInt(process.env.ARTICLES_PER_RUN || '3')
+const ARTICLES_IN = parseInt(process.env.ARTICLES_IN || '4')
+const ARTICLES_US = parseInt(process.env.ARTICLES_US || '2')
 const DIR = path.join(process.cwd(), 'content/articles')
 const INDEX_FILE = path.join(process.cwd(), 'content/articles-index.json')
 const MODEL = 'llama-3.3-70b-versatile'
@@ -38,6 +41,23 @@ const CATEGORY_IMAGES: Record<string, string> = {
 
 function slug(t: string) {
   return t.toLowerCase().replace(/[^a-z0-9\s-]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-').slice(0,80).trim()
+}
+
+async function fetchImage(keyword: string): Promise<string | null> {
+  if (!PEXELS_API_KEY) return null;
+  try {
+    const cleanKeyword = keyword.replace(/[^a-zA-Z0-9\s]/g, '').substring(0, 40) + ' professional';
+    const res = await axios.get(`https://api.pexels.com/v1/search?query=${encodeURIComponent(cleanKeyword)}&per_page=1&orientation=landscape`, {
+      headers: { Authorization: PEXELS_API_KEY },
+      timeout: 8000
+    });
+    if (res.data && res.data.photos && res.data.photos.length > 0) {
+      return res.data.photos[0].src.large;
+    }
+  } catch (error) {
+    console.warn(`⚠️ Pexels fetch failed for "${keyword}"`);
+  }
+  return null;
 }
 
 function existingSlugs(): Set<string> {
@@ -153,11 +173,17 @@ Return JSON: { "selected": [{ "articleTitle": "...", "category": "...", "slug": 
 
 async function writeArticle(title: string, category: string, s: string, country = 'IN'): Promise<any> {
   const today = new Date().toISOString().split('T')[0]
-  const imageUrl = CATEGORY_IMAGES[category] || CATEGORY_IMAGES['schemes']
+  
+  console.log(`   📸 Fetching image for "${title}"...`);
+  let imageUrl = await fetchImage(category) || CATEGORY_IMAGES[category] || CATEGORY_IMAGES['schemes']
 
   const system = `You are a senior financial writer. Writing for ${country === 'US' ? 'American' : 'Indian'} readers.
 Niche: ${category}. No AI mentions. ONLY valid JSON.`
-  const user = `Write 1500-word SEO article for "${title}". JSON schema: { slug, title, metaTitle, metaDescription, category, publishedAt, updatedAt, readTime, wordCount, tableOfContents, intro, sections: [{heading, content}], faqs: [{q,a}], relatedSchemes, relatedArticles, tags }`
+  const user = `Write a highly engaging 1500-word SEO article for "${title}". 
+REQUIREMENTS:
+- Include relevant emojis (🤑, 📈, 🏦, ✅, etc.) and symbols in the title, headings, and content to make it visually appealing and easy to read.
+- Write in a friendly, conversational tone.
+- JSON schema: { slug, title, metaTitle, metaDescription, category, publishedAt, updatedAt, readTime, wordCount, tableOfContents, intro, sections: [{heading, content}], faqs: [{q,a}], relatedSchemes, relatedArticles, tags }`
 
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
@@ -195,8 +221,8 @@ async function main() {
     getTrendingIndia(), getRelatedFinanceQueries(false), getRelatedFinanceQueries(true)
   ])
   
-  const topicsIN = await pickTopics([...trendIN, ...relIN], done, Math.ceil(PER_RUN/2), 'IN')
-  const topicsUS = await pickTopics(relUS, done, Math.floor(PER_RUN/2), 'US')
+  const topicsIN = await pickTopics([...trendIN, ...relIN], done, ARTICLES_IN, 'IN')
+  const topicsUS = await pickTopics(relUS, done, ARTICLES_US, 'US')
   const allSelected = [...topicsIN, ...topicsUS]
   
   for (const item of allSelected) {

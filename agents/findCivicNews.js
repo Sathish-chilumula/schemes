@@ -20,6 +20,8 @@ const crypto = require('crypto');
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const CLOUDFLARE_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID;
 const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
 const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY || 'mRrS9UjMl45wy4Hy-Pm6oMv7TGG55Sb-o6VLDxcJQOA';
@@ -42,14 +44,22 @@ if (GEMINI_API_KEY) {
     const { GoogleGenerativeAI } = require("@google/generative-ai");
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
     geminiModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
-    console.log("✅ Gemini 2.5 Flash Lite initialized (Tier 1)");
+    console.log("✅ Gemini 2.5 Flash Lite initialized (Tier 1 - Primary)");
   } catch (e) {
     console.warn("⚠️ Gemini SDK init failed.");
   }
 }
 
+if (OPENAI_API_KEY) {
+  console.log('✅ OpenAI GPT-4o-mini configured (Tier 3 - Fallback 2)');
+} else {
+  console.warn('⚠️ OPENAI_API_KEY not set');
+}
+if (GROQ_API_KEY) {
+  console.log('✅ Groq configured (Tier 2 - Fallback)');
+}
 if (CLOUDFLARE_ACCOUNT_ID && CLOUDFLARE_API_TOKEN) {
-  console.log("✅ Cloudflare Workers AI configured (Tier 2 - Llama 3.1 8B)");
+  console.log('✅ Cloudflare Workers AI configured (Tier 3 - Last resort)');
 }
 
 const parser = new XMLParser();
@@ -108,9 +118,9 @@ async function fetchSchemeImage(keyword) {
   }
 }
 
-// ─── CASCADING AI CALL ────────────────────────────────────────────
-async function callAI(prompt) {
-  // TIER 1: Gemini
+// ─── CASCADING AI CALL (Gemini → Groq → OpenAI) ─────────────
+async function callAI(prompt, maxTokens = 2000) {
+  // TIER 1: Gemini (Primary)
   if (geminiModel) {
     try {
       const result = await geminiModel.generateContent(prompt);
@@ -118,26 +128,62 @@ async function callAI(prompt) {
       if (text && text.length > 50) return text;
     } catch (e) {
       if (e.message?.includes('429') || e.message?.includes('quota')) {
-        console.warn('     ⏳ Gemini Quota Reached. Falling back to Cloudflare...');
+        console.warn('     ⏳ Gemini Quota Reached. Falling back to Groq...');
       } else {
         console.error('     ⚠️ Gemini Error:', e.message);
       }
     }
   }
 
-  // TIER 2: Cloudflare (Efficient Llama 3.1 8B)
+  // TIER 3: OpenAI (Fallback 2)
+  if (OPENAI_API_KEY) {
+    try {
+      const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: maxTokens,
+        temperature: 0.4
+      }, {
+        headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
+        timeout: 30000
+      });
+      const text = response.data?.choices?.[0]?.message?.content?.trim();
+      if (text && text.length > 50) return text;
+    } catch (e) {
+      if (e.response?.status === 429) {
+        console.warn('     ⏳ OpenAI rate limited. Falling back to Groq...');
+      } else {
+        console.error('     ⚠️ OpenAI Error:', e.response?.data?.error?.message || e.message);
+      }
+    }
+  }
+
+  // TIER 2: Groq (Fallback)
+  if (GROQ_API_KEY) {
+    try {
+      const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
+        model: 'llama-3.3-70b-versatile',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: maxTokens,
+        temperature: 0.4
+      }, {
+        headers: { 'Authorization': `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
+        timeout: 20000
+      });
+      const text = response.data?.choices?.[0]?.message?.content?.trim();
+      if (text && text.length > 50) return text;
+    } catch (e) {
+      console.warn(`     ⚠️ Groq Error: ${e.response?.data?.error?.message || e.message}`);
+    }
+  }
+
+  // TIER 3: Cloudflare (Last resort)
   if (CLOUDFLARE_ACCOUNT_ID && CLOUDFLARE_API_TOKEN) {
     try {
       const response = await axios.post(
         `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/v1/chat/completions`,
-        {
-          model: '@cf/meta/llama-3.1-8b-instruct',
-          messages: [{ role: 'user', content: prompt }]
-        },
-        {
-          headers: { 'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`, 'Content-Type': 'application/json' },
-          timeout: 40000
-        }
+        { model: '@cf/meta/llama-3.1-8b-instruct', messages: [{ role: 'user', content: prompt }] },
+        { headers: { 'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`, 'Content-Type': 'application/json' }, timeout: 40000 }
       );
       const text = response.data?.choices?.[0]?.message?.content || response.data?.result?.response;
       if (text && text.length > 50) return text;
@@ -275,6 +321,7 @@ async function rewriteWithAI(title, url, hintType) {
   Write as if you are explaining it to a neighbor. Use short sentences. Avoid technical jargon.
   
   Structure Rule: You MUST follow this exact 14-point structure. Use clear numeric labels (e.g. "1. Title:").
+  - Include relevant emojis (🤑, 📈, 🏦, ✅, etc.) and symbols in the headings and content to make it visually appealing and easy to read.
   DO NOT use any markdown symbols like asterisks (**), hashes (#), or bullet points. Use plain text only.
   
   1. Title: Very simple, catchy name of the job or news.

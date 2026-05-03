@@ -12,6 +12,7 @@ const axios = require('axios');
 const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.SUPABASE_SERVICE_KEY;
 const geminiKey = process.env.GEMINI_API_KEY;
+const openaiKey = process.env.OPENAI_API_KEY;
 const groqKey = process.env.GROQ_API_KEY;
 const cfAccountId = process.env.CLOUDFLARE_ACCOUNT_ID;
 const cfApiToken = process.env.CLOUDFLARE_API_TOKEN;
@@ -25,67 +26,94 @@ if (!url || !key) {
 const supabase = createClient(url, key);
 const parser = new Parser();
 
-// Initialize Gemini SDK if key exists
+// Initialize Gemini SDK
 let genAI = null;
 let geminiModel = null;
 if (geminiKey) {
   try {
     genAI = new GoogleGenerativeAI(geminiKey);
-    // Use gemini-2.5-flash-lite for Tier 1
     geminiModel = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
   } catch (e) {
-    console.warn('⚠️ Gemini SDK init failed, will use fallbacks.');
+    console.warn('⚠️ Gemini SDK init failed.');
   }
 }
 
 // ============================================
-// UNIFIED AI COMPLETION (2-TIER FALLBACK)
+// UNIFIED AI COMPLETION (Gemini → Groq → OpenAI)
 // ============================================
-async function generateAICompletion(prompt) {
-  // --- TIER 1: CLOUDFLARE WORKERS AI ---
-  if (cfAccountId && cfApiToken) {
+async function generateAICompletion(prompt, maxTokens = 2000) {
+  // --- TIER 1: GEMINI (Primary for discovery) ---
+  if (geminiModel) {
     try {
-      console.log('🤖 Attempting Tier 1: Cloudflare Workers AI (Llama 3.1 8B)...');
-      const response = await axios.post(
-        `https://api.cloudflare.com/client/v4/accounts/${cfAccountId}/ai/v1/chat/completions`,
-        {
-          model: '@cf/meta/llama-3.1-8b-instruct',
-          messages: [{ role: 'user', content: prompt }]
-        },
-        {
-          headers: { 
-            'Authorization': `Bearer ${cfApiToken}`,
-            'Content-Type': 'application/json'
-          },
-          timeout: 25000
-        }
-      );
-      const text = response.data?.result?.response?.trim() || response.data?.choices?.[0]?.message?.content?.trim();
-      if (text) return text;
+      console.log('🤖 Tier 1: Gemini 2.5 Flash Lite...');
+      const result = await geminiModel.generateContent(prompt);
+      const text = result.response.text();
+      if (text && text.length > 50) return text;
     } catch (err) {
-      console.warn(`⚠️ Tier 1 (Cloudflare) failed: ${err.message}`);
+      if (err.message?.includes('429') || err.message?.includes('quota')) {
+        console.warn('     ⏳ Gemini Quota Reached. Falling back...');
+      } else {
+        console.warn(`⚠️ Tier 1 (Gemini) failed: ${err.message}`);
+      }
+    }
+  }
+  // --- TIER 3: OPENAI (Fallback 2) ---
+  if (openaiKey) {
+    try {
+      console.log('🤖 Tier 3: OpenAI GPT-4o-mini (fallback 2)...');
+      const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: maxTokens,
+        temperature: 0.4
+      }, {
+        headers: { 'Authorization': `Bearer ${openaiKey}`, 'Content-Type': 'application/json' },
+        timeout: 30000
+      });
+      const text = response.data?.choices?.[0]?.message?.content?.trim();
+      if (text && text.length > 50) return text;
+    } catch (err) {
+      console.warn(`⚠️ Tier 3 (OpenAI) failed: ${err.response?.data?.error?.message || err.message}`);
     }
   }
 
-  // --- TIER 2: GROQ ---
+  // --- TIER 2: GROQ (Fallback) ---
   if (groqKey) {
     try {
-      console.log('🤖 Attempting Tier 2: Groq (Llama 3.1 8B instant)...');
+      console.log('🤖 Tier 2: Groq llama-3.3-70b-versatile (fallback)...');
       const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
-        model: 'llama-3.1-8b-instant',
-        messages: [{ role: 'user', content: prompt }]
+        model: 'llama-3.3-70b-versatile',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: maxTokens,
+        temperature: 0.4
       }, {
-        headers: { 'Authorization': `Bearer ${groqKey}` },
-        timeout: 15000
+        headers: { 'Authorization': `Bearer ${groqKey}`, 'Content-Type': 'application/json' },
+        timeout: 20000
       });
       const text = response.data?.choices?.[0]?.message?.content?.trim();
-      if (text) return text;
+      if (text && text.length > 50) return text;
     } catch (err) {
       console.warn(`⚠️ Tier 2 (Groq) failed: ${err.response?.data?.error?.message || err.message}`);
     }
   }
 
-  return ""; // Failsafe fallback
+  // --- TIER 3: CLOUDFLARE (Last resort) ---
+  if (cfAccountId && cfApiToken) {
+    try {
+      console.log('🤖 Tier 3: Cloudflare Workers AI (last resort)...');
+      const response = await axios.post(
+        `https://api.cloudflare.com/client/v4/accounts/${cfAccountId}/ai/v1/chat/completions`,
+        { model: '@cf/meta/llama-3.1-8b-instruct', messages: [{ role: 'user', content: prompt }] },
+        { headers: { 'Authorization': `Bearer ${cfApiToken}`, 'Content-Type': 'application/json' }, timeout: 25000 }
+      );
+      const text = response.data?.result?.response?.trim() || response.data?.choices?.[0]?.message?.content?.trim();
+      if (text && text.length > 50) return text;
+    } catch (err) {
+      console.warn(`⚠️ Tier 3 (Cloudflare) failed: ${err.message}`);
+    }
+  }
+
+  return ""; // All tiers exhausted
 }
 
 // ============================================
