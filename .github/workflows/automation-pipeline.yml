@@ -33,9 +33,11 @@ jobs:
         run: npm install
 
       # ==================================
-      # STEP 1: DISCOVERY
+      # STAGE 1: DISCOVERY
       # ==================================
       - name: Stage 1 - Scheme Discovery Agent
+        id: stage1
+        continue-on-error: true
         working-directory: agents
         run: node findSchemes.js
         env:
@@ -51,20 +53,42 @@ jobs:
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
           APISETU_KEY: ${{ secrets.APISETU_KEY }}
 
+      - name: Stage 1 - Report Status
+        if: always()
+        run: |
+          if [ "${{ steps.stage1.outcome }}" == "success" ]; then
+            echo "✅ Stage 1 passed"
+          else
+            echo "⚠️  Stage 1 failed - proceeding to Stage 2 (enrichment only mode)"
+          fi
+
       # ==================================
-      # STEP 2: ENRICHMENT
+      # STAGE 2: ENRICHMENT
       # ==================================
       - name: Stage 2 - State Enrichment
+        id: stage2
+        continue-on-error: true
         run: node scripts/state-enrichment.js
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL != '' && secrets.SUPABASE_URL || secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
 
+      - name: Stage 2 - Report Status
+        if: always()
+        run: |
+          if [ "${{ steps.stage2.outcome }}" == "success" ]; then
+            echo "✅ Stage 2 passed"
+          else
+            echo "⚠️  Stage 2 failed - proceeding to Stage 3"
+          fi
+
       # ==================================
-      # STEP 3: CONTENT GENERATION V2 (New Schemes Only)
+      # STAGE 3: CONTENT GENERATION V2
       # ==================================
       - name: Stage 3 - Content Writing & Translation V2
+        id: stage3
+        continue-on-error: true
         run: node scripts/generate-scheme-content-v2.js
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -72,26 +96,41 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL != '' && secrets.SUPABASE_URL || secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
 
-      # ==================================
-      # STEP 4: DEDUPLICATION & SEO CLEANUP
-      # ==================================
-      - name: Stage 4 - Deduplication & SEO Cleanup
-        run: node scripts/cleanup-schemes.js
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+      - name: Stage 3 - Report Status
+        if: always()
+        run: |
+          if [ "${{ steps.stage3.outcome }}" == "success" ]; then
+            echo "✅ Stage 3 passed"
+          else
+            echo "⚠️  Stage 3 failed - proceeding to cleanup"
+          fi
 
       # ==================================
-      # STEP 5: DEPLOY (Cloudflare Pages)
+      # STAGE 4: DEDUPLICATION & SEO CLEANUP
       # ==================================
-      # Requires a one-time setup: create a Deploy Hook in the Cloudflare Pages
-      # dashboard (Settings > Builds & deployments > Deploy Hooks > Add Hook)
-      # then add it as CLOUDFLARE_DEPLOY_HOOK_URL in GitHub repository secrets.
-      # All pages already use Edge Runtime so new content appears immediately
-      # in the DB — this rebuild is mainly to keep code + sitemap caches fresh.
+      - name: Stage 4 - Deduplication & SEO Cleanup
+        id: stage4
+        continue-on-error: true
+        run: node scripts/cleanup-schemes.js
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL != '' && secrets.SUPABASE_URL || secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+
+      - name: Stage 4 - Report Status
+        if: always()
+        run: |
+          if [ "${{ steps.stage4.outcome }}" == "success" ]; then
+            echo "✅ Stage 4 passed"
+          else
+            echo "⚠️  Stage 4 failed - triggering rebuild anyway"
+          fi
+
+      # ==================================
+      # STAGE 5: DEPLOY (Always run)
+      # ==================================
       - name: Stage 5 - Trigger Cloudflare Pages Rebuild
         if: always()
         run: |
@@ -100,19 +139,29 @@ jobs:
             curl -s -X POST "$DEPLOY_HOOK_URL" | jq .
             echo "✅ Rebuild triggered!"
           else
-            echo "⚠️  CLOUDFLARE_DEPLOY_HOOK_URL secret is not set."
-            echo "    To enable automatic Cloudflare rebuilds after each pipeline run:"
-            echo "    1. Go to: Cloudflare Pages → your project → Settings → Builds & deployments"
-            echo "    2. Under 'Deploy Hooks', click 'Add Hook' → name it 'Pipeline' → Save"
-            echo "    3. Copy the generated URL and add it as CLOUDFLARE_DEPLOY_HOOK_URL"
-            echo "       in: GitHub repo → Settings → Secrets and variables → Actions"
-            echo "    NOTE: New schemes still appear live (Edge Runtime) without this rebuild."
+            echo "⚠️  CLOUDFLARE_DEPLOY_HOOK_URL secret not set"
           fi
         env:
           DEPLOY_HOOK_URL: ${{ secrets.CLOUDFLARE_DEPLOY_HOOK_URL }}
 
-
-      - name: Pipeline Report
+      # ==================================
+      # FINAL SUMMARY
+      # ==================================
+      - name: Pipeline Summary
         if: always()
         run: |
+          echo "📊 Pipeline Execution Summary:"
+          echo "================================"
+          echo "Stage 1 (Discovery):  ${{ steps.stage1.outcome }}"
+          echo "Stage 2 (Enrichment): ${{ steps.stage2.outcome }}"
+          echo "Stage 3 (Content):    ${{ steps.stage3.outcome }}"
+          echo "Stage 4 (Cleanup):    ${{ steps.stage4.outcome }}"
+          echo "Stage 5 (Deploy):     Always runs"
+          echo "================================"
           echo "Pipeline completed at $(date)"
+
+      - name: Notify on Failure
+        if: failure()
+        run: |
+          echo "❌ Pipeline had failures. Check logs for details."
+          exit 1

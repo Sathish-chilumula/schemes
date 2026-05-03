@@ -700,12 +700,14 @@ async function runFindAgent() {
   }
   console.log(`❌ Errors:                   ${stats.errors}`);
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+  return stats;
 }
 
 // Run the agent
 runFindAgent()
   .then(stats => {
-    console.log(`Done. ${stats.new} new, ${stats.updated} updated.`);
+    console.log(`Done. ${stats?.published || 0} new schemes found.`);
     process.exit(0);
   })
   .catch(err => {
