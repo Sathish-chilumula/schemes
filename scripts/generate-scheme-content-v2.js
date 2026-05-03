@@ -62,26 +62,7 @@ const LANGUAGE_NAMES = {
 function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 async function callLLM(prompt, maxTokens = 2500) {
-  // --- TIER 1: OPENAI (Primary) ---
-  if (OPENAI_API_KEY) {
-    try {
-      const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-        model: 'gpt-4o-mini',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: maxTokens,
-        temperature: 0.4
-      }, {
-        headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
-        timeout: 40000
-      });
-      const text = response.data?.choices?.[0]?.message?.content?.trim();
-      if (text && text.length > 100) return text;
-    } catch (err) {
-      console.warn(`⚠️ Tier 1 (OpenAI) failed: ${err.response?.data?.error?.message || err.message}`);
-    }
-  }
-
-  // --- TIER 2: GROQ (Fallback) ---
+  // --- TIER 1: GROQ (Primary) ---
   if (GROQ_API_KEY) {
     try {
       const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
@@ -96,18 +77,37 @@ async function callLLM(prompt, maxTokens = 2500) {
       const text = response.data?.choices?.[0]?.message?.content?.trim();
       if (text && text.length > 100) return text;
     } catch (err) {
-      console.warn(`⚠️ Tier 2 (Groq) failed: ${err.response?.data?.error?.message || err.message}`);
+      console.warn(`⚠️ Tier 1 (Groq) failed: ${err.response?.data?.error?.message || err.message}`);
     }
   }
 
-  // --- TIER 3: GEMINI (Fallback) ---
+  // --- TIER 2: GEMINI (Fallback 1) ---
   if (geminiModel) {
     try {
       const result = await geminiModel.generateContent(prompt);
       const text = result.response.text();
       if (text && text.length > 100) return text;
     } catch (err) {
-      console.warn(`⚠️ Tier 3 (Gemini) failed: ${err.message}`);
+      console.warn(`⚠️ Tier 2 (Gemini) failed: ${err.message}`);
+    }
+  }
+
+  // --- TIER 3: OPENAI (Fallback 2) ---
+  if (OPENAI_API_KEY) {
+    try {
+      const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: maxTokens,
+        temperature: 0.4
+      }, {
+        headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
+        timeout: 40000
+      });
+      const text = response.data?.choices?.[0]?.message?.content?.trim();
+      if (text && text.length > 100) return text;
+    } catch (err) {
+      console.warn(`⚠️ Tier 3 (OpenAI) failed: ${err.response?.data?.error?.message || err.message}`);
     }
   }
 

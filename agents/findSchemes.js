@@ -42,13 +42,33 @@ if (geminiKey) {
 }
 
 // ============================================
-// UNIFIED AI COMPLETION (Gemini → Groq → OpenAI)
+// UNIFIED AI COMPLETION (Groq → Gemini → OpenAI)
 // ============================================
 async function generateAICompletion(prompt, maxTokens = 2000) {
-  // --- TIER 1: GEMINI (Primary for discovery) ---
+  // --- TIER 1: GROQ (Primary) ---
+  if (groqKey) {
+    try {
+      console.log('🤖 Tier 1: Groq llama-3.3-70b-versatile...');
+      const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
+        model: 'llama-3.3-70b-versatile',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: maxTokens,
+        temperature: 0.4
+      }, {
+        headers: { 'Authorization': `Bearer ${groqKey}`, 'Content-Type': 'application/json' },
+        timeout: 20000
+      });
+      const text = response.data?.choices?.[0]?.message?.content?.trim();
+      if (text && text.length > 50) return text;
+    } catch (err) {
+      console.warn(`⚠️ Tier 1 (Groq) failed: ${err.response?.data?.error?.message || err.message}`);
+    }
+  }
+
+  // --- TIER 2: GEMINI (Fallback 1) ---
   if (geminiModel) {
     try {
-      console.log('🤖 Tier 1: Gemini 2.5 Flash Lite...');
+      console.log('🤖 Tier 2: Gemini 2.5 Flash Lite (fallback 1)...');
       const result = await geminiModel.generateContent(prompt);
       const text = result.response.text();
       if (text && text.length > 50) return text;
@@ -56,10 +76,11 @@ async function generateAICompletion(prompt, maxTokens = 2000) {
       if (err.message?.includes('429') || err.message?.includes('quota')) {
         console.warn('     ⏳ Gemini Quota Reached. Falling back...');
       } else {
-        console.warn(`⚠️ Tier 1 (Gemini) failed: ${err.message}`);
+        console.warn(`⚠️ Tier 2 (Gemini) failed: ${err.message}`);
       }
     }
   }
+
   // --- TIER 3: OPENAI (Fallback 2) ---
   if (openaiKey) {
     try {
@@ -80,30 +101,10 @@ async function generateAICompletion(prompt, maxTokens = 2000) {
     }
   }
 
-  // --- TIER 2: GROQ (Fallback) ---
-  if (groqKey) {
-    try {
-      console.log('🤖 Tier 2: Groq llama-3.3-70b-versatile (fallback)...');
-      const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
-        model: 'llama-3.3-70b-versatile',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: maxTokens,
-        temperature: 0.4
-      }, {
-        headers: { 'Authorization': `Bearer ${groqKey}`, 'Content-Type': 'application/json' },
-        timeout: 20000
-      });
-      const text = response.data?.choices?.[0]?.message?.content?.trim();
-      if (text && text.length > 50) return text;
-    } catch (err) {
-      console.warn(`⚠️ Tier 2 (Groq) failed: ${err.response?.data?.error?.message || err.message}`);
-    }
-  }
-
-  // --- TIER 3: CLOUDFLARE (Last resort) ---
+  // --- TIER 4: CLOUDFLARE (Last resort) ---
   if (cfAccountId && cfApiToken) {
     try {
-      console.log('🤖 Tier 3: Cloudflare Workers AI (last resort)...');
+      console.log('🤖 Tier 4: Cloudflare Workers AI (last resort)...');
       const response = await axios.post(
         `https://api.cloudflare.com/client/v4/accounts/${cfAccountId}/ai/v1/chat/completions`,
         { model: '@cf/meta/llama-3.1-8b-instruct', messages: [{ role: 'user', content: prompt }] },
@@ -112,7 +113,7 @@ async function generateAICompletion(prompt, maxTokens = 2000) {
       const text = response.data?.result?.response?.trim() || response.data?.choices?.[0]?.message?.content?.trim();
       if (text && text.length > 50) return text;
     } catch (err) {
-      console.warn(`⚠️ Tier 3 (Cloudflare) failed: ${err.message}`);
+      console.warn(`⚠️ Tier 4 (Cloudflare) failed: ${err.message}`);
     }
   }
 

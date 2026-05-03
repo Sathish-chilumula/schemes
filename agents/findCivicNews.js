@@ -118,9 +118,28 @@ async function fetchSchemeImage(keyword) {
   }
 }
 
-// ─── CASCADING AI CALL (Gemini → Groq → OpenAI) ─────────────
+// ─── CASCADING AI CALL (Groq → Gemini → OpenAI) ─────────────
 async function callAI(prompt, maxTokens = 2000) {
-  // TIER 1: Gemini (Primary)
+  // TIER 1: Groq (Primary)
+  if (GROQ_API_KEY) {
+    try {
+      const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
+        model: 'llama-3.3-70b-versatile',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: maxTokens,
+        temperature: 0.4
+      }, {
+        headers: { 'Authorization': `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
+        timeout: 20000
+      });
+      const text = response.data?.choices?.[0]?.message?.content?.trim();
+      if (text && text.length > 50) return text;
+    } catch (e) {
+      console.warn(`     ⚠️ Groq Error: ${e.response?.data?.error?.message || e.message}`);
+    }
+  }
+
+  // TIER 2: Gemini (Fallback 1)
   if (geminiModel) {
     try {
       const result = await geminiModel.generateContent(prompt);
@@ -128,7 +147,7 @@ async function callAI(prompt, maxTokens = 2000) {
       if (text && text.length > 50) return text;
     } catch (e) {
       if (e.message?.includes('429') || e.message?.includes('quota')) {
-        console.warn('     ⏳ Gemini Quota Reached. Falling back to Groq...');
+        console.warn('     ⏳ Gemini Quota Reached. Falling back...');
       } else {
         console.error('     ⚠️ Gemini Error:', e.message);
       }
@@ -150,34 +169,11 @@ async function callAI(prompt, maxTokens = 2000) {
       const text = response.data?.choices?.[0]?.message?.content?.trim();
       if (text && text.length > 50) return text;
     } catch (e) {
-      if (e.response?.status === 429) {
-        console.warn('     ⏳ OpenAI rate limited. Falling back to Groq...');
-      } else {
-        console.error('     ⚠️ OpenAI Error:', e.response?.data?.error?.message || e.message);
-      }
+      console.error('     ⚠️ OpenAI Error:', e.response?.data?.error?.message || e.message);
     }
   }
 
-  // TIER 2: Groq (Fallback)
-  if (GROQ_API_KEY) {
-    try {
-      const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
-        model: 'llama-3.3-70b-versatile',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: maxTokens,
-        temperature: 0.4
-      }, {
-        headers: { 'Authorization': `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
-        timeout: 20000
-      });
-      const text = response.data?.choices?.[0]?.message?.content?.trim();
-      if (text && text.length > 50) return text;
-    } catch (e) {
-      console.warn(`     ⚠️ Groq Error: ${e.response?.data?.error?.message || e.message}`);
-    }
-  }
-
-  // TIER 3: Cloudflare (Last resort)
+  // TIER 4: Cloudflare (Last resort)
   if (CLOUDFLARE_ACCOUNT_ID && CLOUDFLARE_API_TOKEN) {
     try {
       const response = await axios.post(
