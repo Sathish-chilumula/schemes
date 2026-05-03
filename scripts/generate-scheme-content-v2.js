@@ -244,7 +244,7 @@ async function runV2Pipeline() {
     query = query
       .eq('is_seo_optimized', false)
       .eq('country_code', 'IN')
-      .gte('created_at', '2026-05-01T00:00:00Z')
+      .gte('discovered_at', '2026-05-01T00:00:00Z')
       .order('discovered_at', { ascending: false })
       .limit(BATCH_SIZE);
   }
