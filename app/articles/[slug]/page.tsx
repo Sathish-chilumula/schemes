@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { FAQAccordion } from '@/components/FAQAccordion';
+import { Navbar } from '@/components/Navbar';
 
 // Do NOT use runtime = 'edge' here because we need fs
 export const dynamicParams = false;
@@ -84,10 +85,44 @@ export default async function ArticlePage({ params }: { params: { slug: string }
 
   return (
     <div className="bg-white min-h-screen">
+      <Navbar />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
       <div className="max-w-[1200px] mx-auto px-[24px] py-[40px]">
+        {/* Language Switcher */}
+        <div className="flex gap-3 mb-8 border-b border-slate-100 pb-4 overflow-x-auto no-scrollbar">
+          {[
+            { label: 'English', suffix: '', flag: '🇺🇸' },
+            { label: 'हिन्दी', suffix: '-hi', flag: '🇮🇳' },
+            { label: 'తెలుగు', suffix: '-te', flag: '🇮🇳' }
+          ].map((lang) => {
+            const baseSlug = params.slug.replace(/-(hi|te)$/, '');
+            const targetSlug = lang.suffix ? `${baseSlug}${lang.suffix}` : baseSlug;
+            const isActive = (lang.suffix === '' && !params.slug.endsWith('-hi') && !params.slug.endsWith('-te')) || 
+                             (lang.suffix !== '' && params.slug.endsWith(lang.suffix));
+            
+            // We check if the file exists to show the button
+            const filePath = path.join(process.cwd(), `content/articles/${targetSlug}.json`);
+            if (!fs.existsSync(filePath)) return null;
+
+            return (
+              <Link 
+                key={lang.label}
+                href={`/articles/${targetSlug}`}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-all border ${
+                  isActive 
+                    ? 'bg-slate-900 border-slate-900 text-white shadow-md' 
+                    : 'bg-white border-slate-200 text-slate-600 hover:border-slate-400'
+                }`}
+              >
+                <span>{lang.flag}</span>
+                {lang.label}
+              </Link>
+            );
+          })}
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-[48px] items-start">
           
           {/* ── ARTICLE COLUMN (LEFT) ── */}
@@ -102,6 +137,17 @@ export default async function ArticlePage({ params }: { params: { slug: string }
               <span className="px-[6px]">›</span>
               <span className="text-[var(--text-muted)] font-[500] truncate max-w-[200px] sm:max-w-none">{article.title}</span>
             </div>
+
+            {/* Hero Image */}
+            {article.imageUrl && (
+              <div className="relative w-full aspect-video rounded-[var(--radius-md)] overflow-hidden mb-[24px] border border-[var(--border)]">
+                <img 
+                  src={article.imageUrl} 
+                  alt={article.title}
+                  className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                />
+              </div>
+            )}
 
             {/* Category Pill & Date */}
             <div className="flex items-center gap-[12px] mb-[16px]">

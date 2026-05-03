@@ -1,3 +1,4 @@
+import articlesIndex from '@/content/articles-index.json';
 import Link from 'next/link';
 
 interface Props {
@@ -7,34 +8,24 @@ interface Props {
 
 export function RelatedArticlesBlock({ category, schemeTitle }: Props) {
   const catLower = category.toLowerCase();
-  let suggestions = [];
+  
+  // Try to find real articles from the index that match the category
+  const findRelated = () => {
+    const matched = (articlesIndex as any[]).filter(a => 
+      a.category?.toLowerCase().includes(catLower) || 
+      catLower.includes(a.category?.toLowerCase())
+    ).slice(0, 2);
 
-  if (catLower.includes('business') || catLower.includes('loan') || catLower.includes('startup')) {
-    suggestions = [
-      { title: "Best Business Loans in India 2025", href: "/articles/business-loans-india" },
-      { title: "MUDRA Loan: How to Apply Step by Step", href: "/articles/mudra-loan-guide" }
+    if (matched.length >= 2) return matched.map(m => ({ title: m.title, href: `/articles/${m.slug}` }));
+    
+    // Fallback suggestions pointing to category searches to avoid 404s
+    return [
+      { title: `All ${category} Guides & Tips`, href: `/articles?category=${encodeURIComponent(category)}` },
+      { title: "Top Money Saving & Earning Guides", href: "/articles" }
     ];
-  } else if (catLower.includes('health') || catLower.includes('medical')) {
-    suggestions = [
-      { title: "Health Insurance Tips Every Indian Needs", href: "/articles/health-insurance-tips-india" },
-      { title: "Ayushman Bharat vs Private Insurance", href: "/articles/ayushman-vs-private-insurance" }
-    ];
-  } else if (catLower.includes('women') || catLower.includes('girl')) {
-    suggestions = [
-      { title: "15 Ways to Earn Money Online in India", href: "/articles/earn-money-online-india" },
-      { title: "Sukanya Samriddhi vs Other Savings", href: "/articles/sukanya-samriddhi-guide" }
-    ];
-  } else if (catLower.includes('student') || catLower.includes('scholar') || catLower.includes('education')) {
-    suggestions = [
-      { title: "Complete Scholarship Guide for Indian Students", href: "/articles/scholarship-guide-india" },
-      { title: "Education Loan Without Collateral", href: "/articles/education-loan-india" }
-    ];
-  } else {
-    suggestions = [
-      { title: "PM Schemes That Transfer Money Directly", href: "/articles/pm-schemes-direct-benefit" },
-      { title: "15 Ways to Earn Money Online in India", href: "/articles/earn-money-online-india" }
-    ];
-  }
+  };
+
+  const suggestions = findRelated();
 
   return (
     <div className="mt-[40px] bg-[var(--indigo-light)] rounded-[var(--radius-md)] p-[24px]">

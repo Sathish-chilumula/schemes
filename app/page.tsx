@@ -7,6 +7,7 @@ import { Navbar } from '@/components/Navbar';
 import { HomeSearch } from './HomeSearch';
 import { HomeTabs } from './HomeTabs';
 import { FAQAccordion } from '@/components/FAQAccordion';
+import articlesIndex from '@/content/articles-index.json';
 
 export const runtime = 'edge';
 export const revalidate = 3600;
@@ -87,29 +88,40 @@ export default async function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[20px]">
-            {[
-              { tag: "💰 Earn Money", tagColor: "#059669", title: "15 Ways to Earn Money Online in India 2025", desc: "From PMKVY training to freelancing — practical earning paths for every Indian.", views: "24.5K", time: "8 min read", href: "/articles/earn-money-online-india" },
-              { tag: "🏦 Loans", tagColor: "#2563EB", title: "Best Personal Loans in India: Compare 20+ Banks", desc: "SBI, HDFC, ICICI compared — rates, eligibility and step-by-step apply guide.", views: "31.2K", time: "11 min read", href: "/articles/best-personal-loans-india" },
-              { tag: "🛡️ Insurance", tagColor: "#7C3AED", title: "Health Insurance Tips Every Indian Family Needs", desc: "Mistakes to avoid, what to check before buying, and the best plans compared.", views: "18.9K", time: "9 min read", href: "/articles/health-insurance-tips-india" },
-              { tag: "📈 Schemes", tagColor: "#D97706", title: "PM Schemes That Transfer Money Directly to You", desc: "DBT subsidies and grants — a complete list of what you're eligible to claim.", views: "42.1K", time: "7 min read", href: "/articles/pm-schemes-direct-benefit" }
-            ].map((article, i) => (
-              <Link key={i} href={article.href} className="bg-white rounded-[var(--radius-md)] border border-[var(--border)] p-[22px] cursor-pointer card-animate relative overflow-hidden group block hover:shadow-[var(--shadow-sm)] hover:-translate-y-[2px] hover:border-[var(--indigo)] transition-all duration-300" style={{ animationDelay: `${i * 0.1}s` }}>
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[rgba(255,255,255,0.8)] to-transparent -translate-x-[150%] skew-x-[-20deg] group-hover:animate-shine z-10 pointer-events-none"></div>
-                
-                <div className="relative z-20">
-                  <span style={{ backgroundColor: `${article.tagColor}18`, color: article.tagColor }} className="text-[11px] font-[700] px-[10px] py-[4px] rounded-[20px] inline-block mb-[10px]">
-                    {article.tag}
-                  </span>
-                  <h3 className="text-[15px] font-[700] my-[10px] leading-[1.45] text-[var(--text-primary)] group-hover:text-[var(--indigo)] transition-colors line-clamp-2">{article.title}</h3>
-                  <p className="text-[13px] text-[var(--text-muted)] leading-[1.6] mb-[16px] line-clamp-2">{article.desc}</p>
+            {articlesIndex.length > 0 ? (
+              articlesIndex.slice(0, 4).map((article: any, i: number) => (
+                <Link 
+                  key={article.slug} 
+                  href={`/articles/${article.slug}`} 
+                  className="bg-white rounded-[var(--radius-md)] border border-[var(--border)] p-[22px] cursor-pointer card-animate relative overflow-hidden group block hover:shadow-[var(--shadow-sm)] hover:-translate-y-[2px] hover:border-[var(--indigo)] transition-all duration-300" 
+                  style={{ animationDelay: `${i * 0.1}s` }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[rgba(255,255,255,0.8)] to-transparent -translate-x-[150%] skew-x-[-20deg] group-hover:animate-shine z-10 pointer-events-none"></div>
                   
-                  <div className="border-t border-[#F3F4F6] pt-[12px] flex justify-between text-[12px] text-[var(--text-faint)]">
-                    <span>👀 {article.views} views</span>
-                    <span>⏱️ {article.time}</span>
+                  <div className="relative z-20">
+                    <span className="bg-[var(--indigo-light)] text-[var(--indigo)] text-[11px] font-[700] px-[10px] py-[4px] rounded-[20px] inline-block mb-[10px]">
+                      {article.category || 'Guide'}
+                    </span>
+                    <h3 className="text-[15px] font-[700] my-[10px] leading-[1.45] text-[var(--text-primary)] group-hover:text-[var(--indigo)] transition-colors line-clamp-2">{article.title}</h3>
+                    <p className="text-[13px] text-[var(--text-muted)] leading-[1.6] mb-[16px] line-clamp-2">{article.desc}</p>
+                    
+                    <div className="border-t border-[#F3F4F6] pt-[12px] flex justify-between text-[12px] text-[var(--text-faint)]">
+                      <span>👀 {article.views || '1.2K'} views</span>
+                      <span>⏱️ {article.time || '5 min read'}</span>
+                    </div>
                   </div>
+                </Link>
+              ))
+            ) : (
+              // Fallback placeholder cards if no articles exist
+              [1,2,3,4].map((n) => (
+                <div key={n} className="bg-white rounded-[var(--radius-md)] border border-[var(--border)] p-[22px] opacity-60">
+                   <div className="w-20 h-4 bg-slate-100 rounded mb-4"></div>
+                   <div className="w-full h-12 bg-slate-100 rounded mb-4"></div>
+                   <div className="w-full h-8 bg-slate-50 rounded"></div>
                 </div>
-              </Link>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </section>

@@ -1,27 +1,40 @@
-/**
- * SchemeAtlas Article Generator
- * Source 1: Google Trends RSS India (free, no key)
- * Source 2: google-trends-api related queries for finance seeds
- * Filter + Write: Groq llama-3.3-70b-versatile (fast, free tier)
- */
-
 import * as fs from 'fs'
 import * as path from 'path'
 import { parseStringPromise } from 'xml2js'
 
 const GROQ_KEY = process.env.GROQ_API_KEY!
+const GEMINI_KEY = process.env.GEMINI_API_KEY || ''
+const OPENAI_KEY = process.env.OPENAI_API_KEY || ''
 const FORCE_TOPIC = process.env.FORCE_TOPIC || ''
 const PER_RUN = parseInt(process.env.ARTICLES_PER_RUN || '3')
 const DIR = path.join(process.cwd(), 'content/articles')
+const INDEX_FILE = path.join(process.cwd(), 'content/articles-index.json')
 const MODEL = 'llama-3.3-70b-versatile'
 
-const FINANCE_SEEDS = [
+const FINANCE_SEEDS_IN = [
   'personal loan India', 'health insurance India', 'earn money online India',
   'government scheme 2025', 'home loan India', 'SBI loan apply',
   'income tax saving India', 'mutual fund SIP India', 'business loan India',
   'scholarship India 2025', 'PM scheme apply', 'insurance plan India',
   'freelancing India', 'work from home India', 'PMKVY registration',
 ]
+
+const FINANCE_SEEDS_US = [
+  'personal loan USA', 'best credit cards USA 2025', 'student loan forgiveness USA',
+  'IRS tax filing 2025', 'mortgage rates USA', 'high yield savings account USA',
+  'best index funds USA', 'health insurance plans USA', '401k vs IRA guide',
+  'side hustle ideas USA', 'unemployment benefits USA', 'disability insurance USA',
+]
+
+const CATEGORY_IMAGES: Record<string, string> = {
+  'loans': 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&q=80&w=1200',
+  'insurance': 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&q=80&w=1200',
+  'earn-money': 'https://images.unsplash.com/photo-1518458028785-8fbcd101ebb9?auto=format&fit=crop&q=80&w=1200',
+  'investment': 'https://images.unsplash.com/photo-1611974714658-dd4d18c01c11?auto=format&fit=crop&q=80&w=1200',
+  'tax': 'https://images.unsplash.com/photo-1554224154-26032ffc0d07?auto=format&fit=crop&q=80&w=1200',
+  'scholarship': 'https://images.unsplash.com/photo-15230503530b0-6984da937e12?auto=format&fit=crop&q=80&w=1200',
+  'schemes': 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?auto=format&fit=crop&q=80&w=1200'
+}
 
 function slug(t: string) {
   return t.toLowerCase().replace(/[^a-z0-9\s-]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-').slice(0,80).trim()
@@ -43,11 +56,54 @@ async function groq(user: string, system: string, tokens=4000): Promise<string> 
   return (await r.json()).choices[0].message.content.trim()
 }
 
+async function gemini(user: string, system: string): Promise<string> {
+  if (!GEMINI_KEY) throw new Error('GEMINI_API_KEY missing')
+  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite-preview-02-05:generateContent?key=${GEMINI_KEY}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ role: 'user', parts: [{ text: `${system}\n\n${user}` }] }],
+      generationConfig: { maxOutputTokens: 8192, temperature: 0.2 }
+    })
+  })
+  if (!r.ok) throw new Error(`Gemini ${r.status}: ${await r.text()}`)
+  return (await r.json()).candidates[0].content.parts[0].text.trim()
+}
+
+async function openai(user: string, system: string): Promise<string> {
+  if (!OPENAI_KEY) throw new Error('OPENAI_API_KEY missing')
+  const r = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${OPENAI_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: 'gpt-4o-mini', messages: [{ role: 'system', content: system }, { role: 'user', content: user }] })
+  })
+  if (!r.ok) throw new Error(`OpenAI ${r.status}: ${await r.text()}`)
+  return (await r.json()).choices[0].message.content.trim()
+}
+
+async function translate(text: string, targetLang: string): Promise<string> {
+  const system = `You are a professional translator for ${targetLang}. 
+Translate the provided JSON content accurately while maintaining the JSON structure. 
+Do not change slugs or URLs. Only translate user-facing text (title, intro, headings, content, faqs).`
+  const user = `Translate this content to ${targetLang}:\n\n${text}`
+  
+  try {
+    return await gemini(user, system)
+  } catch (e) {
+    console.warn(`⚠️ Gemini translation failed, falling back to OpenAI: ${e}`)
+    try {
+      return await openai(user, system)
+    } catch (e2) {
+      console.error(`❌ All translation providers failed: ${e2}`)
+      throw e2
+    }
+  }
+}
+
 function parseJSON(raw: string) {
   return JSON.parse(raw.replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim())
 }
 
-// ── SOURCE 1: Google Trends Daily RSS India ──────────────────
 async function getTrendingIndia(): Promise<string[]> {
   try {
     const r = await fetch('https://trends.google.com/trending/rss?geo=IN', {
@@ -57,174 +113,116 @@ async function getTrendingIndia(): Promise<string[]> {
     const xml = await r.text()
     const parsed = await parseStringPromise(xml)
     const items = parsed?.rss?.channel?.[0]?.item || []
-    const topics = items.slice(0,30).map((i:any)=>i?.title?.[0]||'').filter(Boolean)
-    console.log(`📡 Google Trends India: ${topics.length} topics | Top: ${topics.slice(0,5).join(' · ')}`)
-    return topics
-  } catch(e) {
-    console.warn('⚠️  Trends RSS failed:', e)
-    return []
-  }
+    return items.slice(0,30).map((i:any)=>i?.title?.[0]||'').filter(Boolean)
+  } catch { return [] }
 }
 
-// ── SOURCE 2: Related finance queries from Trends ────────────
-async function getRelatedFinanceQueries(): Promise<string[]> {
+async function getRelatedFinanceQueries(isUS = false): Promise<string[]> {
   try {
     const gt = (await import('google-trends-api')).default;
     const results: string[] = []
-    const seeds = FINANCE_SEEDS.sort(()=>Math.random()-0.5).slice(0,5)
+    const seeds = (isUS ? FINANCE_SEEDS_US : FINANCE_SEEDS_IN).sort(()=>Math.random()-0.5).slice(0,5)
     for (const seed of seeds) {
       try {
-        const raw = await gt.relatedQueries({ keyword:seed, geo:'IN',
+        const raw = await gt.relatedQueries({ keyword:seed, geo: isUS ? 'US' : 'IN',
           startTime: new Date(Date.now() - 7*24*60*60*1000) })
         const data = JSON.parse(raw)
         const rising = data?.default?.rankedList?.[0]?.rankedKeyword || []
         rising.slice(0,4).map((k:any)=>k?.query).filter(Boolean).forEach((q:string)=>results.push(q))
-        await new Promise(r=>setTimeout(r,1500))
-      } catch { /* skip this seed */ }
+        await new Promise(r=>setTimeout(r,1000))
+      } catch { }
     }
-    const unique = [...new Set(results)]
-    console.log(`📊 Related finance queries: ${unique.length} topics`)
-    return unique
-  } catch {
-    console.warn('⚠️  google-trends-api not available')
-    return []
-  }
+    return [...new Set(results)]
+  } catch { return [] }
 }
 
-// ── GROQ: Filter + pick best topics ─────────────────────────
-async function pickTopics(all: string[], done: Set<string>, count: number) {
-  const fresh = [...new Set(all)].filter(t=>!done.has(slug(t))).slice(0,60)
-  if (!fresh.length) throw new Error('No new topics — all published already.')
+async function pickTopics(all: string[], done: Set<string>, count: number, country = 'IN') {
+  const fresh = all.filter(t=>!done.has(slug(t))).slice(0,60)
+  if (!fresh.length) return []
 
-  const today = new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Kolkata'})
-  const list = fresh.map((t,i)=>`${i+1}. ${t}`).join('\n')
-
-  const system = `You are head of content at SchemeAtlas.com — India's top finance and government schemes site.
-Today is ${today}. Niche: loans, insurance, government schemes, earn money, investment, tax, scholarships.
-Reject anything outside this niche even if trending. Return only valid JSON, no extra text.`
-
-  const user = `Today's trending Google India searches + rising finance queries:\n\n${list}\n\n
-Pick the best ${count} topics to write articles on SchemeAtlas TODAY.
-Rank by: niche relevance → search intent value → urgency for Indian users.
-For each, craft a compelling specific article title (not the raw keyword).
-Example: "SBI loan" → "SBI Personal Loan 2025: Interest Rate, Eligibility & How to Apply"
-
-Return JSON:
-{
-  "selected": [
-    {
-      "rawTopic": "...",
-      "articleTitle": "compelling, specific, SEO-optimised title with year",
-      "category": "loans|insurance|earn-money|schemes|investment|tax|scholarship",
-      "slug": "url-slug",
-      "whyNow": "one sentence"
-    }
-  ]
-}`
+  const system = `You are head of content at SchemeAtlas.com. Niche: high CPC finance, loans, mutual funds, taxes, investments, insurance.
+Return only valid JSON.`
+  const user = `Target Country: ${country}. Topics:\n${fresh.join('\n')}\n
+Pick ${count} best high-intent, high-CPC finance topics. Avoid duplicates.
+Return JSON: { "selected": [{ "articleTitle": "...", "category": "...", "slug": "...", "whyNow": "..." }] }`
 
   const raw = await groq(user, system, 2000)
   const parsed = parseJSON(raw)
-  console.log(`\n🎯 Selected ${parsed.selected?.length || 0} topics:`)
-  parsed.selected?.forEach((s:any,i:number)=>console.log(`  ${i+1}. [${s.category}] ${s.articleTitle}\n     → ${s.whyNow}`))
-  return (parsed.selected||[]).slice(0,count)
+  return (parsed.selected||[]).slice(0,count).map((s:any) => ({ ...s, country }))
 }
 
-// ── GROQ: Write full article ─────────────────────────────────
-async function writeArticle(title: string, category: string, s: string): Promise<object> {
+async function writeArticle(title: string, category: string, s: string, country = 'IN'): Promise<any> {
   const today = new Date().toISOString().split('T')[0]
+  const imageUrl = CATEGORY_IMAGES[category] || CATEGORY_IMAGES['schemes']
 
-  const system = `You are a senior financial writer at SchemeAtlas.com writing for Indian readers.
-Rules: accurate real data (bank names, scheme names, amounts, eligibility),
-structured for Google Featured Snippets, never mention AI or writing tools,
-write like a knowledgeable Indian financial advisor. Return ONLY valid JSON, no markdown.
-CRITICAL: Do NOT use unescaped newlines (\\n) or control characters in JSON strings. Use <br/> for line breaks.`
-
-  const user = `Write a complete 1500-word SEO article for SchemeAtlas.com.
-Topic: "${title}" | Category: ${category}
-
-Return this exact JSON (every field required):
-{
-  "slug": "${s}",
-  "title": "${title}",
-  "metaTitle": "<max 60 chars with keyword + year>",
-  "metaDescription": "<max 155 chars, compelling, ends with benefit>",
-  "category": "${category}",
-  "publishedAt": "${today}",
-  "updatedAt": "${today}",
-  "readTime": "<X min read>",
-  "wordCount": <number>,
-  "tableOfContents": ["<h2 1>","<h2 2>","<h2 3>","<h2 4>","<h2 5>"],
-  "intro": "<2-3 punchy sentences, hook the reader, include main keyword>",
-  "sections": [
-    { "heading": "<H2 — answer main question directly>", "content": "<400+ words, real data, facts, names>" },
-    { "heading": "<H2 — comparison table or ranked list>", "content": "<structured comparison with real banks/schemes/amounts>" },
-    { "heading": "<H2 — eligibility and who qualifies>", "content": "<specific criteria, income limits, documents needed>" },
-    { "heading": "Step-by-Step: How to Apply or Get Started", "content": "<numbered steps with real URLs where applicable>" },
-    { "heading": "Important Things to Know Before You Decide", "content": "<warnings, hidden costs, common mistakes, pro tips>" }
-  ],
-  "faqs": [
-    { "q": "<#1 most searched question from real Indian users>", "a": "<direct 2-3 sentence answer with a fact/number>" },
-    { "q": "<second question>", "a": "<answer>" },
-    { "q": "<eligibility or documents question>", "a": "<answer>" },
-    { "q": "<comparison or best-option question>", "a": "<answer>" }
-  ],
-  "relatedSchemes": ["<scheme-slug>","<scheme-slug>"],
-  "relatedArticles": [],
-  "tags": ["<tag1>","<tag2>","<tag3>","<tag4>"]
-}`
+  const system = `You are a senior financial writer. Writing for ${country === 'US' ? 'American' : 'Indian'} readers.
+Niche: ${category}. No AI mentions. ONLY valid JSON.`
+  const user = `Write 1500-word SEO article for "${title}". JSON schema: { slug, title, metaTitle, metaDescription, category, publishedAt, updatedAt, readTime, wordCount, tableOfContents, intro, sections: [{heading, content}], faqs: [{q,a}], relatedSchemes, relatedArticles, tags }`
 
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
       const raw = await groq(user, system, 4000)
       const parsed = parseJSON(raw)
-      if (!parsed.title || !parsed.sections || parsed.sections.length < 3)
-        throw new Error('Article missing required fields')
-      return parsed
+      return { ...parsed, slug: s, category, publishedAt: today, updatedAt: today, imageUrl, country }
     } catch (err: any) {
       if (attempt === 3) throw err;
-      console.log(`⚠️ Write failed (attempt ${attempt}): ${err.message}. Retrying in 10s...`);
       await new Promise(r => setTimeout(r, 10000));
     }
   }
-  throw new Error('Failed to write article');
 }
 
-// ── MAIN ─────────────────────────────────────────────────────
-async function main() {
-  console.log(`🚀 SchemeAtlas Article Generator | ${new Date().toISOString()}`)
-  const done = existingSlugs()
-  console.log(`📚 Already published: ${done.size} articles`)
-
-  let selected: any[]
-
-  if (FORCE_TOPIC) {
-    selected = [{ articleTitle: FORCE_TOPIC, category: 'schemes', slug: slug(FORCE_TOPIC) }]
-  } else {
-    const [trending, related] = await Promise.all([getTrendingIndia(), getRelatedFinanceQueries()])
-    const allTopics = [...trending, ...related]
-    if (!allTopics.length) throw new Error('No topics fetched from any source')
-    selected = await pickTopics(allTopics, done, PER_RUN)
-  }
-
-  const published: string[] = []
-
-  for (let i = 0; i < selected.length; i++) {
-    const { articleTitle: title, category, slug: s } = selected[i]
-    const finalSlug = s || slug(title)
-    try {
-      console.log(`\n─── Article ${i+1}/${selected.length}: ${title} ───`)
-      const article = await writeArticle(title, category, finalSlug)
-      fs.writeFileSync(path.join(DIR, `${finalSlug}.json`), JSON.stringify(article, null, 2))
-      console.log(`✅ Saved: content/articles/${finalSlug}.json`)
-      published.push(finalSlug)
-      done.add(finalSlug)
-      if (i < selected.length-1) await new Promise(r=>setTimeout(r,35000)) // 35s delay to avoid TPM limits
-    } catch(e) {
-      console.error(`❌ Failed article ${i+1}:`, e)
+function buildIndex() {
+  if (!fs.existsSync(DIR)) return
+  const files = fs.readdirSync(DIR).filter(f=>f.endsWith('.json'))
+  const index = files.map(f => {
+    const data = JSON.parse(fs.readFileSync(path.join(DIR, f), 'utf-8'))
+    return {
+      slug: data.slug, title: data.title, category: data.category,
+      publishedAt: data.publishedAt, country: data.country || 'IN',
+      desc: data.metaDescription || data.intro?.slice(0,100)
     }
-  }
+  }).sort((a,b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+  fs.writeFileSync(INDEX_FILE, JSON.stringify(index, null, 2))
+  console.log(`✅ Index regenerated: ${index.length} articles`)
+}
 
-  console.log(`\n✅ Done. Published ${published.length}/${selected.length}: ${published.join(', ')}`)
+async function main() {
+  console.log(`🚀 SchemeAtlas Pipeline | ${new Date().toISOString()}`)
+  const done = existingSlugs()
+  
+  // Get topics for both IN and US
+  const [trendIN, relIN, relUS] = await Promise.all([
+    getTrendingIndia(), getRelatedFinanceQueries(false), getRelatedFinanceQueries(true)
+  ])
+  
+  const topicsIN = await pickTopics([...trendIN, ...relIN], done, Math.ceil(PER_RUN/2), 'IN')
+  const topicsUS = await pickTopics(relUS, done, Math.floor(PER_RUN/2), 'US')
+  const allSelected = [...topicsIN, ...topicsUS]
+  
+  for (const item of allSelected) {
+    try {
+      console.log(`\n─── Writing: ${item.articleTitle} (${item.country}) ───`)
+      const article = await writeArticle(item.articleTitle, item.category, item.slug, item.country)
+      fs.writeFileSync(path.join(DIR, `${item.slug}.json`), JSON.stringify(article, null, 2))
+      
+      // Translate if not US
+      if (item.country !== 'US') {
+        for (const lang of ['hi', 'te']) {
+          console.log(`   Translating to ${lang}...`)
+          try {
+            const translated = parseJSON(await translate(JSON.stringify(article), lang === 'hi' ? 'Hindi' : 'Telugu'))
+            const langSlug = `${item.slug}-${lang}`
+            fs.writeFileSync(path.join(DIR, `${langSlug}.json`), JSON.stringify({ ...translated, slug: langSlug, country: item.country, lang }, null, 2))
+          } catch (te) { console.error(`   ❌ ${lang} translation failed`) }
+          await new Promise(r => setTimeout(r, 10000))
+        }
+      }
+      
+      await new Promise(r => setTimeout(r, 20000))
+    } catch (e) { console.error(`❌ Failed:`, e) }
+  }
+  
+  buildIndex()
 }
 
 main().catch(e=>{ console.error('Fatal:', e); process.exit(1) })

@@ -74,25 +74,32 @@ export function SchemesClient({ initialSchemes }: { initialSchemes: Scheme[] }) 
             />
           </div>
 
-          <div className="flex flex-col gap-[20px]">
+          <div className="flex flex-col gap-[32px]">
             {/* Country filter */}
             <div>
-              <div className="text-[11px] font-[800] text-slate-400 uppercase tracking-[1.5px] mb-[10px]">Country</div>
-              <div className="flex gap-[8px] overflow-x-auto pb-[4px] no-scrollbar items-center">
+              <div className="text-[12px] font-[800] text-slate-500 uppercase tracking-[2px] mb-[16px] flex items-center gap-2">
+                <span className="w-8 h-[1px] bg-slate-200"></span>
+                Select Country
+                <span className="w-8 h-[1px] bg-slate-200"></span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-[12px]">
                 {ALL_COUNTRIES.map(code => {
                   const c = COUNTRIES[code];
+                  const isActive = activeCountry === code;
                   return (
                     <button
                       key={code}
-                      id={`country-${code}`}
                       onClick={() => { setActiveCountry(code); setActiveState('all'); }}
-                      className={`flex-shrink-0 px-[16px] py-[8px] rounded-[var(--radius-sm)] text-[13px] font-[600] transition-all border ${
-                        activeCountry === code
-                          ? 'bg-[var(--indigo)] text-white border-[var(--indigo)] shadow-sm'
-                          : 'bg-white text-[var(--text-primary)] border-[var(--border)] hover:bg-slate-50'
+                      className={`flex flex-col items-center justify-center p-[16px] rounded-[var(--radius-md)] border transition-all duration-200 ${
+                        isActive
+                          ? 'bg-[var(--indigo-light)] border-[var(--indigo)] shadow-sm ring-1 ring-[var(--indigo)]'
+                          : 'bg-white border-[var(--border)] hover:border-slate-300 hover:bg-slate-50'
                       }`}
                     >
-                      {c ? `${c.flag} ${c.name}` : '🌐 All Countries'}
+                      <span className="text-[24px] mb-[8px]">{c ? c.flag : '🌐'}</span>
+                      <span className={`text-[13px] font-[700] ${isActive ? 'text-[var(--indigo)]' : 'text-slate-600'}`}>
+                        {c ? c.name : 'All Countries'}
+                      </span>
                     </button>
                   );
                 })}
@@ -101,15 +108,19 @@ export function SchemesClient({ initialSchemes }: { initialSchemes: Scheme[] }) 
 
             {/* State Filter (Visible for India or All) */}
             {statesList.length > 0 && (
-              <div className="animate-fade-in border-t border-slate-100 pt-[16px]">
-                <div className="text-[11px] font-[800] text-slate-400 uppercase tracking-[1.5px] mb-[10px]">State</div>
-                <div className="flex gap-[8px] overflow-x-auto pb-[4px] no-scrollbar items-center">
+              <div className="animate-fade-in border-t border-slate-100 pt-[32px]">
+                <div className="text-[12px] font-[800] text-slate-500 uppercase tracking-[2px] mb-[16px] flex items-center gap-2">
+                  <span className="w-8 h-[1px] bg-slate-200"></span>
+                  Filter by State
+                  <span className="w-8 h-[1px] bg-slate-200"></span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-[10px]">
                   <button
                     onClick={() => setActiveState('all')}
-                    className={`flex-shrink-0 px-[16px] py-[8px] rounded-[var(--radius-sm)] text-[13px] font-[600] transition-all border ${
+                    className={`flex items-center gap-2 px-[14px] py-[10px] rounded-[var(--radius-sm)] border text-[13px] font-[600] transition-all ${
                       activeState === 'all'
-                        ? 'bg-[var(--indigo)] text-white border-[var(--indigo)] shadow-sm'
-                        : 'bg-white text-[var(--text-primary)] border-[var(--border)] hover:bg-slate-50'
+                        ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
+                        : 'bg-white border-[var(--border)] text-slate-600 hover:bg-slate-50'
                     }`}
                   >
                     📍 All States
@@ -118,13 +129,14 @@ export function SchemesClient({ initialSchemes }: { initialSchemes: Scheme[] }) 
                     <button
                       key={s.code}
                       onClick={() => setActiveState(s.code)}
-                      className={`flex-shrink-0 px-[16px] py-[8px] rounded-[var(--radius-sm)] text-[13px] font-[600] transition-all border ${
+                      className={`flex items-center gap-2 px-[14px] py-[10px] rounded-[var(--radius-sm)] border text-[13px] font-[600] transition-all ${
                         activeState === s.code
-                          ? 'bg-[var(--indigo)] text-white border-[var(--indigo)] shadow-sm'
-                          : 'bg-white text-[var(--text-primary)] border-[var(--border)] hover:bg-slate-50'
+                          ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
+                          : 'bg-white border-[var(--border)] text-slate-600 hover:bg-slate-50'
                       }`}
                     >
-                      {s.icon} {s.name}
+                      <span>{s.icon}</span>
+                      <span className="truncate">{s.name}</span>
                     </button>
                   ))}
                 </div>
@@ -132,23 +144,32 @@ export function SchemesClient({ initialSchemes }: { initialSchemes: Scheme[] }) 
             )}
 
             {/* Category filter */}
-            <div className="border-t border-slate-100 pt-[16px]">
-               <div className="text-[11px] font-[800] text-slate-400 uppercase tracking-[1.5px] mb-[10px]">Sector</div>
-               <div className="flex gap-[8px] overflow-x-auto pb-[4px] no-scrollbar items-center">
+            <div className="border-t border-slate-100 pt-[32px]">
+               <div className="text-[12px] font-[800] text-slate-500 uppercase tracking-[2px] mb-[16px] flex items-center gap-2">
+                <span className="w-8 h-[1px] bg-slate-200"></span>
+                Benefit Sector
+                <span className="w-8 h-[1px] bg-slate-200"></span>
+              </div>
+               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-[12px]">
                 {validCategories.map(cat => {
                   const catConfig = CATEGORIES[cat];
+                  const isActive = activeCategory === cat;
                   return (
                     <button
                       key={cat}
-                      id={`cat-${cat}`}
                       onClick={() => setActiveCategory(cat)}
-                      className={`flex-shrink-0 px-[16px] py-[8px] rounded-[var(--radius-sm)] text-[13px] font-[600] transition-all border ${
-                        activeCategory === cat
-                          ? 'bg-[var(--navy)] text-white border-[var(--navy)] shadow-sm'
-                          : 'bg-white text-[var(--text-primary)] border-[var(--border)] hover:bg-slate-50'
+                      className={`flex items-center gap-[12px] p-[16px] rounded-[var(--radius-md)] border text-left transition-all duration-200 ${
+                        isActive
+                          ? 'bg-slate-800 border-slate-800 text-white shadow-md'
+                          : 'bg-white border-[var(--border)] text-slate-700 hover:bg-slate-50'
                       }`}
                     >
-                      {catConfig ? `${catConfig.icon} ${catConfig.label || cat}` : '📋 All Sectors'}
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-[20px] ${isActive ? 'bg-slate-700' : 'bg-slate-100'}`}>
+                        {catConfig ? catConfig.icon : '📋'}
+                      </div>
+                      <span className="text-[14px] font-[700] flex-1">
+                        {catConfig ? (catConfig.label || cat) : 'All Sectors'}
+                      </span>
                     </button>
                   );
                 })}
