@@ -136,7 +136,8 @@ async function writeArticle(title: string, category: string, s: string): Promise
   const system = `You are a senior financial writer at SchemeAtlas.com writing for Indian readers.
 Rules: accurate real data (bank names, scheme names, amounts, eligibility),
 structured for Google Featured Snippets, never mention AI or writing tools,
-write like a knowledgeable Indian financial advisor. Return ONLY valid JSON, no markdown.`
+write like a knowledgeable Indian financial advisor. Return ONLY valid JSON, no markdown.
+CRITICAL: Do NOT use unescaped newlines (\\n) or control characters in JSON strings. Use <br/> for line breaks.`
 
   const user = `Write a complete 1500-word SEO article for SchemeAtlas.com.
 Topic: "${title}" | Category: ${category}
@@ -172,11 +173,20 @@ Return this exact JSON (every field required):
   "tags": ["<tag1>","<tag2>","<tag3>","<tag4>"]
 }`
 
-  const raw = await groq(user, system, 4000)
-  const parsed = parseJSON(raw)
-  if (!parsed.title || !parsed.sections || parsed.sections.length < 3)
-    throw new Error('Article missing required fields')
-  return parsed
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const raw = await groq(user, system, 4000)
+      const parsed = parseJSON(raw)
+      if (!parsed.title || !parsed.sections || parsed.sections.length < 3)
+        throw new Error('Article missing required fields')
+      return parsed
+    } catch (err: any) {
+      if (attempt === 3) throw err;
+      console.log(`⚠️ Write failed (attempt ${attempt}): ${err.message}. Retrying in 10s...`);
+      await new Promise(r => setTimeout(r, 10000));
+    }
+  }
+  throw new Error('Failed to write article');
 }
 
 // ── MAIN ─────────────────────────────────────────────────────
@@ -208,7 +218,7 @@ async function main() {
       console.log(`✅ Saved: content/articles/${finalSlug}.json`)
       published.push(finalSlug)
       done.add(finalSlug)
-      if (i < selected.length-1) await new Promise(r=>setTimeout(r,3000))
+      if (i < selected.length-1) await new Promise(r=>setTimeout(r,35000)) // 35s delay to avoid TPM limits
     } catch(e) {
       console.error(`❌ Failed article ${i+1}:`, e)
     }
