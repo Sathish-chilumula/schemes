@@ -192,11 +192,11 @@ const MINISTRIES = [
 ];
 
 INDIAN_STATES.forEach(state => {
-  RSS_SOURCES.IN.push(`https://news.google.com/rss/search?q=government+scheme+${encodeURIComponent(state.name)}+new&hl=en-IN&gl=IN`);
+  RSS_SOURCES.IN.push(`https://news.google.com/rss/search?q=government+scheme+${encodeURIComponent(state.name)}+launched+2026&hl=en-IN&gl=IN&ceid=IN:en&tbs=qdr:w`);
 });
 
 MINISTRIES.forEach(min => {
-  RSS_SOURCES.IN.push(`https://news.google.com/rss/search?q=${encodeURIComponent(min)}+scheme+new&hl=en-IN&gl=IN`);
+  RSS_SOURCES.IN.push(`https://news.google.com/rss/search?q=${encodeURIComponent(min)}+scheme+launched+2026&hl=en-IN&gl=IN&ceid=IN:en&tbs=qdr:w`);
 });
 
 // Removed duplicate array
@@ -244,42 +244,17 @@ async function fetchIndiamyScheme() {
     }
   }
 
+  const chunk = (arr, size) => Array.from({ length: Math.ceil(arr.length / size) }, (v, i) => arr.slice(i * size, i * size + size));
+
   // 1. Fetch Central Schemes
   console.log('   🏛️  Fetching Central (National) Schemes...');
-  for (const keyword of MYSCHEME_KEYWORDS) {
-    try {
-      const res = await axios.get('https://api.myscheme.gov.in/search/v4/schemes', {
-        headers,
-        params: { lang: 'en', keyword, central: 'Y', page: 1, limit: 10 },
-        timeout: 10000
-      });
-      const list = res.data?.data?.schemes || res.data?.schemes || [];
-      list.forEach(s => {
-        if (s.schemeName || s.title) {
-          allSchemes.push({
-            name: s.schemeName || s.title,
-            keyword,
-            state_code: 'india',
-            state_name: null,
-            raw: s
-          });
-        }
-      });
-      await new Promise(r => setTimeout(r, 800));
-    } catch (e) {
-      const msg = e.response ? e.response.status : e.message;
-      console.warn(`   ⚠️  Central keyword "${keyword}" failed: ${msg}`);
-    }
-  }
-
-  // 2. Fetch State-specific Schemes
-  for (const state of INDIAN_STATES) {
-    console.log(`   📍 Fetching schemes for ${state.name} (${state.code})...`);
-    for (const keyword of MYSCHEME_KEYWORDS.slice(0, 3)) {
+  const centralBatches = chunk(MYSCHEME_KEYWORDS, 4);
+  for (const batch of centralBatches) {
+    await Promise.allSettled(batch.map(async (keyword) => {
       try {
         const res = await axios.get('https://api.myscheme.gov.in/search/v4/schemes', {
           headers,
-          params: { lang: 'en', keyword, state: state.name, central: 'N', page: 1, limit: 10 },
+          params: { lang: 'en', keyword, central: 'Y', page: 1, limit: 10 },
           timeout: 10000
         });
         const list = res.data?.data?.schemes || res.data?.schemes || [];
@@ -288,20 +263,46 @@ async function fetchIndiamyScheme() {
             allSchemes.push({
               name: s.schemeName || s.title,
               keyword,
-              state_code: state.code,
-              state_name: state.name,
-              local_language: state.language || null,
+              state_code: 'india',
+              state_name: null,
               raw: s
             });
           }
         });
-        await new Promise(r => setTimeout(r, 600));
-      } catch (e) {
-        const msg = e.response ? e.response.status : e.message;
-        console.warn(`   ⚠️  State "${state.code}" keyword "${keyword}" failed: ${msg}`);
-      }
-    }
+      } catch (e) {}
+    }));
     await new Promise(r => setTimeout(r, 1000));
+  }
+
+  // 2. Fetch State-specific Schemes
+  console.log('   📍 Fetching State-specific Schemes (Parallel Batches)...');
+  const stateBatches = chunk(INDIAN_STATES, 5);
+  for (const batch of stateBatches) {
+    await Promise.allSettled(batch.map(async (state) => {
+      for (const keyword of MYSCHEME_KEYWORDS.slice(0, 3)) {
+        try {
+          const res = await axios.get('https://api.myscheme.gov.in/search/v4/schemes', {
+            headers,
+            params: { lang: 'en', keyword, state: state.name, central: 'N', page: 1, limit: 10 },
+            timeout: 10000
+          });
+          const list = res.data?.data?.schemes || res.data?.schemes || [];
+          list.forEach(s => {
+            if (s.schemeName || s.title) {
+              allSchemes.push({
+                name: s.schemeName || s.title,
+                keyword,
+                state_code: state.code,
+                state_name: state.name,
+                local_language: state.language || null,
+                raw: s
+              });
+            }
+          });
+        } catch (e) {}
+      }
+    }));
+    await new Promise(r => setTimeout(r, 1500));
   }
 
   console.log(`\n✅ myScheme Discovery Complete. Found ${allSchemes.length} raw entries.`);
