@@ -1,0 +1,48 @@
+name: Generate Articles from Google Trends
+
+on:
+  schedule:
+    - cron: '30 0 * * *'        # Every day 6:00 AM IST (00:30 UTC)
+  workflow_dispatch:
+    inputs:
+      force_topic:
+        description: 'Force a specific topic (optional)'
+        required: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Install script deps
+        run: npm install --no-save xml2js google-trends-api
+
+      - name: Generate articles
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          FORCE_TOPIC: ${{ github.event.inputs.force_topic }}
+          ARTICLES_PER_RUN: '3'
+        run: npx ts-node --esm scripts/generate-articles.ts
+
+      - name: Commit if new articles exist
+        run: |
+          git config user.email "bot@schemeatlas.com"
+          git config user.name "SchemeAtlas Bot"
+          git add content/articles/
+          git diff --cached --quiet || git commit -m "feat: auto-add articles from Google Trends [skip ci]"
+          git push
+
+      - name: Trigger Cloudflare rebuild
+        run: |
+          curl -X POST "${{ secrets.CLOUDFLARE_DEPLOY_HOOK }}" --silent

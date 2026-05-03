@@ -6,9 +6,10 @@ import { SchemeCard } from '@/components/SchemeCard';
 import { Navbar } from '@/components/Navbar';
 import { HomeSearch } from './HomeSearch';
 import { HomeTabs } from './HomeTabs';
+import { FAQAccordion } from '@/components/FAQAccordion';
 
 export const runtime = 'edge';
-export const revalidate = 3600; // Revalidate every hour
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: `SchemeAtlas — Find Government Schemes & Benefits in India ${new Date().getFullYear()}`,
@@ -42,75 +43,70 @@ export default async function HomePage() {
     if (!err2) stats.checked = checkedCount ? checkedCount + 5000 : 5000;
     if (!err3 && trending) trendingSchemes = trending;
     if (!err4 && latest) latestSchemes = latest;
-
   } catch (err) {
     console.error('Failed to fetch homepage data:', err);
-    // Continue with defaults to prevent 500 crash
   }
 
   const indianStates = COUNTRIES['IN']?.states || [];
 
   const socialCategories = [
-    { name: 'SC / ST', label: 'Scheduled Castes & Tribes', color: 'from-blue-500 to-indigo-600' },
-    { name: 'OBC / BC', label: 'Backward Classes', color: 'from-amber-400 to-orange-500' },
-    { name: 'Minority', label: 'Minority Communities', color: 'from-emerald-400 to-teal-500' },
-    { name: 'Women', label: 'Women & Girls', color: 'from-pink-400 to-rose-500' },
-    { name: 'Students', label: 'Scholarships & Education', color: 'from-purple-400 to-fuchsia-500' },
-    { name: 'Farmers', label: 'Agriculture Schemes', color: 'from-green-500 to-emerald-600' }
+    { name: 'SC / ST', label: 'Scheduled Castes & Tribes' },
+    { name: 'OBC / BC', label: 'Backward Classes' },
+    { name: 'Minority', label: 'Minority Communities' },
+    { name: 'Women', label: 'Women & Girls' },
+    { name: 'Students', label: 'Scholarships & Education' },
+    { name: 'Farmers', label: 'Agriculture Schemes' }
   ];
+
+  const categoryTints: Record<string, {color: string, icon: string}> = {
+    'Farmers': { color: '#84CC16', icon: '🌾' },
+    'Students': { color: '#6366F1', icon: '🎓' },
+    'Healthcare': { color: '#EF4444', icon: '❤️' },
+    'Business': { color: '#F59E0B', icon: '💼' },
+    'Women': { color: '#EC4899', icon: '👩' },
+    'Housing': { color: '#06B6D4', icon: '🏘️' },
+    'Senior': { color: '#8B5CF6', icon: '👴' },
+    'Disabled': { color: '#14B8A6', icon: '♿' },
+    'SC / ST': { color: '#3B82F6', icon: '🏛️' },
+    'OBC / BC': { color: '#F59E0B', icon: '👥' },
+    'Minority': { color: '#10B981', icon: '🌟' }
+  };
 
   const indiaContent = (
     <>
-      {/* Latest Additions First */}
-      {latestSchemes.length > 0 && (
-        <section className="page-container mb-20 animate-fade-in-up">
-          <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-200">
-            <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
-              <span className="text-2xl">✨</span> Newly Added Schemes
-            </h2>
-            <Link href="/schemes" className="text-brand-600 font-semibold hover:text-brand-700 transition-colors hidden sm:block">View All →</Link>
+      {/* ── MONEY GUIDES SECTION ── */}
+      <section className="bg-[var(--surface-gray)] py-[72px] px-[24px]">
+        <div className="max-w-[1200px] mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-[32px] gap-4">
+            <div>
+              <p className="section-label">📚 Money Guides</p>
+              <h2 className="section-title">Loans · Insurance · Earn Online</h2>
+              <p className="section-sub mb-0">Expert answers to India's most searched financial questions</p>
+            </div>
+            <Link href="/articles" className="btn-outline whitespace-nowrap">View All Guides →</Link>
           </div>
-          <div className="grid md:grid-cols-3 gap-6">
-            {latestSchemes.map(scheme => (
-              <SchemeCard key={scheme.id} scheme={scheme} />
-            ))}
-          </div>
-        </section>
-      )}
 
-      {/* Quick Filters - States */}
-      <section id="states" className="page-container mb-20 animate-fade-in-up delay-100">
-        <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-200">
-          <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Browse by <span className="text-brand-600">State & UTs</span></h2>
-        </div>
-        
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-          {indianStates.map((state, i) => (
-            <Link key={i} href={`/in/${state.name.toLowerCase().replace(/\s+/g, '-')}`} className="bg-white rounded-xl border border-slate-100 p-4 flex flex-col items-center justify-center text-center hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm group">
-              <div className="text-2xl mb-2 group-hover:scale-110 transition-transform">{state.icon || '🏛️'}</div>
-              <h3 className="font-bold text-slate-700 text-xs md:text-sm group-hover:text-brand-600">{state.name}</h3>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* Quick Filters - Categories */}
-      <section id="categories" className="page-container mb-20 bg-slate-100 py-16 rounded-[3rem]">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Browse by <span className="text-brand-600">Category</span></h2>
-            <p className="text-slate-500 mt-2">Find schemes targeted to specific needs and communities.</p>
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {socialCategories.map((cat, i) => (
-              <Link key={i} href={`/in?category=${cat.name}`} className="bg-white rounded-2xl p-5 hover:shadow-md transition-shadow border border-slate-200/50 flex items-center gap-4 group">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br ${cat.color} text-white shadow-sm group-hover:scale-105 transition-transform`}>
-                  ★
-                </div>
-                <div>
-                  <h3 className="font-bold text-slate-900 text-sm md:text-base group-hover:text-brand-600">{cat.name}</h3>
-                  <p className="text-slate-500 text-xs md:text-sm font-medium">{cat.label}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[20px]">
+            {[
+              { tag: "💰 Earn Money", tagColor: "#059669", title: "15 Ways to Earn Money Online in India 2025", desc: "From PMKVY training to freelancing — practical earning paths for every Indian.", views: "24.5K", time: "8 min read", href: "/articles/earn-money-online-india" },
+              { tag: "🏦 Loans", tagColor: "#2563EB", title: "Best Personal Loans in India: Compare 20+ Banks", desc: "SBI, HDFC, ICICI compared — rates, eligibility and step-by-step apply guide.", views: "31.2K", time: "11 min read", href: "/articles/best-personal-loans-india" },
+              { tag: "🛡️ Insurance", tagColor: "#7C3AED", title: "Health Insurance Tips Every Indian Family Needs", desc: "Mistakes to avoid, what to check before buying, and the best plans compared.", views: "18.9K", time: "9 min read", href: "/articles/health-insurance-tips-india" },
+              { tag: "📈 Schemes", tagColor: "#D97706", title: "PM Schemes That Transfer Money Directly to You", desc: "DBT subsidies and grants — a complete list of what you're eligible to claim.", views: "42.1K", time: "7 min read", href: "/articles/pm-schemes-direct-benefit" }
+            ].map((article, i) => (
+              <Link key={i} href={article.href} className="bg-white rounded-[var(--radius-md)] border border-[var(--border)] p-[22px] cursor-pointer card-animate relative overflow-hidden group block hover:shadow-[var(--shadow-sm)] hover:-translate-y-[2px] hover:border-[var(--indigo)] transition-all duration-300" style={{ animationDelay: `${i * 0.1}s` }}>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[rgba(255,255,255,0.8)] to-transparent -translate-x-[150%] skew-x-[-20deg] group-hover:animate-shine z-10 pointer-events-none"></div>
+                
+                <div className="relative z-20">
+                  <span style={{ backgroundColor: `${article.tagColor}18`, color: article.tagColor }} className="text-[11px] font-[700] px-[10px] py-[4px] rounded-[20px] inline-block mb-[10px]">
+                    {article.tag}
+                  </span>
+                  <h3 className="text-[15px] font-[700] my-[10px] leading-[1.45] text-[var(--text-primary)] group-hover:text-[var(--indigo)] transition-colors line-clamp-2">{article.title}</h3>
+                  <p className="text-[13px] text-[var(--text-muted)] leading-[1.6] mb-[16px] line-clamp-2">{article.desc}</p>
+                  
+                  <div className="border-t border-[#F3F4F6] pt-[12px] flex justify-between text-[12px] text-[var(--text-faint)]">
+                    <span>👀 {article.views} views</span>
+                    <span>⏱️ {article.time}</span>
+                  </div>
                 </div>
               </Link>
             ))}
@@ -118,48 +114,201 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Trending Schemes */}
-      {trendingSchemes.length > 0 && (
-        <section className="page-container mb-20">
-          <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-200">
-            <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
-              <span className="text-red-500">🔥</span> Trending Schemes
-            </h2>
-          </div>
-          <div className="grid md:grid-cols-3 gap-6">
-            {trendingSchemes.map(scheme => (
-              <SchemeCard key={scheme.id} scheme={scheme} />
-            ))}
+      {/* ── NEWLY ADDED SCHEMES ── */}
+      {latestSchemes.length > 0 && (
+        <section className="bg-white py-[72px] px-[24px]">
+          <div className="max-w-[1200px] mx-auto animate-fade-in-up">
+            <div className="flex items-center justify-between mb-8 pb-4 border-b border-[var(--border)]">
+              <h2 className="text-3xl font-[800] font-[var(--font-heading)] text-[var(--text-primary)] tracking-tight flex items-center gap-3">
+                <span className="text-2xl">✨</span> Newly Added Schemes
+              </h2>
+              <Link href="/schemes" className="text-[var(--indigo)] font-semibold hover:text-[var(--indigo-mid)] transition-colors hidden sm:block">View All →</Link>
+            </div>
+            <div className="grid md:grid-cols-3 gap-6">
+              {latestSchemes.map(scheme => (
+                <SchemeCard key={scheme.id} scheme={scheme} />
+              ))}
+            </div>
           </div>
         </section>
       )}
 
-      {/* How It Works */}
-      <section className="bg-white py-20 border-y border-slate-100 mb-20">
-        <div className="page-container">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">How <span className="text-brand-500">SchemeAtlas</span> Works</h2>
-            <p className="text-slate-500 text-lg">We use AI to instantly match your exact social and financial profile to thousands of complex government rules.</p>
+      {/* ── BROWSE BY CATEGORY ── */}
+      <section id="categories" className="bg-white py-[72px] px-[24px]">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-[40px]">
+            <p className="section-label mx-auto">📂 Browse by Category</p>
+            <h2 className="section-title">Categories</h2>
+            <p className="text-[var(--text-muted)] mt-2">Find schemes targeted to specific needs and communities.</p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8 relative">
-            {/* Connecting line for desktop */}
-            <div className="hidden md:block absolute top-12 left-[15%] right-[15%] h-0.5 bg-gradient-to-r from-brand-100 via-brand-500 to-brand-100 z-0"></div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-[16px]">
+            {socialCategories.map((cat, i) => {
+              const tint = categoryTints[cat.name] || categoryTints['Students'];
+              return (
+              <Link key={i} href={`/in?category=${cat.name}`} className="bg-white rounded-[var(--radius-md)] border border-[var(--border)] p-[22px_16px] text-center hover:-translate-y-[2px] hover:shadow-[var(--shadow-sm)] transition-all group relative overflow-hidden card-animate" style={{animationDelay: `${i * 0.1}s`}}>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[rgba(255,255,255,0.8)] to-transparent -translate-x-[150%] skew-x-[-20deg] group-hover:animate-shine z-10 pointer-events-none"></div>
+                <div style={{ backgroundColor: `${tint.color}20`, color: tint.color }} className="w-[60px] h-[60px] rounded-[14px] flex items-center justify-center text-[30px] mx-auto mb-[14px] relative z-20 transition-transform group-hover:scale-105">
+                  {tint.icon}
+                </div>
+                <div className="relative z-20">
+                  <h3 className="font-[700] text-[15px] text-[var(--text-primary)] group-hover:text-[var(--indigo)] transition-colors">{cat.name}</h3>
+                  <p className="text-[12px] text-[var(--text-faint)] mt-[4px]">{cat.label}</p>
+                </div>
+              </Link>
+            )})}
+          </div>
+        </div>
+      </section>
+
+      {/* ── BROWSE BY STATE ── */}
+      <section id="states" className="bg-[var(--surface-gray)] py-[72px] px-[24px]">
+        <div className="max-w-[1200px] mx-auto animate-fade-in-up delay-100">
+          <div className="flex items-center justify-between mb-8 pb-4 border-b border-[var(--border)]">
+            <h2 className="text-3xl font-[800] font-[var(--font-heading)] text-[var(--text-primary)] tracking-tight">Browse by <span className="text-[var(--indigo)]">State & UTs</span></h2>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {indianStates.map((state, i) => (
+              <Link key={i} href={`/in/${state.name.toLowerCase().replace(/\s+/g, '-')}`} className="bg-white rounded-[var(--radius-sm)] border border-[var(--border)] p-4 flex flex-col items-center justify-center text-center hover:bg-[var(--indigo-light)] hover:border-[var(--indigo)] transition-all shadow-sm group">
+                <div className="text-2xl mb-2 group-hover:scale-110 transition-transform">{state.icon || '🏛️'}</div>
+                <h3 className="font-bold text-[var(--text-primary)] text-xs md:text-sm group-hover:text-[var(--indigo)]">{state.name}</h3>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── TRENDING SCHEMES ── */}
+      {trendingSchemes.length > 0 && (
+        <section className="bg-[var(--surface-gray)] py-[72px] px-[24px]">
+          <div className="max-w-[1200px] mx-auto">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-[32px] gap-4">
+              <div>
+                <p className="section-label">🔥 Trending Right Now</p>
+                <h2 className="section-title">Most Viewed Schemes</h2>
+              </div>
+              <Link href="/schemes" className="btn-outline whitespace-nowrap">View All 1,815 →</Link>
+            </div>
+            <div className="grid md:grid-cols-3 gap-6">
+              {trendingSchemes.map((scheme, i) => {
+                const catTint = categoryTints[scheme.category] || categoryTints['Students'];
+                return (
+                <div key={scheme.id} className="bg-white rounded-[var(--radius-md)] border border-[var(--border)] p-[20px] hover:-translate-y-[2px] hover:border-[var(--indigo)] hover:shadow-[var(--shadow-sm)] transition-all group relative overflow-hidden card-animate flex flex-col" style={{animationDelay: `${i * 0.1}s`}}>
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[rgba(255,255,255,0.8)] to-transparent -translate-x-[150%] skew-x-[-20deg] group-hover:animate-shine z-10 pointer-events-none"></div>
+                  
+                  <div className="flex items-center justify-between mb-[12px] relative z-20">
+                    <div style={{ backgroundColor: `${catTint.color}20`, color: catTint.color }} className="flex items-center gap-[6px] text-[12px] font-[600] px-[12px] py-[4px] rounded-[20px]">
+                      {catTint.icon} {scheme.category}
+                    </div>
+                    <div className="text-[11px] font-[700] px-[9px] py-[3px] rounded-[20px] bg-[var(--indigo-light)] text-[#4338CA]">
+                      {scheme.scheme_type === 'central' ? 'Central' : 'State'}
+                    </div>
+                  </div>
+
+                  <h3 className="text-[16px] font-[700] text-[var(--text-primary)] mb-[8px] line-clamp-2 relative z-20">{scheme.name}</h3>
+                  <p className="text-[13px] text-[var(--text-muted)] line-clamp-2 mb-[16px] flex-1 relative z-20">{scheme.what_you_get}</p>
+
+                  <div className="border-t border-[var(--border)] pt-[16px] flex items-center justify-between mt-auto relative z-20">
+                    <div>
+                      <div className="text-[11px] text-[var(--text-faint)] uppercase tracking-wide">Benefit</div>
+                      <div className="text-[14px] font-[700] text-[var(--green)] max-w-[120px] truncate" title={scheme.benefit_amount}>{scheme.benefit_amount}</div>
+                    </div>
+                    <Link href={`/schemes/${scheme.slug}`} className="bg-[var(--indigo-light)] text-[var(--indigo)] font-[700] text-[13px] px-[16px] py-[8px] rounded-[var(--radius-sm)] hover:bg-[var(--indigo)] hover:text-white transition-colors">
+                      Check Eligibility
+                    </Link>
+                  </div>
+                </div>
+              )})}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── PEOPLE ALSO ASK SECTION ── */}
+      <section className="bg-white py-[72px] px-[24px]">
+        <div className="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-[56px] items-start">
+          <div>
+            <p className="section-label">❓ People Also Ask</p>
+            <h2 className="section-title mb-[24px]">Real Questions,<br/>Clear Answers</h2>
+            <p className="section-sub mb-[24px]">
+              We publish in-depth answers to India's most searched questions on
+              schemes, loans, insurance and earning money — updated weekly.
+            </p>
             
+            <div className="bg-gradient-to-br from-[#EEF2FF] to-[#F0FDF4] border border-[#C7D2FE] rounded-[var(--radius-md)] p-[18px_20px] text-[13px] text-[#4338CA] font-[600] shadow-sm">
+              📬 New guides published every week covering India's top trending financial topics.
+            </div>
+
+            <div className="flex gap-[10px] mt-[20px]">
+              <div className="bg-[var(--surface-gray)] border border-[var(--border)] rounded-[var(--radius-sm)] p-[10px_16px] text-center flex-1">
+                <div className="font-[800] text-[16px] text-[var(--text-primary)]">120+</div>
+                <div className="text-[11px] text-[var(--text-faint)]">Guides Published</div>
+              </div>
+              <div className="bg-[var(--surface-gray)] border border-[var(--border)] rounded-[var(--radius-sm)] p-[10px_16px] text-center flex-1">
+                <div className="font-[800] text-[16px] text-[var(--text-primary)]">4.8★</div>
+                <div className="text-[11px] text-[var(--text-faint)]">Reader Rating</div>
+              </div>
+              <div className="bg-[var(--surface-gray)] border border-[var(--border)] rounded-[var(--radius-sm)] p-[10px_16px] text-center flex-1">
+                <div className="font-[800] text-[16px] text-[var(--text-primary)]">Weekly</div>
+                <div className="text-[11px] text-[var(--text-faint)]">New Content</div>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <FAQAccordion />
+          </div>
+        </div>
+      </section>
+
+      {/* ── HOW IT WORKS ── */}
+      <section className="bg-[var(--surface-gray)] py-[72px] px-[24px]">
+        <div className="max-w-[1200px] mx-auto">
+          <div className="text-center max-w-2xl mx-auto mb-[40px]">
+            <p className="section-label mx-auto">⚡ How It Works</p>
+            <h2 className="section-title">How <span className="text-[var(--indigo)]">SchemeAtlas</span> Works</h2>
+            <p className="text-[var(--text-muted)] text-[16px]">We use AI to instantly match your exact social and financial profile to thousands of complex government rules.</p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-[24px] relative">
             {[
               { icon: '📝', title: '1. Tell us about you', desc: 'Enter your age, caste category, state, and income. No personal info required.' },
               { icon: '🤖', title: '2. AI Matching', desc: 'Our AI engine scans 1000+ state and central schemes in 30 seconds.' },
               { icon: '🎯', title: '3. Claim Benefits', desc: 'Get exact links to official portals along with required document lists.' },
             ].map((step, i) => (
-              <div key={i} className="relative z-10 flex flex-col items-center text-center">
-                <div className="w-24 h-24 bg-white border-4 border-slate-50 rounded-full shadow-xl shadow-brand-500/10 flex items-center justify-center text-4xl mb-6">
-                  {step.icon}
-                </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3">{step.title}</h3>
-                <p className="text-slate-500 font-medium px-4">{step.desc}</p>
+              <div key={i} className="bg-white rounded-[var(--radius-lg)] border border-[var(--border)] p-[32px] relative overflow-hidden hover:-translate-y-[2px] transition-transform shadow-sm hover:shadow-[var(--shadow-sm)] card-animate" style={{animationDelay: `${i * 0.1}s`}}>
+                <div className="absolute top-[16px] right-[20px] text-[56px] font-[900] leading-none select-none font-[var(--font-heading)]" style={{background: 'linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'}}>{i+1}</div>
+                <div className="text-[40px] mb-[18px] relative z-10">{step.icon}</div>
+                <h3 className="text-[17px] font-[700] text-[var(--text-primary)] mb-[10px] relative z-10">{step.title}</h3>
+                <p className="text-[13px] text-[var(--text-muted)] leading-[1.75] relative z-10">{step.desc}</p>
+                {i < 2 && (
+                  <div className="hidden md:block absolute text-[24px] text-[var(--border)] top-1/2 right-[-14px] -translate-y-1/2 z-20">→</div>
+                )}
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ── TRUST STRIP ── */}
+      <section className="bg-[var(--navy)] py-[48px] px-[24px]">
+        <div className="max-w-[1200px] mx-auto flex justify-center items-center gap-[48px] flex-wrap">
+          {[
+            { icon: '🏛️', number: '1,815+', label: 'Active Schemes' },
+            { icon: '👥', number: '5,269+', label: 'Citizens Helped' },
+            { icon: '🗺️', number: '28', label: 'States & UTs' },
+            { icon: '🔄', number: 'Daily', label: 'Data Updated' }
+          ].map((item, i) => (
+            <div key={i} className="flex items-center gap-[12px] text-white">
+              <div className="text-[28px]">{item.icon}</div>
+              <div>
+                <div className="text-[24px] font-[800] font-[var(--font-heading)] leading-none mb-[2px]">{item.number}</div>
+                <div className="text-[12px] text-[#94A3B8]">{item.label}</div>
+              </div>
+              {i < 3 && <div className="hidden md:block w-[1px] h-[40px] bg-[rgba(255,255,255,0.12)] ml-[48px]"></div>}
+            </div>
+          ))}
         </div>
       </section>
     </>
@@ -168,8 +317,8 @@ export default async function HomePage() {
   const globalContent = (
     <>
       <div className="text-center max-w-2xl mx-auto mb-12">
-        <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-4">International Schemes</h2>
-        <p className="text-slate-500">Select a country to discover government aid, welfare, and social protection programs available to citizens.</p>
+        <h2 className="text-3xl font-[800] text-[var(--text-primary)] font-[var(--font-heading)] tracking-tight mb-4">International Schemes</h2>
+        <p className="text-[var(--text-muted)]">Select a country to discover government aid, welfare, and social protection programs available to citizens.</p>
       </div>
       
       <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-6">
@@ -177,7 +326,7 @@ export default async function HomePage() {
           <Link key={code} href={`/${code}`} className="card p-6 group flex flex-col items-center text-center hover:bg-slate-50">
             <span className="text-6xl mb-4 group-hover:scale-110 transition-transform group-hover:rotate-3 drop-shadow-md">{config.flag}</span>
             <h3 className="font-bold text-xl text-slate-800 mb-1">{config.name}</h3>
-            <p className="text-brand-500 font-semibold text-sm opacity-0 -translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all">Browse Schemes →</p>
+            <p className="text-[var(--indigo)] font-semibold text-sm opacity-0 -translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all">Browse Schemes →</p>
           </Link>
         ))}
       </div>
@@ -185,98 +334,114 @@ export default async function HomePage() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* ── PREMIUM CLEAN HERO SECTION ── */}
-      <section className="relative pt-24 pb-32 overflow-hidden bg-slate-900">
-        <div className="absolute inset-0 z-0">
-           <div className="absolute inset-0 bg-[url('https://images.pexels.com/photos/1095814/pexels-photo-1095814.jpeg?auto=compress&cs=tinysrgb&w=1920&q=80')] bg-cover bg-center opacity-20"></div>
-           <div className="absolute inset-0 bg-gradient-to-b from-slate-900/80 via-slate-900/60 to-slate-900"></div>
-           <div className="absolute top-0 -left-1/4 w-1/2 h-1/2 bg-brand-500/10 blur-[120px] rounded-full mix-blend-screen animate-fade-in delay-200"></div>
-           <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-blue-600/10 blur-[120px] rounded-full mix-blend-screen animate-fade-in delay-500"></div>
-        </div>
+    <div className="min-h-screen bg-[var(--surface-gray)]">
+      {/* ── HERO SECTION ── */}
+      <section className="relative overflow-hidden" style={{background: 'linear-gradient(135deg, #0F172A 0%, #1E1B4B 50%, #0F172A 100%)'}}>
+        {/* Blobs */}
+        <div className="absolute top-[-100px] right-[-100px] w-[500px] h-[500px] rounded-full pointer-events-none z-0" style={{background: 'radial-gradient(circle, rgba(99,102,241,0.30) 0%, transparent 70%)', filter: 'blur(60px)', animation: 'blobFloat 8s ease-in-out infinite alternate'}}></div>
+        <div className="absolute bottom-[-80px] left-[-80px] w-[400px] h-[400px] rounded-full pointer-events-none z-0" style={{background: 'radial-gradient(circle, rgba(245,158,11,0.20) 0%, transparent 70%)', filter: 'blur(60px)', animation: 'blobFloat 10s ease-in-out infinite alternate-reverse'}}></div>
+        <div className="absolute top-[50%] left-[50%] w-[300px] h-[300px] rounded-full pointer-events-none z-0 -translate-x-1/2 -translate-y-1/2" style={{background: 'radial-gradient(circle, rgba(59,59,249,0.10) 0%, transparent 70%)', filter: 'blur(80px)'}}></div>
         
         <Navbar variant="dark" />
 
-        <div className="page-container relative z-10 pt-10 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card-dark border-white/10 text-white/80 text-sm font-semibold mb-8 animate-fade-in-up shadow-sm">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-brand-500"></span>
-            </span>
-            Real-time verified government updates
+        <div className="relative z-10 text-center max-w-[860px] mx-auto pt-[72px] px-[24px] pb-[80px]">
+          <div className="inline-flex items-center gap-[6px] rounded-[20px] px-[16px] py-[5px] text-[12px] font-[600] text-[#A5B4FC] mb-[24px]" style={{background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.35)'}}>
+            🇮🇳 India's #1 Government Schemes Platform · 1815+ Active Schemes
           </div>
           
-          <h1 className="text-5xl md:text-7xl font-extrabold text-white tracking-tight mb-6 animate-fade-in-up delay-100 leading-tight">
+          <h1 className="text-[clamp(34px,5vw,54px)] font-[800] text-white tracking-[-1.5px] mb-[20px] leading-[1.1] font-[var(--font-heading)]">
             Claim the Benefits <br className="hidden md:block"/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-brand-300">
+            <span style={{background: 'linear-gradient(90deg,#F59E0B,#FBBF24)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'}}>
               You Deserve.
             </span>
           </h1>
           
-          <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto mb-10 animate-fade-in-up delay-200 leading-relaxed font-medium">
+          <p className="text-[17px] text-[#94A3B8] max-w-[560px] mx-auto mb-[36px] leading-[1.7]">
             Stop searching through outdated portals. We organize <span className="text-white font-bold">{stats.schemes}+</span> active government schemes across India into one clean platform.
           </p>
           
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up delay-300">
-            <Link href="/in/check" className="w-full sm:w-auto btn-primary text-lg px-8 py-4 !rounded-2xl shadow-xl shadow-brand-500/20">
-              Check My Eligibility Free
-            </Link>
-            <Link href="/schemes" className="w-full sm:w-auto btn-secondary text-lg px-8 py-4 !rounded-2xl !bg-white/10 !border-white/20 !text-white hover:!bg-white/20 hover:!border-white/30 backdrop-blur-md">
-              Browse All Schemes
-            </Link>
+          {/* Search bar container */}
+          <div className="max-w-[640px] mx-auto mb-[48px] relative z-40">
+            <HomeSearch />
           </div>
-          
-          {/* Stats Bar */}
-          <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto animate-fade-in-up delay-400">
+
+          {/* Stats Row */}
+          <div className="flex gap-[16px] justify-center flex-wrap">
             {[
               { label: 'Active Schemes', value: `${stats.schemes}+` },
               { label: 'Citizens Helped', value: `${stats.checked.toLocaleString()}+` },
               { label: 'Coverage', value: '28 States & UTs' },
               { label: 'Update Frequency', value: 'Daily' }
             ].map((stat, i) => (
-              <div key={i} className="bg-white/5 backdrop-blur-md rounded-2xl p-5 border border-white/10">
-                <div className="text-2xl md:text-3xl font-bold text-white mb-1">{stat.value}</div>
-                <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{stat.label}</div>
+              <div key={i} className="rounded-[12px] p-[14px_24px] text-center" style={{background: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.16)', backdropFilter: 'blur(8px)'}}>
+                <div className="text-[22px] font-[800] text-white font-[var(--font-heading)]">{stat.value}</div>
+                <div className="text-[11px] text-[#94A3B8] mt-[2px]">{stat.label}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── LIVE SEARCH BAR ── */}
-      <div className="page-container relative z-40 -mt-8 mb-16">
-        <HomeSearch />
-      </div>
-
       <HomeTabs indiaContent={indiaContent} globalContent={globalContent} />
 
       {/* ── FOOTER ── */}
-      <footer className="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
-        <div className="page-container text-center">
-          <div className="flex items-center justify-center gap-2 mb-6">
-            <div className="w-6 h-6 bg-slate-800 rounded flex items-center justify-center">
-              <span className="text-white font-bold text-xs">C</span>
+      <footer className="bg-[var(--navy)] pt-[56px] px-[24px] pb-[28px]">
+        <div className="max-w-[1200px] mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr] gap-[44px] pb-[44px] border-b border-[rgba(255,255,255,0.08)]">
+            {/* Col 1 */}
+            <div>
+              <Link href="/" className="flex items-center gap-[8px]">
+                <div className="w-[34px] h-[34px] rounded-[9px] bg-gradient-to-br from-[var(--indigo)] to-[var(--indigo-mid)] flex items-center justify-center text-[18px]">🗺️</div>
+                <span className="font-[800] text-[18px] tracking-[-0.5px] font-[var(--font-heading)] text-white">Scheme<span className="text-[var(--indigo)]">Atlas</span></span>
+              </Link>
+              <p className="text-[13px] text-[#64748B] leading-[1.7] max-w-[260px] my-[14px]">
+                India's most comprehensive government schemes platform. Plus expert guides on loans, insurance and earning opportunities.
+              </p>
+              <div className="flex gap-[8px] flex-wrap mt-[20px]">
+                {["🇮🇳 हिंदी", "తెలుగు", "தமிழ்", "বাংলা", "ਪੰਜਾਬੀ"].map(lang => (
+                  <button key={lang} className="text-[11px] px-[10px] py-[4px] rounded-[6px] bg-[rgba(255,255,255,0.06)] text-[#94A3B8] cursor-pointer hover:bg-[rgba(255,255,255,0.12)] transition-colors">
+                    {lang}
+                  </button>
+                ))}
+              </div>
             </div>
-            <span className="font-bold text-lg text-white">SchemeAtlas</span>
+
+            {/* Col 2 */}
+            <div>
+              <h4 className="text-[12px] font-[700] text-white tracking-[1px] uppercase mb-[16px]">Schemes</h4>
+              <Link href="/schemes" className="text-[13px] text-[#64748B] block mb-[10px] hover:text-[#94A3B8] hover:pl-[4px] transition-all">All Schemes</Link>
+              <Link href="/saved" className="text-[13px] text-[#64748B] block mb-[10px] hover:text-[#94A3B8] hover:pl-[4px] transition-all">Saved Schemes</Link>
+              <Link href="/in/delhi" className="text-[13px] text-[#64748B] block mb-[10px] hover:text-[#94A3B8] hover:pl-[4px] transition-all">Delhi Schemes</Link>
+              <Link href="/in/maharashtra" className="text-[13px] text-[#64748B] block mb-[10px] hover:text-[#94A3B8] hover:pl-[4px] transition-all">Maharashtra Schemes</Link>
+            </div>
+
+            {/* Col 3 */}
+            <div>
+              <h4 className="text-[12px] font-[700] text-white tracking-[1px] uppercase mb-[16px]">Money Guides</h4>
+              <Link href="/articles" className="text-[13px] text-[#64748B] block mb-[10px] hover:text-[#94A3B8] hover:pl-[4px] transition-all">By Category</Link>
+              <Link href="/schemes" className="text-[13px] text-[#64748B] block mb-[10px] hover:text-[#94A3B8] hover:pl-[4px] transition-all">Central Schemes</Link>
+              <Link href="/schemes" className="text-[13px] text-[#64748B] block mb-[10px] hover:text-[#94A3B8] hover:pl-[4px] transition-all">State Schemes</Link>
+              <Link href="/in/check" className="text-[13px] text-[#64748B] block mb-[10px] hover:text-[#94A3B8] hover:pl-[4px] transition-all">Eligibility Check</Link>
+              <Link href="/schemes" className="text-[13px] text-[#64748B] block mb-[10px] hover:text-[#94A3B8] hover:pl-[4px] transition-all">Newly Added</Link>
+            </div>
+
+            {/* Col 4 */}
+            <div>
+              <h4 className="text-[12px] font-[700] text-white tracking-[1px] uppercase mb-[16px]">Company</h4>
+              <Link href="/about" className="text-[13px] text-[#64748B] block mb-[10px] hover:text-[#94A3B8] hover:pl-[4px] transition-all">About Us</Link>
+              <Link href="/contact" className="text-[13px] text-[#64748B] block mb-[10px] hover:text-[#94A3B8] hover:pl-[4px] transition-all">Contact</Link>
+              <Link href="/privacy" className="text-[13px] text-[#64748B] block mb-[10px] hover:text-[#94A3B8] hover:pl-[4px] transition-all">Privacy Policy</Link>
+              <Link href="/terms" className="text-[13px] text-[#64748B] block mb-[10px] hover:text-[#94A3B8] hover:pl-[4px] transition-all">Terms of Service</Link>
+              <Link href="/disclaimer" className="text-[13px] text-[#64748B] block mb-[10px] hover:text-[#94A3B8] hover:pl-[4px] transition-all">Disclaimer</Link>
+            </div>
           </div>
-          <p className="text-sm mb-6 max-w-md mx-auto">
-            Not affiliated with any government entity. Data is aggregated from official sources (PIB, MyGov) and analyzed by AI for educational purposes.
-          </p>
-          <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 px-4 text-sm font-medium mb-8">
-            <Link href="/" className="hover:text-white transition-colors">Home</Link>
-            <Link href="/schemes" className="hover:text-white transition-colors">Schemes</Link>
-            <Link href="/saved" className="hover:text-white transition-colors">Saved</Link>
-            <Link href="/in/check" className="hover:text-white transition-colors">Eligibility Checker</Link>
-          </div>
-          <div className="flex flex-wrap justify-center gap-4 text-xs font-semibold text-slate-500">
-            <Link href="/about" className="hover:text-slate-300 transition-colors">About Us</Link>
-            <Link href="/contact" className="hover:text-slate-300 transition-colors">Contact</Link>
-            <Link href="/privacy" className="hover:text-slate-300 transition-colors">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-slate-300 transition-colors">Terms of Service</Link>
-            <Link href="/disclaimer" className="hover:text-slate-300 transition-colors">Disclaimer</Link>
-          </div>
-          <div className="mt-8 text-xs text-slate-600">
-            &copy; {new Date().getFullYear()} SchemeAtlas Global Framework. All rights reserved.
+
+          <div className="flex justify-between items-center text-[12px] text-[#475569] pt-[28px] flex-wrap gap-[10px]">
+            <div>&copy; {new Date().getFullYear()} SchemeAtlas. Not affiliated with any government entity.</div>
+            <div className="flex gap-[16px]">
+              <Link href="/privacy" className="hover:text-[#64748B]">Privacy</Link>
+              <Link href="/terms" className="hover:text-[#64748B]">Terms</Link>
+            </div>
           </div>
         </div>
       </footer>

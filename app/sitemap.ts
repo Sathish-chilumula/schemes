@@ -1,6 +1,8 @@
 import { MetadataRoute } from 'next';
 import { supabaseAdmin } from '@/lib/supabase';
 import { COUNTRIES } from '@/lib/config';
+import * as fs from 'fs';
+import * as path from 'path';
 
 // Removed Edge Runtime to allow static generation during build
 // export const runtime = 'edge';
@@ -98,5 +100,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.warn('⚠️ Failed to fetch schemes for sitemap:', error);
   }
 
-  return [...allStaticRoutes, ...dynamicRoutes];
+  // 4. Articles Section
+  const articlesDir = path.join(process.cwd(), 'content/articles');
+  const articleEntries: MetadataRoute.Sitemap = fs.existsSync(articlesDir)
+    ? fs.readdirSync(articlesDir)
+        .filter(f => f.endsWith('.json'))
+        .map(f => ({
+          url: `${SITE_URL}/articles/${f.replace('.json', '')}`,
+          lastModified: new Date(),
+          changeFrequency: 'monthly' as const,
+          priority: 0.7,
+        }))
+    : [];
+
+  return [...allStaticRoutes, ...dynamicRoutes, ...articleEntries];
 }

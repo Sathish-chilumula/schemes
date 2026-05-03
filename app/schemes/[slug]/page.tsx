@@ -7,6 +7,7 @@ import { Metadata } from 'next';
 import { SchemeContent } from './SchemeContent';
 import { slugify } from '@/lib/seo';
 import { ViewCounter } from '@/components/ViewCounter';
+import { RelatedArticlesBlock } from '@/components/RelatedArticlesBlock';
 import React from 'react';
 
 export const runtime = 'edge';
@@ -416,6 +417,8 @@ export default async function SchemeDetailPage({
                   <strong>⚠️ Note:</strong> SchemeAtlas provides information to help you find and understand benefits. We are not a government agency. Always verify current details on the <strong>official website</strong> before applying.
                 </p>
               </div>
+
+              <RelatedArticlesBlock category={scheme.category || ''} schemeTitle={scheme.name || ''} />
             </div>
 
             <div className="lg:w-1/3 space-y-8">
