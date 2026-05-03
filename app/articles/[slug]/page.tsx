@@ -11,9 +11,12 @@ export const dynamicParams = false;
 export async function generateStaticParams() {
   const articlesDir = path.join(process.cwd(), 'content/articles');
   if (!fs.existsSync(articlesDir)) {
-    return [];
+    return [{ slug: 'placeholder-guide' }];
   }
   const files = fs.readdirSync(articlesDir).filter(f => f.endsWith('.json'));
+  if (files.length === 0) {
+    return [{ slug: 'placeholder-guide' }];
+  }
   return files.map(file => ({
     slug: file.replace('.json', '')
   }));
