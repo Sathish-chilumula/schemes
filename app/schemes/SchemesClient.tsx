@@ -74,79 +74,85 @@ export function SchemesClient({ initialSchemes }: { initialSchemes: Scheme[] }) 
             />
           </div>
 
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-[20px]">
             {/* Country filter */}
-            <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar items-center">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mr-2">Country</span>
-              {ALL_COUNTRIES.map(code => {
-                const c = COUNTRIES[code];
-                return (
-                  <button
-                    key={code}
-                    id={`country-${code}`}
-                    onClick={() => { setActiveCountry(code); setActiveState('all'); }}
-                    className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                      activeCountry === code
-                        ? 'bg-brand-500 text-white shadow-md'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                    }`}
-                  >
-                    {c ? `${c.flag} ${c.name}` : '🌐 All Countries'}
-                  </button>
-                );
-              })}
+            <div>
+              <div className="text-[11px] font-[800] text-slate-400 uppercase tracking-[1.5px] mb-[10px]">Country</div>
+              <div className="flex gap-[8px] overflow-x-auto pb-[4px] no-scrollbar items-center">
+                {ALL_COUNTRIES.map(code => {
+                  const c = COUNTRIES[code];
+                  return (
+                    <button
+                      key={code}
+                      id={`country-${code}`}
+                      onClick={() => { setActiveCountry(code); setActiveState('all'); }}
+                      className={`flex-shrink-0 px-[16px] py-[8px] rounded-[var(--radius-sm)] text-[13px] font-[600] transition-all border ${
+                        activeCountry === code
+                          ? 'bg-[var(--indigo)] text-white border-[var(--indigo)] shadow-sm'
+                          : 'bg-white text-[var(--text-primary)] border-[var(--border)] hover:bg-slate-50'
+                      }`}
+                    >
+                      {c ? `${c.flag} ${c.name}` : '🌐 All Countries'}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* State Filter (Visible for India or All) */}
             {statesList.length > 0 && (
-              <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar items-center animate-fade-in border-y border-slate-50 py-2">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mr-2">State</span>
-                <button
-                  onClick={() => setActiveState('all')}
-                  className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                    activeState === 'all'
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  📍 All States
-                </button>
-                {statesList.map(s => (
+              <div className="animate-fade-in border-t border-slate-100 pt-[16px]">
+                <div className="text-[11px] font-[800] text-slate-400 uppercase tracking-[1.5px] mb-[10px]">State</div>
+                <div className="flex gap-[8px] overflow-x-auto pb-[4px] no-scrollbar items-center">
                   <button
-                    key={s.code}
-                    onClick={() => setActiveState(s.code)}
-                    className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                      activeState === s.code
-                        ? 'bg-blue-600 text-white shadow-sm'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    onClick={() => setActiveState('all')}
+                    className={`flex-shrink-0 px-[16px] py-[8px] rounded-[var(--radius-sm)] text-[13px] font-[600] transition-all border ${
+                      activeState === 'all'
+                        ? 'bg-[var(--indigo)] text-white border-[var(--indigo)] shadow-sm'
+                        : 'bg-white text-[var(--text-primary)] border-[var(--border)] hover:bg-slate-50'
                     }`}
                   >
-                    {s.icon} {s.name}
+                    📍 All States
                   </button>
-                ))}
+                  {statesList.map(s => (
+                    <button
+                      key={s.code}
+                      onClick={() => setActiveState(s.code)}
+                      className={`flex-shrink-0 px-[16px] py-[8px] rounded-[var(--radius-sm)] text-[13px] font-[600] transition-all border ${
+                        activeState === s.code
+                          ? 'bg-[var(--indigo)] text-white border-[var(--indigo)] shadow-sm'
+                          : 'bg-white text-[var(--text-primary)] border-[var(--border)] hover:bg-slate-50'
+                      }`}
+                    >
+                      {s.icon} {s.name}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 
             {/* Category filter */}
-            <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar items-center">
-               <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mr-2">Sector</span>
-              {validCategories.map(cat => {
-                const catConfig = CATEGORIES[cat];
-                return (
-                  <button
-                    key={cat}
-                    id={`cat-${cat}`}
-                    onClick={() => setActiveCategory(cat)}
-                    className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                      activeCategory === cat
-                        ? 'bg-slate-700 text-white'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                    }`}
-                  >
-                    {catConfig ? `${catConfig.icon} ${catConfig.label || cat}` : '📋 All Sectors'}
-                  </button>
-                );
-              })}
+            <div className="border-t border-slate-100 pt-[16px]">
+               <div className="text-[11px] font-[800] text-slate-400 uppercase tracking-[1.5px] mb-[10px]">Sector</div>
+               <div className="flex gap-[8px] overflow-x-auto pb-[4px] no-scrollbar items-center">
+                {validCategories.map(cat => {
+                  const catConfig = CATEGORIES[cat];
+                  return (
+                    <button
+                      key={cat}
+                      id={`cat-${cat}`}
+                      onClick={() => setActiveCategory(cat)}
+                      className={`flex-shrink-0 px-[16px] py-[8px] rounded-[var(--radius-sm)] text-[13px] font-[600] transition-all border ${
+                        activeCategory === cat
+                          ? 'bg-[var(--navy)] text-white border-[var(--navy)] shadow-sm'
+                          : 'bg-white text-[var(--text-primary)] border-[var(--border)] hover:bg-slate-50'
+                      }`}
+                    >
+                      {catConfig ? `${catConfig.icon} ${catConfig.label || cat}` : '📋 All Sectors'}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>

@@ -107,24 +107,17 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
                   <div className="grid grid-cols-3 gap-[28px]">
                     <div>
                       <span className="text-[11px] font-[700] tracking-[1.5px] uppercase text-[var(--text-faint)] mb-[10px] block">Earn Money</span>
-                      <Link href="/articles/earn-money-online-india" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">💰 Earn Money Online</Link>
-                      <Link href="/articles/freelancing-guide-india" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">📱 Freelancing Guide</Link>
-                      <Link href="/articles/work-from-home-india" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">🏠 Work From Home Jobs</Link>
-                      <Link href="/articles/youtube-earnings-india" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">📹 YouTube Earnings India</Link>
+                      <Link href="/articles?category=Earn%20Money" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">💰 All Earning Guides</Link>
                     </div>
                     <div>
                       <span className="text-[11px] font-[700] tracking-[1.5px] uppercase text-[var(--text-faint)] mb-[10px] block">Loans</span>
-                      <Link href="/articles/best-personal-loans-india" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">🏦 Best Personal Loans</Link>
-                      <Link href="/articles/home-loan-guide-india" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">🏠 Home Loan Guide</Link>
-                      <Link href="/articles/business-loans-india" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">💼 Business Loans</Link>
-                      <Link href="/articles/education-loan-india" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">🎓 Education Loans</Link>
+                      <Link href="/articles?category=Loans" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">🏦 Loan Guides & Tips</Link>
                     </div>
                     <div>
                       <span className="text-[11px] font-[700] tracking-[1.5px] uppercase text-[var(--text-faint)] mb-[10px] block">Insurance & Invest</span>
-                      <Link href="/articles/health-insurance-tips-india" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">🛡️ Health Insurance Tips</Link>
-                      <Link href="/articles/term-insurance-india" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">❤️ Best Term Insurance</Link>
-                      <Link href="/articles/lic-vs-private-insurance" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">📊 LIC vs Private Plans</Link>
-                      <Link href="/articles/tax-saving-guide-india" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">💹 Tax Saving Guide</Link>
+                      <Link href="/articles?category=Insurance" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">🛡️ Insurance Guides</Link>
+                      <Link href="/articles?category=Investment" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">📊 Investment Strategies</Link>
+                      <Link href="/articles?category=Tax" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">💹 Tax Saving Tips</Link>
                     </div>
                   </div>
                 </div>
@@ -136,9 +129,6 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
               <Link href="/in/check" className={navItemClass + ' flex items-center gap-1'}>
                 Eligibility Check
                 <span className="w-[6px] h-[6px] rounded-full bg-[var(--green)] inline-block ml-[2px]"></span>
-              </Link>
-              <Link href="/saved" className={navItemClass}>
-                🔖 Saved
               </Link>
             </div>
           </div>
@@ -204,10 +194,9 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
             </div>
 
             <div className="flex flex-col gap-[8px] flex-1">
-              <Link href="/schemes" onClick={() => setMobileMenuOpen(false)} className="text-[16px] font-[600] text-[var(--text-primary)] py-[14px] border-b border-[var(--border)]">All Schemes</Link>
-              <Link href="/in/check" onClick={() => setMobileMenuOpen(false)} className="text-[16px] font-[600] text-[var(--text-primary)] py-[14px] border-b border-[var(--border)]">Eligibility Check</Link>
               <Link href="/articles" onClick={() => setMobileMenuOpen(false)} className="text-[16px] font-[600] text-[var(--text-primary)] py-[14px] border-b border-[var(--border)]">Money Guides</Link>
-              <Link href="/saved" onClick={() => setMobileMenuOpen(false)} className="text-[16px] font-[600] text-[var(--text-primary)] py-[14px] border-b border-[var(--border)]">Saved Schemes</Link>
+              <Link href="/schemes" onClick={() => setMobileMenuOpen(false)} className="text-[16px] font-[600] text-[var(--text-primary)] py-[14px] border-b border-[var(--border)]">All Schemes</Link>
+              <Link href="/in/check" onClick={() => setMobileMenuOpen(false)} className="text-[16px] font-[600] text-[var(--indigo)] py-[14px] border-b border-[var(--border)]">Eligibility Check ✨</Link>
               
               {!loading && user ? (
                 <button onClick={handleLogout} className="text-[16px] font-[600] text-red-600 py-[14px] border-b border-[var(--border)] text-left">Sign Out</button>
