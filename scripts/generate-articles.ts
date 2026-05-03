@@ -78,7 +78,11 @@ async function groq(user: string, system: string, tokens=4000): Promise<string> 
 
 async function gemini(user: string, system: string): Promise<string> {
   if (!GEMINI_KEY) throw new Error('GEMINI_API_KEY missing')
-  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-04-17:generateContent?key=${GEMINI_KEY}`, {
+  
+  // Rate limit protection: Max 15 RPM
+  await new Promise(r => setTimeout(r, 4500)) 
+
+  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite-preview-02-05:generateContent?key=${GEMINI_KEY}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -86,7 +90,15 @@ async function gemini(user: string, system: string): Promise<string> {
       generationConfig: { maxOutputTokens: 8192, temperature: 0.2 }
     })
   })
-  if (!r.ok) throw new Error(`Gemini ${r.status}: ${await r.text()}`)
+  if (!r.ok) {
+    const errText = await r.text()
+    if (r.status === 429) {
+      console.warn('⚠️ Gemini Rate Limited (429). Retrying in 10s...')
+      await new Promise(r => setTimeout(r, 10000))
+      return gemini(user, system) // Recursive retry once
+    }
+    throw new Error(`Gemini ${r.status}: ${errText}`)
+  }
   return (await r.json()).candidates[0].content.parts[0].text.trim()
 }
 
@@ -114,13 +126,8 @@ Do not change slugs or URLs. Only translate user-facing text (title, intro, head
     try {
       return await gemini(user, system)
     } catch (e2) {
-      console.warn(`⚠️ Gemini translation failed, falling back to OpenAI: ${e2}`)
-      try {
-        return await openai(user, system)
-      } catch (e3) {
-        console.error(`❌ All translation providers failed: ${e3}`)
-        throw e3
-      }
+      console.error(`❌ All translation providers failed: ${e2}`)
+      throw e2
     }
   }
 }
@@ -201,15 +208,8 @@ REQUIREMENTS:
       const parsed = parseJSON(raw)
       return { ...parsed, slug: s, category, publishedAt: today, updatedAt: today, imageUrl, country }
     } catch (err2) {
-      console.warn(`⚠️ Gemini write failed, falling back to OpenAI: ${err2}`)
-      try {
-        const raw = await openai(user, system)
-        const parsed = parseJSON(raw)
-        return { ...parsed, slug: s, category, publishedAt: today, updatedAt: today, imageUrl, country }
-      } catch (err3) {
-        console.error(`❌ All content providers failed: ${err3}`)
-        throw err3
-      }
+      console.error(`❌ All content providers failed: ${err2}`)
+      throw err2
     }
   }
 }
