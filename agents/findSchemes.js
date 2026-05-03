@@ -8,6 +8,9 @@ const { createClient } = require('@supabase/supabase-js');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const Parser = require('rss-parser');
 const axios = require('axios');
+const crypto = require('crypto');
+
+const DRY_RUN = process.env.DRY_RUN === 'true';
 
 const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.SUPABASE_SERVICE_KEY;
@@ -306,18 +309,29 @@ async function fetchIndiamyScheme() {
 }
 
 // ============================================
-// STEP 1: FETCH RSS FEEDS
+// STEP 1: FETCH RSS FEEDS (PARALLEL)
 // ============================================
 async function fetchRSSFeeds() {
   const allItems = [];
+  const feedList = [];
+  
   for (const [country, feeds] of Object.entries(RSS_SOURCES)) {
     for (const feedUrl of feeds) {
+      feedList.push({ country, url: feedUrl });
+    }
+  }
+
+  const chunk = (arr, size) => Array.from({ length: Math.ceil(arr.length / size) }, (v, i) => arr.slice(i * size, i * size + size));
+  
+  const batches = chunk(feedList, 10);
+  for (const batch of batches) {
+    await Promise.allSettled(batch.map(async (feed) => {
       try {
-        console.log(`Fetching RSS: ${feedUrl}`);
-        const feed = await parser.parseURL(feedUrl);
-        for (const item of feed.items.slice(0, 10)) {
+        console.log(`Fetching RSS: ${feed.url.substring(0, 60)}...`);
+        const parsed = await parser.parseURL(feed.url);
+        for (const item of parsed.items.slice(0, 10)) {
           allItems.push({
-            country,
+            country: feed.country,
             title: item.title,
             link: item.link,
             summary: item.contentSnippet || item.content || '',
@@ -325,18 +339,66 @@ async function fetchRSSFeeds() {
           });
         }
       } catch (err) {
-        console.error(`RSS fetch failed for ${feedUrl}:`, err.message);
+        // Silent catch for bad feeds to keep logs clean
       }
-    }
+    }));
   }
   console.log(`Total RSS items found: ${allItems.length}`);
   return allItems;
 }
 
 // ============================================
-// STEP 2: CHECK IF SCHEME ALREADY EXISTS
+// STEP 2: PRE-AI FUNNEL FILTERS
 // ============================================
-async function getExistingScheme(title, country) {
+const ACCEPT_KEYWORDS = ['scheme', 'yojana', 'benefit', 'welfare', 'subsidy', 'pension', 'scholarship', 'insurance', 'allowance', 'grant', 'relief', 'fund', 'launched', 'announced', 'introduced', 'eligibility', 'pradhan mantri', 'mukhyamantri', 'cm ', 'assistance', 'empowerment', 'mission', 'abhiyan', 'krishi', 'kisan', 'rozgar', 'awas', 'swasthya', 'bima', 'ration', 'free', 'stipend', 'honorarium'];
+const REJECT_KEYWORDS = ['result', 'election', 'cricket', 'ipl', 'weather', 'stock market', 'sensex', 'nifty', 'bollywood', 'movie', 'arrested', 'accident', 'obituary', 'unknown', 'not specified', 'none', 'no official name', 'assumed', 'not mentioned', 'press note'];
+
+function isRelevant(title, summary) {
+  const text = (title + ' ' + summary).toLowerCase();
+  
+  for (const word of REJECT_KEYWORDS) {
+    if (text.includes(word)) return false;
+  }
+  
+  for (const word of ACCEPT_KEYWORDS) {
+    if (text.includes(word)) return true;
+  }
+  
+  return false;
+}
+
+function isFresh(pubDate) {
+  if (!pubDate) return true;
+  const published = new Date(pubDate);
+  const diffHours = (new Date() - published) / (1000 * 60 * 60);
+  return diffHours <= (7 * 24); // 7 days
+}
+
+async function fetchFullArticle(url, rssSummary) {
+  if (rssSummary && rssSummary.length > 200) {
+    return rssSummary; // Summary is rich enough
+  }
+  try {
+    const res = await axios.get(url, { 
+      timeout: 8000,
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+    });
+    const text = res.data.replace(/<[^>]*>?/gm, '').replace(/\s+/g, ' ').trim();
+    if (text.length < 200) return rssSummary; // Paywalled or too short
+    return text.substring(0, 3000); 
+  } catch (e) {
+    return rssSummary; // Fallback to RSS summary on 403, 404, 429, timeout
+  }
+}
+
+async function getExistingScheme(title, sourceUrl, country) {
+  const sourceHash = crypto.createHash('md5').update(sourceUrl).digest('hex');
+  
+  // Check by hash first (faster, strictly accurate)
+  const { data: hashMatch } = await supabase.from('schemes').select('id').eq('source_hash', sourceHash).limit(1).single();
+  if (hashMatch) return hashMatch;
+
+  // Fallback to title similarity check
   const { data } = await supabase
     .from('schemes')
     .select('*')
@@ -384,7 +446,8 @@ Return ONLY valid JSON, nothing else:
   "image_keyword": "3-4 word search term for relevant photo",
   "state_name": "Full state name or null if central",
   "state_code": "Standard code like IN-AP, IN-KL, or india for central",
-  "summary": "2 sentence simple explanation for common people"
+  "summary": "2 sentence simple explanation for common people",
+  "confidence_score": "float between 0.0 and 1.0 representing confidence this is a government scheme"
 }
 `;
 
@@ -516,103 +579,125 @@ async function runFindAgent() {
   console.log(`⏰ Start Time: ${new Date().toISOString()}`);
 
   const stats = {
-    total: 0,
-    new: 0,
-    updated: 0,
-    skipped: 0,
+    rssTotal: 0,
+    passedDate: 0,
+    passedRelevance: 0,
+    notInDb: 0,
+    fullArticleFetched: 0,
+    aiConfirmed: 0,
+    published: 0,
+    rejected: 0,
     errors: 0
   };
 
   // --- STEP 1: API Discovery (India myScheme) ---
   const mySchemeItems = await fetchIndiamyScheme();
-  stats.total += mySchemeItems.length;
+  
+  if (!DRY_RUN) {
+    for (const item of mySchemeItems) {
+      try {
+        const existing = await getExistingScheme(item.name, 'myscheme', 'IN');
+        const s = item.raw;
+        
+        const schemeData = {
+          name: item.name,
+          category: mapCategory(item.keyword + ' ' + (s.schemeShortTitle || '')),
+          what_you_get: s.schemeShortTitle || s.description || '',
+          benefit_amount: s.benefitType || 'Check official site',
+          eligibility: { other: s.eligibility || '', categories: s.beneficiary || [] },
+          how_to_apply: { steps: s.applicationProcess ? [s.applicationProcess] : ['Visit myscheme.gov.in'] },
+          documents: s.documents ? (Array.isArray(s.documents) ? s.documents : [s.documents]) : [],
+          official_url: s.schemeUrl || 'https://myscheme.gov.in',
+          image_keyword: `${item.keyword} india government`,
+          state_name: item.state_name,
+          state_code: item.state_code || 'india',
+          is_scheme: true
+        };
 
-  for (const item of mySchemeItems) {
-    try {
-      const existing = await getExistingScheme(item.name, 'IN');
-      const s = item.raw;
-      
-      const schemeData = {
-        name: item.name,
-        category: mapCategory(item.keyword + ' ' + (s.schemeShortTitle || '')),
-        what_you_get: s.schemeShortTitle || s.description || '',
-        benefit_amount: s.benefitType || 'Check official site',
-        eligibility: { other: s.eligibility || '', categories: s.beneficiary || [] },
-        how_to_apply: { steps: s.applicationProcess ? [s.applicationProcess] : ['Visit myscheme.gov.in'] },
-        documents: s.documents ? (Array.isArray(s.documents) ? s.documents : [s.documents]) : [],
-        official_url: s.schemeUrl || 'https://myscheme.gov.in',
-        image_keyword: `${item.keyword} india government`,
-        state_name: item.state_name,
-        state_code: item.state_code || 'india',
-        is_scheme: true
-      };
-
-      if (existing) {
-        const hasChanged = 
-          existing.category !== schemeData.category || 
-          existing.benefit_amount !== schemeData.benefit_amount ||
-          existing.official_url !== schemeData.official_url;
-
-        if (hasChanged) {
-          console.log(`🔄 Updating myScheme: ${item.name}`);
-          await saveScheme(schemeData, 'IN', schemeData.official_url, existing.id);
-          stats.updated++;
+        if (existing) {
+          const hasChanged = existing.category !== schemeData.category || existing.official_url !== schemeData.official_url;
+          if (hasChanged) {
+            await saveScheme(schemeData, 'IN', schemeData.official_url, existing.id);
+          }
         } else {
-          stats.skipped++;
+          const saved = await saveScheme(schemeData, 'IN', schemeData.official_url);
         }
-      } else {
-        console.log(`🆕 New myScheme: ${item.name} (${item.state_code || 'Central'})`);
-        const saved = await saveScheme(schemeData, 'IN', schemeData.official_url);
-        if (saved) stats.new++;
+      } catch (e) {
+        stats.errors++;
       }
-      await new Promise(r => setTimeout(r, 200));
-    } catch (e) {
-      console.error(`❌ Error processing myScheme ${item.name}:`, e.message);
-      stats.errors++;
     }
   }
 
-  // --- STEP 2: RSS Discovery (All Countries) ---
+  // --- STEP 2: RSS Discovery with Pre-AI Funnel ---
+  console.log('\n📡 Starting RSS Discovery & Funnel...');
   const rssItems = await fetchRSSFeeds();
-  stats.total += rssItems.length;
+  stats.rssTotal = rssItems.length;
 
   for (const item of rssItems) {
     try {
-      const existing = await getExistingScheme(item.title, item.country);
-      if (existing) {
-        console.log(`⏭️  Already exists (RSS): ${item.title}`);
-        stats.skipped++;
+      // Funnel Stage 1: Date
+      if (!isFresh(item.published)) continue;
+      stats.passedDate++;
+
+      // Funnel Stage 2: Relevance
+      if (!isRelevant(item.title, item.summary)) continue;
+      stats.passedRelevance++;
+
+      // Funnel Stage 3: Deduplication
+      const existing = await getExistingScheme(item.title, item.link, item.country);
+      if (existing) continue;
+      stats.notInDb++;
+
+      // Funnel Stage 4: Full Article Fetching
+      console.log(`\n🔍 Promising Item: ${item.title}`);
+      const fullText = await fetchFullArticle(item.link, item.summary);
+      if (fullText !== item.summary) stats.fullArticleFetched++;
+      
+      // Override summary with full text for AI
+      item.summary = fullText;
+
+      if (DRY_RUN) {
+        console.log(`   [DRY RUN] Would send to AI & DB.`);
         continue;
       }
 
-      console.log(`🔍 Analyzing RSS: ${item.title}`);
+      // Funnel Stage 5: AI Extraction
       const schemeData = await extractSchemeDetails(item);
 
-      if (!schemeData.is_scheme) {
-        console.log(`❌ Not a scheme: ${item.title}`);
-        stats.skipped++;
+      // Funnel Stage 6: Quality Gate
+      if (!schemeData.is_scheme || schemeData.confidence_score < 0.75 || !schemeData.name || schemeData.name.length < 10) {
+        console.log(`   ❌ Rejected by AI Quality Gate`);
+        stats.rejected++;
         continue;
       }
+      stats.aiConfirmed++;
 
+      // Funnel Stage 7: Publish
       const saved = await saveScheme(schemeData, item.country, item.link);
-      if (saved) stats.new++;
-      await new Promise(r => setTimeout(r, 1500));
+      if (saved) stats.published++;
+      
+      await new Promise(r => setTimeout(r, 1000));
     } catch (e) {
-      console.error(`❌ Error processing RSS ${item.title}:`, e.message);
+      console.error(`   ❌ Error processing RSS ${item.title}:`, e.message);
       stats.errors++;
     }
   }
 
-  console.log('\n📊 SYNC SUMMARY');
-  console.log('━━━━━━━━━━━━━━');
-  console.log(`Total Handled: ${stats.total}`);
-  console.log(`New Added:     ${stats.new}`);
-  console.log(`Updated:       ${stats.updated}`);
-  console.log(`Skipped:       ${stats.skipped}`);
-  console.log(`Errors:        ${stats.errors}`);
-  console.log('━━━━━━━━━━━━━━');
-  
-  return stats;
+  console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log(`📡 RSS items fetched:        ${stats.rssTotal}`);
+  console.log(`📅 Passed date filter:       ${stats.passedDate}`);
+  console.log(`🔍 Passed relevance filter:  ${stats.passedRelevance}`);
+  console.log(`🗄️  Not in DB:                ${stats.notInDb}`);
+  console.log(`🌐 Full article fetched:     ${stats.fullArticleFetched}`);
+  if (!DRY_RUN) {
+    console.log(`🤖 AI confirmed schemes:     ${stats.aiConfirmed}`);
+    console.log(`✅ Published:                ${stats.published}`);
+    console.log(`🗑️  Quality rejected:         ${stats.rejected}`);
+  } else {
+    console.log(`\n⚠️  DRY RUN MODE ENABLED. Zero AI tokens used. Zero DB writes.`);
+  }
+  console.log(`❌ Errors:                   ${stats.errors}`);
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 }
 
 // Run the agent
