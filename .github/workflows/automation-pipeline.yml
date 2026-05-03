@@ -62,10 +62,10 @@ jobs:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
 
       # ==================================
-      # STEP 3: CONTENT GENERATION
+      # STEP 3: CONTENT GENERATION V2 (New Schemes Only)
       # ==================================
-      - name: Stage 3 - Content Writing & Translation
-        run: node scripts/generate-content.js
+      - name: Stage 3 - Content Writing & Translation V2
+        run: node scripts/generate-scheme-content-v2.js
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
