@@ -82,7 +82,7 @@ async function gemini(user: string, system: string): Promise<string> {
   // Rate limit protection: Max 15 RPM
   await new Promise(r => setTimeout(r, 4500)) 
 
-  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite-preview-02-05:generateContent?key=${GEMINI_KEY}`, {
+  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${GEMINI_KEY}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

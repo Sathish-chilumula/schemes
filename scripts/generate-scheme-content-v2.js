@@ -30,7 +30,7 @@ if (GEMINI_API_KEY) {
   try {
     const { GoogleGenerativeAI } = require("@google/generative-ai");
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    geminiModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    geminiModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
   } catch (e) {
     console.warn("⚠️ Gemini SDK init failed.");
   }
