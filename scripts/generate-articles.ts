@@ -58,7 +58,7 @@ async function groq(user: string, system: string, tokens=4000): Promise<string> 
 
 async function gemini(user: string, system: string): Promise<string> {
   if (!GEMINI_KEY) throw new Error('GEMINI_API_KEY missing')
-  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite-preview-02-05:generateContent?key=${GEMINI_KEY}`, {
+  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-04-17:generateContent?key=${GEMINI_KEY}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
