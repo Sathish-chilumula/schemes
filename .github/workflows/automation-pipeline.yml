@@ -62,26 +62,6 @@ jobs:
             echo "⚠️  Stage 1 failed - proceeding to Stage 2 (enrichment only mode)"
           fi
 
-      # ==================================
-      # STAGE 2: ENRICHMENT
-      # ==================================
-      - name: Stage 2 - State Enrichment
-        id: stage2
-        continue-on-error: true
-        run: node scripts/state-enrichment.js
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL != '' && secrets.SUPABASE_URL || secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-
-      - name: Stage 2 - Report Status
-        if: always()
-        run: |
-          if [ "${{ steps.stage2.outcome }}" == "success" ]; then
-            echo "✅ Stage 2 passed"
-          else
-            echo "⚠️  Stage 2 failed - proceeding to Stage 3"
-          fi
 
       # ==================================
       # STAGE 3: CONTENT GENERATION V2
