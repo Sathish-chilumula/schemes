@@ -12,7 +12,6 @@ const axios = require('axios');
 const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.SUPABASE_SERVICE_KEY;
 const geminiKey = process.env.GEMINI_API_KEY;
-const openRouterKey = process.env.OPENROUTER_API_KEY;
 const groqKey = process.env.GROQ_API_KEY;
 const cfAccountId = process.env.CLOUDFLARE_ACCOUNT_ID;
 const cfApiToken = process.env.CLOUDFLARE_API_TOKEN;
@@ -32,8 +31,8 @@ let geminiModel = null;
 if (geminiKey) {
   try {
     genAI = new GoogleGenerativeAI(geminiKey);
-    // Use gemini-2.0-flash for Tier 1
-    geminiModel = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    // Use gemini-2.5-flash-lite for Tier 1
+    geminiModel = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
   } catch (e) {
     console.warn('⚠️ Gemini SDK init failed, will use fallbacks.');
   }

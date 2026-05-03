@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { FAQAccordion } from '@/components/FAQAccordion';
 
 // Do NOT use runtime = 'edge' here because we need fs
-// export const runtime = 'edge';
+export const dynamicParams = false;
 
 export async function generateStaticParams() {
   const articlesDir = path.join(process.cwd(), 'content/articles');

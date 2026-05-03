@@ -11,7 +11,7 @@ const axios = require('axios');
 //   USA: Benefits.gov API + Federal Register API (free, no key)
 //   Nigeria: Google News RSS (no official API exists)
 //   Kenya: Kenya Open Data API + Google News RSS
-//   All: OpenRouter AI for extraction + translation
+//   All: Gemini AI for extraction + translation
 // ═══════════════════════════════════════════════════════════
 
 const supabase = createClient(
@@ -71,27 +71,17 @@ function mapCategory(raw) {
   return 'cash';
 }
 
-async function callOpenRouter(prompt) {
-  const key = process.env.OPENROUTER_API_KEY;
-  if (!key) throw new Error('OPENROUTER_API_KEY not set');
-  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${key}`,
-      'Content-Type': 'application/json',
-      'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL || 'https://claimit.pages.dev',
-      'X-Title': 'SchemeAtlas',
-    },
-    body: JSON.stringify({
-      model: 'google/gemini-2.0-flash-exp:free',
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.1,
-      max_tokens: 1000,
-    }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(JSON.stringify(data));
-  const text = data?.choices?.[0]?.message?.content || '{}';
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+
+async function callAI(prompt) {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) throw new Error('GEMINI_API_KEY not set');
+  
+  const genAI = new GoogleGenerativeAI(key);
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+  
+  const result = await model.generateContent(prompt);
+  const text = result.response.text();
   return text.replace(/```json|```/g, '').trim();
 }
 
@@ -315,7 +305,7 @@ If YES, return ONLY this JSON:
   "summary":"2 sentence plain explanation"
 }`;
   try {
-    const text = await callOpenRouter(prompt);
+    const text = await callAI(prompt);
     return JSON.parse(text);
   } catch (e) { return { is_scheme: false }; }
 }
@@ -340,7 +330,7 @@ Return ONLY JSON:
   "summary":"2 sentence plain language explanation"
 }`;
   try {
-    const text = await callOpenRouter(prompt);
+    const text = await callAI(prompt);
     const enhanced = JSON.parse(text);
     return { ...scheme, ...enhanced };
   } catch (e) { return scheme; }

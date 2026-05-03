@@ -7,7 +7,7 @@
  * 3. Document Alerts (Aadhaar, PAN, Passport)
  * 
  * AI Providers (cascading fallback):
- *   Tier 1: Gemini 2.0 Flash (free, fast)
+ *   Tier 1: Gemini 2.5 Flash Lite (free, fast)
  *   Tier 2: Cloudflare Workers AI (Llama 3.1 8B - efficient)
  */
 
@@ -22,7 +22,6 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const CLOUDFLARE_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID;
 const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY || 'mRrS9UjMl45wy4Hy-Pm6oMv7TGG55Sb-o6VLDxcJQOA';
 
 // ─── LIMITS ────────────────────────────────────────────────────────
@@ -42,8 +41,8 @@ if (GEMINI_API_KEY) {
   try {
     const { GoogleGenerativeAI } = require("@google/generative-ai");
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    geminiModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-    console.log("✅ Gemini 2.0 Flash initialized (Tier 1)");
+    geminiModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+    console.log("✅ Gemini 2.5 Flash Lite initialized (Tier 1)");
   } catch (e) {
     console.warn("⚠️ Gemini SDK init failed.");
   }
@@ -51,10 +50,6 @@ if (GEMINI_API_KEY) {
 
 if (CLOUDFLARE_ACCOUNT_ID && CLOUDFLARE_API_TOKEN) {
   console.log("✅ Cloudflare Workers AI configured (Tier 2 - Llama 3.1 8B)");
-}
-
-if (OPENROUTER_API_KEY) {
-  console.log("✅ OpenRouter AI configured (Tier 3 - Gemma 3 4B)");
 }
 
 const parser = new XMLParser();
@@ -148,30 +143,6 @@ async function callAI(prompt) {
       if (text && text.length > 50) return text;
     } catch (e) {
       console.error('     ⚠️ Cloudflare Error:', e.message);
-    }
-  }
-
-  // TIER 3: OpenRouter (Gemma 3 4B)
-  if (OPENROUTER_API_KEY) {
-    try {
-      const response = await axios.post(
-        'https://openrouter.ai/api/v1/chat/completions',
-        {
-          model: 'google/gemma-3-4b-it:free',
-          messages: [{ role: 'user', content: prompt }]
-        },
-        {
-          headers: { 
-            'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-            'Content-Type': 'application/json',
-            'X-OpenRouter-Title': 'SchemeAtlas Civic News Pipeline'
-          },
-          timeout: 40000
-        }
-      );
-      return response.data?.choices?.[0]?.message?.content;
-    } catch (e) {
-      console.error('     ⚠️ OpenRouter Error:', e.message);
     }
   }
 
