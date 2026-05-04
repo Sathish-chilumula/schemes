@@ -5,7 +5,16 @@
  * Ensures EN, HI, and Local language are generated with domain glossaries.
  */
 
-const BATCH_SIZE = 10; // Process fewer schemes due to longer 1500-word prompts
+let BATCH_SIZE = 10; // Default size
+let isBulk = false;
+
+// Parse command line arguments
+process.argv.slice(2).forEach(arg => {
+  if (arg === '--bulk') isBulk = true;
+  else if (!isNaN(parseInt(arg, 10)) && parseInt(arg, 10) > 0) {
+    BATCH_SIZE = parseInt(arg, 10);
+  }
+});
 
 const { createClient } = require('@supabase/supabase-js');
 const axios = require('axios');
@@ -268,9 +277,16 @@ async function runV2Pipeline() {
   if (targetSlug) {
     query = query.eq('slug', targetSlug);
   } else {
+    query = query.eq('is_seo_optimized', false);
+    
+    // Master automation pipeline (isBulk=false) only touches recent discoveries
+    // to prevent churning through the entire database automatically.
+    // Manual bulk generation (isBulk=true) will process ALL unoptimized schemes regardless of date.
+    if (!isBulk) {
+      query = query.gte('discovered_at', '2026-05-01T00:00:00Z');
+    }
+    
     query = query
-      .eq('is_seo_optimized', false)
-      .gte('discovered_at', '2026-05-01T00:00:00Z')
       .order('discovered_at', { ascending: false })
       .limit(BATCH_SIZE);
   }
