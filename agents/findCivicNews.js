@@ -27,7 +27,7 @@ const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
 const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY || 'mRrS9UjMl45wy4Hy-Pm6oMv7TGG55Sb-o6VLDxcJQOA';
 
 // ─── LIMITS ────────────────────────────────────────────────────────
-const MAX_NEW_ITEMS_TOTAL = 50; // Daily cap to preserve AI quota
+const MAX_NEW_ITEMS_TOTAL = 60; // Daily cap (approx 40 IN, 20 US)
 const MAX_AGE_HOURS = 48; // Ignore noise older than 2 days
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {
@@ -67,11 +67,12 @@ function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 const CURRENT_YEAR = new Date().getFullYear();
 
 const RSS_FEEDS = [
-  { url: `https://news.google.com/rss/search?q=government+jobs+notification+india+ssc+upsc+railway+${CURRENT_YEAR}&hl=en-IN&gl=IN&ceid=IN:en&when=2d`, type: 'job' },
-  { url: `https://news.google.com/rss/search?q=sarkari+naukri+latest+vacancy+${CURRENT_YEAR}&hl=en-IN&gl=IN&ceid=IN:en&when=2d`, type: 'job' },
-  { url: `https://news.google.com/rss/search?q=Aadhaar+update+UIDAI+PAN+card+deadline+${CURRENT_YEAR}&hl=en-IN&gl=IN&ceid=IN:en&when=2d`, type: 'alert' },
-  { url: `https://news.google.com/rss/search?q=cabinet+decisions+india+today+pib+${CURRENT_YEAR}&hl=en-IN&gl=IN&ceid=IN:en&when=2d`, type: 'news' },
-  { url: `https://news.google.com/rss/search?q=india+finance+budget+decisions+${CURRENT_YEAR}&hl=en-IN&gl=IN&ceid=IN:en&when=2d`, type: 'budget' }
+  { url: `https://news.google.com/rss/search?q=government+jobs+notification+india+ssc+upsc+railway+${CURRENT_YEAR}&hl=en-IN&gl=IN&ceid=IN:en&when=2d`, type: 'job', country: 'IN' },
+  { url: `https://news.google.com/rss/search?q=cabinet+decisions+india+today+pib+${CURRENT_YEAR}&hl=en-IN&gl=IN&ceid=IN:en&when=2d`, type: 'news', country: 'IN' },
+  { url: `https://news.google.com/rss/search?q=india+economy+impact+global+geopolitics+market+${CURRENT_YEAR}&hl=en-IN&gl=IN&ceid=IN:en&when=2d`, type: 'economy', country: 'IN' },
+  { url: `https://news.google.com/rss/search?q=india+finance+budget+high+impact+policy+${CURRENT_YEAR}&hl=en-IN&gl=IN&ceid=IN:en&when=2d`, type: 'policy', country: 'IN' },
+  { url: `https://news.google.com/rss/search?q=usa+government+grants+schemes+financial+assistance+${CURRENT_YEAR}&hl=en-US&gl=US&ceid=US:en&when=2d`, type: 'scheme', country: 'US' },
+  { url: `https://news.google.com/rss/search?q=usa+stimulus+check+tax+credit+financial+updates+${CURRENT_YEAR}&hl=en-US&gl=US&ceid=US:en&when=2d`, type: 'finance', country: 'US' }
 ];
 
 // ─── IMAGE FETCHING (PEXELS + UNSPLASH FALLBACK) ────────────────
@@ -218,7 +219,7 @@ async function main() {
       const data = parser.parse(res.data);
       const items = data.rss?.channel?.item || [];
 
-      for (const item of items.slice(0, 15)) {
+      for (const item of items.slice(0, 10)) {
         if (newPublishedCount >= MAX_NEW_ITEMS_TOTAL) break;
         if (!isFresh(item.pubDate)) continue;
 
@@ -233,7 +234,7 @@ async function main() {
         const { data: existingSlug } = await supabase.from('schemes').select('id').eq('slug', `${tempSlug}-in`).single();
         if (existingSlug) continue;
 
-        const result = await processItem(item, feed.type);
+        const result = await processItem(item, feed);
         if (result === 'published') newPublishedCount++;
       }
     } catch (e) {
@@ -245,26 +246,28 @@ async function main() {
   console.log(`🏁 FINISHED! Total Published This Run: ${newPublishedCount}`);
 }
 
-async function processItem(item, hintType) {
+async function processItem(item, feed) {
+  const hintType = feed.type;
   const cleanedTitle = cleanTitle(item.title);
   console.log(`\n✨ NEW: ${cleanedTitle}`);
 
   // 1. Generate English
-  const englishContent = await rewriteWithAI(cleanedTitle, item.link, hintType);
+  const englishContent = await rewriteWithAI(cleanedTitle, item.link, hintType, feed.country);
   if (!englishContent) return 'failed';
 
   // 2. Fetch Visual Image (Attractive content)
   const imgKeyword = hintType === 'job' 
-    ? `${englishContent.name} government job recruitment office india` 
-    : `${englishContent.name} government news announcement india`;
+    ? `${englishContent.name} government job recruitment office` 
+    : `${englishContent.name} government news announcement`;
   const imageUrl = await fetchSchemeImage(imgKeyword);
 
   // 3. Generate Translations (Optional fallbacks)
   let hiContent = null;
   let teContent = null;
   
-  try {
-    console.log(`   ⏳ Translating to Hindi & Telugu...`);
+  if (feed.country !== 'US') {
+    try {
+      console.log(`   ⏳ Translating to Hindi & Telugu...`);
     // Build a translatable subset of the structured JSON
     let enForTranslation = englishContent.content_en;
     let isJsonContent = false;
@@ -306,8 +309,11 @@ Respond with ONLY valid JSON: {"hi": "Hindi text", "te": "Telugu text"}\n\n${enF
         teContent = transJson.te;
       }
     }
-  } catch (e) {
-    console.warn('   ⚠️ Translation step skipped or failed.');
+    } catch (e) {
+      console.warn('   ⚠️ Translation step skipped or failed.');
+    }
+  } else {
+    console.log(`   🇺🇸 Skipping translation for USA news.`);
   }
 
   // 4. Save to Database
@@ -327,7 +333,7 @@ Respond with ONLY valid JSON: {"hi": "Hindi text", "te": "Telugu text"}\n\n${enF
     source_hash: crypto.createHash('md5').update(item.link).digest('hex'),
     is_published: true,
     is_central: true,
-    country_code: 'IN',
+    country_code: feed.country,
     is_active: true
   });
 
@@ -340,9 +346,42 @@ Respond with ONLY valid JSON: {"hi": "Hindi text", "te": "Telugu text"}\n\n${enF
   return 'published';
 }
 
-async function rewriteWithAI(title, url, hintType) {
-  const prompt = `You are a senior content writer at SchemeAtlas writing a premium Money Guide-style article.
-Write a comprehensive, 1200-word guide about this government news or job notification.
+async function rewriteWithAI(title, url, hintType, countryCode) {
+  const isGeoPol = hintType === 'economy' || hintType === 'policy';
+  const targetAudience = countryCode === 'US' ? 'Americans' : 'Indians';
+  
+  const tableOfContents = isGeoPol
+    ? '["What Is This?", "Global Impact 🌍", "Impact on Economy 📈", "Sectors Affected 🏢", "Key Takeaways 💡", "Future Outlook 🔭"]'
+    : '["What Is This?", "Key Benefits 💰", "Who Is Eligible? ✅", "Who Cannot Apply? 🚫", "Documents Required 📄", "How To Apply 📝", "Important Dates 📅", "Pro Tips 💡"]';
+
+  const sectionsList = isGeoPol
+    ? `      {"heading": "📋 What Is This?", "content": "150-word explanation of the news or policy."},
+      {"heading": "🌍 Global Impact", "content": "How this affects global markets or international relations."},
+      {"heading": "📈 Impact on Economy", "content": "Direct impact on the economy for ${targetAudience}."},
+      {"heading": "🏢 Sectors Affected", "content": "Which industries or sectors will feel the most impact?"},
+      {"heading": "💡 Key Takeaways", "content": "Bullet points summarizing the most important aspects."},
+      {"heading": "🔭 Future Outlook", "content": "What to expect in the next 6-12 months."}`
+    : `      {"heading": "📋 What Is This?", "content": "150-word explanation of the news/job and the department behind it."},
+      {"heading": "💰 Key Benefits / Salary", "content": "Exact currency amount or financial benefit. Be specific."},
+      {"heading": "✅ Who Is Eligible?", "content": "Age, qualification, nationality, experience requirements."},
+      {"heading": "🚫 Who Cannot Apply?", "content": "Clear real-life examples of ineligible people."},
+      {"heading": "📄 Documents Required", "content": "Exact list of documents."},
+      {"heading": "📝 How To Apply — Step by Step", "content": "Numbered steps. Mention the official portal URL: ${url}"},
+      {"heading": "📅 Important Dates", "content": "Last date to apply, exam date, result date if known."},
+      {"heading": "💡 Pro Tips", "content": "2 insider tips to improve chances."}`;
+
+  const faqsList = isGeoPol
+    ? `      {"q": "What is the main objective of this policy/news?", "a": "Direct specific answer."},
+      {"q": "How will this affect the common man?", "a": "Direct answer."},
+      {"q": "Which sectors will benefit the most?", "a": "Direct answer."},
+      {"q": "When will this take effect?", "a": "Direct answer with timeline if known."}`
+    : `      {"q": "Who can apply for this?", "a": "Direct specific answer."},
+      {"q": "What is the salary or benefit?", "a": "Direct answer with exact amount."},
+      {"q": "How to apply online?", "a": "Step-by-step direct answer."},
+      {"q": "What is the last date to apply?", "a": "Direct answer with date if known."}`;
+
+  const prompt = `You are a senior content writer at SchemeAtlas writing a premium Money Guide-style article for ${targetAudience}.
+Write a comprehensive, 1200-word guide about this government news, job notification, or geopolitical event.
 Tone: Conversational, authoritative, friendly. Easy to understand.
 
 Title: "${title}"
@@ -351,7 +390,7 @@ Type: ${hintType}
 
 RULES:
 - NEVER use markdown symbols (#, *, **). Plain text and emojis only.
-- Be specific with salary/benefits in exact ₹ amounts.
+- Be specific with exact money amounts and numbers.
 - No placeholder text.
 
 Return ONLY valid JSON (no markdown fences, no extra text):
@@ -359,27 +398,17 @@ Return ONLY valid JSON (no markdown fences, no extra text):
   "name": "Clean, short, catchy title",
   "slug": "url-friendly-slug-max-8-words",
   "category": "${hintType}",
-  "what_you_get": "1-sentence summary of benefit or salary",
-  "eligibility": "1-2 sentences on who can apply",
-  "how_to_apply": "3-4 simple steps as plain text",
+  "what_you_get": "1-sentence summary of benefit, salary, or main impact",
+  "eligibility": "1-2 sentences on who can apply or who is most affected",
+  "how_to_apply": "3-4 simple steps or main takeaways as plain text",
   "content_en": {
     "intro": "2-3 punchy hook sentences explaining what this is and who it affects.",
-    "tableOfContents": ["What Is This?", "Key Benefits 💰", "Who Is Eligible? ✅", "Who Cannot Apply? 🚫", "Documents Required 📄", "How To Apply 📝", "Important Dates 📅", "Pro Tips 💡"],
+    "tableOfContents": ${tableOfContents},
     "sections": [
-      {"heading": "📋 What Is This?", "content": "150-word explanation of the news/job and the department behind it."},
-      {"heading": "💰 Key Benefits / Salary", "content": "Exact ₹ salary range or financial benefit. Be specific."},
-      {"heading": "✅ Who Is Eligible?", "content": "Age, qualification, nationality, experience requirements."},
-      {"heading": "🚫 Who Cannot Apply?", "content": "Clear real-life examples of ineligible people."},
-      {"heading": "📄 Documents Required", "content": "Exact list: Aadhaar, degree certificate, experience letter, etc."},
-      {"heading": "📝 How To Apply — Step by Step", "content": "Numbered steps. Mention the official portal URL: ${url}"},
-      {"heading": "📅 Important Dates", "content": "Last date to apply, exam date, result date if known."},
-      {"heading": "💡 Pro Tips", "content": "2 insider tips to improve chances of selection."}
+${sectionsList}
     ],
     "faqs": [
-      {"q": "Who can apply for this?", "a": "Direct specific answer."},
-      {"q": "What is the salary or benefit?", "a": "Direct answer with ₹ amount."},
-      {"q": "How to apply online?", "a": "Step-by-step direct answer."},
-      {"q": "What is the last date to apply?", "a": "Direct answer with date if known."}
+${faqsList}
     ]
   }
 }`;
