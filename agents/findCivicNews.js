@@ -27,7 +27,7 @@ const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
 const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY || 'mRrS9UjMl45wy4Hy-Pm6oMv7TGG55Sb-o6VLDxcJQOA';
 
 // ─── LIMITS ────────────────────────────────────────────────────────
-const MAX_NEW_ITEMS_TOTAL = 60; // Daily cap (approx 40 IN, 20 US)
+const MAX_NEW_ITEMS_TOTAL = 15; // Safe SEO drip-feed limit (approx 10 IN, 5 US)
 const MAX_AGE_HOURS = 48; // Ignore noise older than 2 days
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {
@@ -219,7 +219,7 @@ async function main() {
       const data = parser.parse(res.data);
       const items = data.rss?.channel?.item || [];
 
-      for (const item of items.slice(0, 10)) {
+      for (const item of items.slice(0, 3)) {
         if (newPublishedCount >= MAX_NEW_ITEMS_TOTAL) break;
         if (!isFresh(item.pubDate)) continue;
 
