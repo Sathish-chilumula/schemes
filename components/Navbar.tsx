@@ -194,8 +194,25 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
             </div>
 
             <div className="flex flex-col gap-[8px] flex-1">
-              <Link href="/articles" onClick={() => setMobileMenuOpen(false)} className="text-[16px] font-[600] text-[var(--text-primary)] py-[14px] border-b border-[var(--border)]">Money Guides</Link>
-              <Link href="/schemes" onClick={() => setMobileMenuOpen(false)} className="text-[16px] font-[600] text-[var(--text-primary)] py-[14px] border-b border-[var(--border)]">All Schemes</Link>
+              <div className="py-[14px] border-b border-[var(--border)] flex flex-col gap-3">
+                <Link href="/articles" onClick={() => setMobileMenuOpen(false)} className="text-[16px] font-[600] text-[var(--text-primary)]">Money Guides</Link>
+                <div className="flex flex-col gap-3 pl-4">
+                  <Link href="/articles?category=Loans" onClick={() => setMobileMenuOpen(false)} className="text-[14px] text-[var(--text-muted)]">🏦 Loans</Link>
+                  <Link href="/articles?category=Insurance" onClick={() => setMobileMenuOpen(false)} className="text-[14px] text-[var(--text-muted)]">🛡️ Insurance</Link>
+                  <Link href="/articles?category=Earn%20Money" onClick={() => setMobileMenuOpen(false)} className="text-[14px] text-[var(--text-muted)]">💰 Earn Money</Link>
+                  <Link href="/articles?category=Investment" onClick={() => setMobileMenuOpen(false)} className="text-[14px] text-[var(--text-muted)]">📊 Investment</Link>
+                </div>
+              </div>
+
+              <div className="py-[14px] border-b border-[var(--border)] flex flex-col gap-3">
+                <Link href="/schemes" onClick={() => setMobileMenuOpen(false)} className="text-[16px] font-[600] text-[var(--text-primary)]">All Schemes</Link>
+                <div className="flex flex-col gap-3 pl-4">
+                  <Link href="/in?category=Farmers" onClick={() => setMobileMenuOpen(false)} className="text-[14px] text-[var(--text-muted)]">🌾 Farmers & Agriculture</Link>
+                  <Link href="/in?category=Students" onClick={() => setMobileMenuOpen(false)} className="text-[14px] text-[var(--text-muted)]">🎓 Scholarships & Education</Link>
+                  <Link href="/in?category=Healthcare" onClick={() => setMobileMenuOpen(false)} className="text-[14px] text-[var(--text-muted)]">❤️ Health & Insurance</Link>
+                  <Link href="/in?category=Business" onClick={() => setMobileMenuOpen(false)} className="text-[14px] text-[var(--text-muted)]">💼 Business & Startup</Link>
+                </div>
+              </div>
               <Link href="/in/check" onClick={() => setMobileMenuOpen(false)} className="text-[16px] font-[600] text-[var(--indigo)] py-[14px] border-b border-[var(--border)]">Eligibility Check ✨</Link>
               
               {!loading && user ? (

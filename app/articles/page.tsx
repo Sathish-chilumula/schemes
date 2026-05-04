@@ -13,6 +13,8 @@ export const metadata: Metadata = {
 
 import ClientArticles from './ClientArticles';
 
+import { Navbar } from '@/components/Navbar';
+
 export default async function ArticlesPage() {
   
   const articlesDir = path.join(process.cwd(), 'content/articles');
@@ -38,6 +40,7 @@ export default async function ArticlesPage() {
 
   return (
     <div className="min-h-screen bg-[var(--surface-gray)]">
+      <Navbar variant="dark" />
       {/* ── HERO SECTION ── */}
       <section className="relative overflow-hidden text-center py-[48px] px-[24px]" style={{background: 'linear-gradient(135deg, var(--navy), var(--navy-mid))'}}>
         {/* Floating Blobs */}
