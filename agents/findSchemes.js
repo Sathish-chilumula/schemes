@@ -122,39 +122,186 @@ async function generateAICompletion(prompt, maxTokens = 2000) {
 }
 
 // ============================================
-// NEWSDATA.IO — SCHEME DISCOVERY QUERIES
-// Replaces Google News RSS (blocked on GitHub Actions IPs)
+// CORE NEWSDATA QUERIES — Guaranteed coverage
+// (Autocomplete will ADD more live queries on top)
 // ============================================
-const NEWSDATA_QUERIES = [
-  // ── INDIA: General scheme discovery ────────────────────────────────
-  { q: 'government scheme yojana welfare launched india', country: 'in', lang: 'en', countryCode: 'IN', stateCode: null },
-  { q: 'pradhan mantri scheme new benefit subsidy 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: null },
-  { q: 'mukhyamantri yojana state government scheme announced', country: 'in', lang: 'en', countryCode: 'IN', stateCode: null },
-  { q: 'scholarship pension housing health scheme india', country: 'in', lang: 'en', countryCode: 'IN', stateCode: null },
-  { q: 'ministry welfare scheme kisan rozgar empowerment', country: 'in', lang: 'en', countryCode: 'IN', stateCode: null },
-  { q: 'government benefit program assistance poor women india', country: 'in', lang: 'en', countryCode: 'IN', stateCode: null },
-
-  // ── INDIA: State-specific scheme discovery ──────────────────────────
-  // Major states searched individually so we catch CM-level state schemes
-  { q: 'government scheme Uttar Pradesh new yojana benefit 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: 'UP' },
-  { q: 'government scheme Maharashtra mukhyamantri yojana 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: 'MH' },
-  { q: 'government scheme Telangana benefit launched 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: 'TS' },
-  { q: 'government scheme Andhra Pradesh AP yojana welfare 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: 'AP' },
-  { q: 'government scheme Karnataka new benefit welfare 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: 'KA' },
-  { q: 'government scheme Tamil Nadu TN yojana launched 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: 'TN' },
-  { q: 'government scheme West Bengal yojana new benefit 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: 'WB' },
-  { q: 'government scheme Gujarat yojana welfare scheme 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: 'GJ' },
-  { q: 'government scheme Rajasthan welfare benefit launched 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: 'RJ' },
-  { q: 'government scheme Kerala welfare benefit yojana 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: 'KL' },
-
-  // ── INDIA: Ministry-specific discovery ─────────────────────────────
-  { q: 'Ministry Agriculture scheme kisan farmer benefit india 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: null },
-  { q: 'Ministry Education scholarship scheme students india 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: null },
-  { q: 'Ministry Health scheme hospital insurance poor india 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: null },
-  { q: 'Ministry MSME business loan scheme startup india 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: null },
-  { q: 'Ministry Women Child scheme welfare benefit india 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: null },
-  { q: 'Ministry Social Justice SC ST OBC disability scheme 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: null },
+const CORE_NEWSDATA_QUERIES = [
+  { q: 'pradhan mantri scheme new benefit launched india 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: null },
+  { q: 'central government scheme free benefit poor india 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: null },
+  { q: 'mukhyamantri yojana state government scheme benefit announced', country: 'in', lang: 'en', countryCode: 'IN', stateCode: null },
+  { q: 'Ministry Agriculture kisan farmer subsidy scheme india', country: 'in', lang: 'en', countryCode: 'IN', stateCode: null },
+  { q: 'Ministry Health free hospital treatment insurance scheme india', country: 'in', lang: 'en', countryCode: 'IN', stateCode: null },
+  { q: 'Ministry Education scholarship welfare scheme students india', country: 'in', lang: 'en', countryCode: 'IN', stateCode: null },
+  { q: 'Ministry MSME business loan scheme startup women india', country: 'in', lang: 'en', countryCode: 'IN', stateCode: null },
+  { q: 'Ministry Social Justice SC ST OBC disability pension scheme india', country: 'in', lang: 'en', countryCode: 'IN', stateCode: null },
 ];
+
+// ============================================
+// GOOGLE AUTOCOMPLETE SEEDS
+// 40 human-perspective seeds covering every angle
+// a citizen would use to search for govt benefits.
+// The autocomplete API returns REAL search phrases
+// that millions of Indians actually type.
+// ============================================
+const SCHEME_AUTOCOMPLETE_SEEDS = [
+  // ── Central / PM perspective
+  'PM scheme 2026 new apply online',
+  'pradhan mantri yojana new benefit 2026',
+  'central government free scheme india 2026',
+  'modi government new announcement benefit poor',
+  'central government subsidy poor family india',
+  // ── Citizen-perspective (not journalist-style)
+  'government free house scheme india apply',
+  'government free ration card benefits india',
+  'government free electricity scheme india',
+  'government free treatment hospital india',
+  'government scholarship poor student india 2026',
+  'government pension old age india apply',
+  'government loan scheme small business india',
+  'government benefit for unemployed youth india',
+  'government scheme SC ST india apply',
+  'government scheme for disabled person india',
+  // ── Group-specific
+  'govt benefit for farmers india 2026',
+  'govt scheme for women india 2026',
+  'govt scheme for girls education india',
+  'govt scheme for BPL family india',
+  'govt scheme for self employment india',
+  // ── State-specific (all 34 states/UTs covered)
+  'Andhra Pradesh government new scheme benefit 2026',
+  'Arunachal Pradesh government scheme benefit 2026',
+  'Assam government scheme yojana 2026',
+  'Bihar government scheme mukhyamantri 2026',
+  'Chhattisgarh government scheme benefit 2026',
+  'Delhi government scheme free benefit 2026',
+  'Goa government scheme benefit 2026',
+  'Gujarat mukhyamantri yojana 2026',
+  'Haryana government scheme benefit 2026',
+  'Himachal Pradesh government scheme 2026',
+  'Jharkhand government scheme yojana 2026',
+  'Karnataka government scheme new benefit 2026',
+  'Kerala government scheme welfare benefit 2026',
+  'Madhya Pradesh mukhyamantri yojana 2026',
+  'Maharashtra government scheme yojana 2026',
+  'Manipur government scheme benefit 2026',
+  'Meghalaya government scheme 2026',
+  'Mizoram government scheme benefit 2026',
+  'Nagaland government scheme 2026',
+  'Odisha government scheme benefit 2026',
+  'Punjab government scheme yojana 2026',
+  'Rajasthan government scheme benefit 2026',
+  'Sikkim government scheme 2026',
+  'Tamil Nadu government scheme benefit 2026',
+  'Telangana government scheme new 2026',
+  'Tripura government scheme benefit 2026',
+  'UP mukhyamantri yojana 2026',
+  'Uttarakhand government scheme 2026',
+  'West Bengal government scheme 2026',
+  'Jammu Kashmir government scheme 2026',
+];
+
+// State name → code mapping for autocomplete result tagging
+const STATE_NAME_TO_CODE = {
+  'andhra pradesh': 'AP', ' ap ': 'AP',
+  'arunachal pradesh': 'AR',
+  'assam': 'AS',
+  'bihar': 'BR',
+  'chhattisgarh': 'CG',
+  'goa': 'GA',
+  'gujarat': 'GJ',
+  'haryana': 'HR',
+  'himachal pradesh': 'HP',
+  'jharkhand': 'JH',
+  'karnataka': 'KA',
+  'kerala': 'KL',
+  'madhya pradesh': 'MP',
+  'maharashtra': 'MH',
+  'manipur': 'MN',
+  'meghalaya': 'ML',
+  'mizoram': 'MZ',
+  'nagaland': 'NL',
+  'odisha': 'OR',
+  'punjab': 'PB',
+  'rajasthan': 'RJ',
+  'sikkim': 'SK',
+  'tamil nadu': 'TN',
+  'telangana': 'TS',
+  'tripura': 'TR',
+  'uttar pradesh': 'UP', ' up ': 'UP',
+  'uttarakhand': 'UK',
+  'west bengal': 'WB',
+  'delhi': 'DL',
+  'jammu': 'JK', 'kashmir': 'JK',
+  'ladakh': 'LA',
+  'chandigarh': 'CH',
+  'puducherry': 'PY',
+  'lakshadweep': 'LD',
+  'andaman': 'AN',
+};
+
+function detectStateFromQuery(query) {
+  const q = query.toLowerCase();
+  for (const [name, code] of Object.entries(STATE_NAME_TO_CODE)) {
+    if (q.includes(name)) return code;
+  }
+  return null;
+}
+
+// Keywords that confirm a query is about a govt scheme/benefit
+const SCHEME_CONFIRM_WORDS = [
+  'scheme', 'yojana', 'benefit', 'welfare', 'subsidy', 'pension',
+  'scholarship', 'allowance', 'grant', 'relief', 'ration', 'free',
+  'assistance', 'mukhyamantri', 'pradhan mantri', 'pm ', 'cm ',
+  'kisan', 'rozgar', 'awas', 'bima', 'mission', 'abhiyan',
+  'stipend', 'loan', 'housing', 'health', 'treatment', 'insurance',
+  'recruitment', 'vacancy', 'application', 'apply', 'registration',
+];
+
+function isSchemeQuery(q) {
+  const lower = q.toLowerCase();
+  return SCHEME_CONFIRM_WORDS.some(w => lower.includes(w));
+}
+
+// ============================================
+// LIVE QUERY DISCOVERY via GOOGLE AUTOCOMPLETE
+// This is the demand-driven engine — discovers
+// what citizens are actually searching TODAY
+// ============================================
+async function discoverLiveSchemeQueries() {
+  console.log('\n🔍 Discovering live user searches via Google Autocomplete...');
+  const allCompletions = new Map(); // query → stateCode
+
+  for (const seed of SCHEME_AUTOCOMPLETE_SEEDS) {
+    try {
+      const enc = encodeURIComponent(seed);
+      const res = await axios.get(
+        `https://suggestqueries.google.com/complete/search?output=firefox&q=${enc}`,
+        { timeout: 5000, headers: { 'User-Agent': 'Mozilla/5.0' } }
+      );
+      const suggestions = (res.data?.[1] || []).filter(s => typeof s === 'string');
+      for (const s of suggestions) {
+        if (isSchemeQuery(s) && !allCompletions.has(s)) {
+          allCompletions.set(s, detectStateFromQuery(s));
+        }
+      }
+      await new Promise(r => setTimeout(r, 150));
+    } catch (e) {
+      // silently skip if autocomplete fails for a seed
+    }
+  }
+
+  const liveQueries = [...allCompletions.entries()].map(([q, stateCode]) => ({
+    q,
+    country: 'in',
+    lang: 'en',
+    countryCode: 'IN',
+    stateCode,
+    isLive: true,
+  }));
+
+  console.log(`   → Autocomplete discovered ${liveQueries.length} live user search queries`);
+  return liveQueries;
+}
 
 // ============================================
 // RELIABLE GOV RSS (NON-GOOGLE, WON'T BE BLOCKED)
@@ -330,8 +477,10 @@ async function fetchIndiamyScheme() {
 }
 
 // ============================================
-// STEP 1: FETCH NEWS via NEWSDATA.IO API
-// Replaces blocked Google News RSS feeds
+// STEP 1: FETCH NEWS — Demand-Driven Engine
+// Phase A: Google Autocomplete → real user searches
+// Phase B: newsdata.io for each discovered query
+// Phase C: PIB RSS (official govt source)
 // ============================================
 async function fetchNewsdata() {
   const allItems = [];
@@ -339,13 +488,29 @@ async function fetchNewsdata() {
   if (!newsdataKey) {
     console.warn('⚠️  NEWSDATA_API_KEY not set. Falling back to PIB RSS only.');
   } else {
-    console.log(`\n📡 Fetching from newsdata.io (${NEWSDATA_QUERIES.length} queries)...`);
-    for (const q of NEWSDATA_QUERIES) {
+    // ── Phase A: Discover live user searches via autocomplete ──────────
+    const liveQueries = await discoverLiveSchemeQueries();
+
+    // ── Phase B: Merge core queries + top live queries ─────────────────
+    // Core queries ensure guaranteed coverage; live queries add real demand
+    // Cap live queries at 20 to stay within newsdata.io free-plan budget
+    const allQueries = [
+      ...CORE_NEWSDATA_QUERIES,
+      ...liveQueries.slice(0, 20),
+    ];
+
+    console.log(`\n📡 Fetching news from newsdata.io (${allQueries.length} total queries)...`);
+    console.log(`   • ${CORE_NEWSDATA_QUERIES.length} core guaranteed queries`);
+    console.log(`   • ${Math.min(liveQueries.length, 20)} demand-driven live queries`);
+
+    for (const q of allQueries) {
       try {
-        const url = `https://newsdata.io/api/1/latest?apikey=${newsdataKey}&q=${encodeURIComponent(q.q)}&country=${q.country}&language=${q.lang}&size=10`;
+        const url = `https://newsdata.io/api/1/latest?apikey=${newsdataKey}&q=${encodeURIComponent(q.q)}&country=${q.country}&language=${q.lang}&size=5`;
         const res = await axios.get(url, { timeout: 15000 });
         const articles = res.data?.results || [];
-        console.log(`  ✅ "${q.q.substring(0,40)}..." → ${articles.length} articles`);
+        if (articles.length > 0) {
+          console.log(`  ✅ "${q.q.substring(0, 45)}..." → ${articles.length} articles${q.stateCode ? ` [${q.stateCode}]` : ''}${q.isLive ? ' 🔥' : ''}`);
+        }
         for (const a of articles) {
           allItems.push({
             country: q.countryCode,
@@ -356,34 +521,35 @@ async function fetchNewsdata() {
             published: a.pubDate || ''
           });
         }
-        await new Promise(r => setTimeout(r, 500)); // gentle rate limit
+        await new Promise(r => setTimeout(r, 400));
       } catch (err) {
         console.warn(`  ⚠️  Newsdata query failed: ${err.message}`);
       }
     }
   }
 
-  // Also fetch PIB RSS (reliable government source, not Google)
+  // ── Phase C: PIB RSS (official govt press releases, always reliable) ──
   for (const feed of RELIABLE_RSS) {
     try {
-      console.log(`  📡 Fetching PIB RSS...`);
+      console.log(`  📡 Fetching PIB RSS (official govt source)...`);
       const parsed = await parser.parseURL(feed.url);
-      for (const item of (parsed.items || []).slice(0, 15)) {
+      for (const item of (parsed.items || []).slice(0, 20)) {
         allItems.push({
           country: feed.country,
+          stateCode: null,
           title: item.title || '',
           link: item.link || '',
           summary: item.contentSnippet || item.content || '',
           published: item.pubDate || ''
         });
       }
-      console.log(`  ✅ PIB RSS → ${Math.min(15, parsed.items?.length || 0)} articles`);
+      console.log(`  ✅ PIB RSS → ${Math.min(20, parsed.items?.length || 0)} articles`);
     } catch (err) {
       console.warn(`  ⚠️  PIB RSS failed: ${err.message}`);
     }
   }
 
-  // Deduplicate by link
+  // ── Deduplicate by URL ─────────────────────────────────────────────
   const seen = new Set();
   const unique = allItems.filter(item => {
     if (!item.link || seen.has(item.link)) return false;
@@ -391,7 +557,7 @@ async function fetchNewsdata() {
     return true;
   });
 
-  console.log(`\n📊 Total unique news items fetched: ${unique.length}`);
+  console.log(`\n📊 Total unique articles fetched: ${unique.length}`);
   return unique;
 }
 

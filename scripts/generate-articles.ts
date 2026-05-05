@@ -15,41 +15,43 @@ const DIR = path.join(process.cwd(), 'content/articles')
 const INDEX_FILE = path.join(process.cwd(), 'content/articles-index.json')
 const MODEL = 'llama-3.3-70b-versatile'
 
-const FINANCE_SEEDS_IN = [
-  // Loans — very high CPC
-  'personal loan India 2026', 'SBI personal loan apply online', 'home loan interest rate India 2026',
-  'instant personal loan without documents India', 'gold loan interest rate India',
-  'business loan for small business India', 'education loan India without collateral',
-  'mudra loan apply online 2026', 'PMEGP loan scheme apply', 'EV vehicle loan scheme India',
-  // Insurance — high CPC
-  'best health insurance plan India 2026', 'term insurance plan comparison India',
-  'PM Jeevan Jyoti Bima Yojana benefits', 'LIC policy for poor India',
-  // Investment & Tax — high CPC
-  'income tax saving tips India 2026', 'ELSS tax saving mutual fund India',
-  'best SIP plan 2026 India', 'PPF vs NPS which is better 2026',
-  'Sukanya Samriddhi Yojana interest rate 2026', 'Atal Pension Yojana benefits 2026',
-  // Schemes — moderate-high CPC
-  'PM scheme apply 2026 new', 'scholarship India 2026 apply online',
-  'PMKVY registration 2026', 'earn money online India legally',
-  'work from home government scheme India'
+// Finance autocomplete seeds — angles, not specific articles.
+// Each seed generates 10 autocomplete suggestions = 80-120 real user search phrases
+const AUTOCOMPLETE_SEEDS_IN = [
+  'personal loan india 2026',
+  'home loan india 2026',
+  'health insurance india 2026',
+  'income tax saving india 2026',
+  'government scheme apply india 2026',
+  'mutual fund SIP india 2026',
+  'business loan india 2026',
+  'scholarship india 2026',
+  'PM scheme benefit apply 2026',
+  'gold loan india',
+  'term insurance india 2026',
+  'earn money online india legally',
 ]
 
-const FINANCE_SEEDS_US = [
-  // Loans — high CPC
-  'best personal loan USA 2026', 'home equity loan vs HELOC 2026',
-  'FHA loan requirements 2026', 'student loan forgiveness update 2026',
-  'small business loan USA apply 2026',
-  // Credit & Banking
-  'best credit cards USA cashback 2026', 'high yield savings account rates 2026',
-  'best mortgage rates USA 2026',
-  // Investment & Tax
-  'IRS tax filing tips 2026', 'Roth IRA vs traditional IRA 2026',
-  'best index funds 2026 USA', '401k contribution limits 2026',
-  'how to invest 10000 dollars USA 2026',
-  // Benefits
-  'health insurance plans marketplace 2026 USA', 'unemployment benefits USA 2026',
-  'disability benefits apply SSA 2026', 'SNAP food stamp benefits 2026',
-  'social security benefits increase 2026'
+const AUTOCOMPLETE_SEEDS_US = [
+  'personal loan usa 2026',
+  'mortgage rates usa 2026',
+  'health insurance plans usa 2026',
+  'student loan forgiveness 2026',
+  'IRS tax filing tips 2026',
+  'best credit cards usa 2026',
+  'government benefits usa 2026',
+  'best index funds usa 2026',
+]
+
+// Fallback if autocomplete fails completely
+const FALLBACK_SEEDS_IN = [
+  'SBI personal loan apply 2026', 'best health insurance India 2026',
+  'income tax saving tips India 2026', 'PM scheme apply online 2026',
+  'mutual fund SIP best plan India 2026', 'gold loan interest rate India',
+]
+const FALLBACK_SEEDS_US = [
+  'best mortgage rates USA 2026', 'health insurance marketplace 2026',
+  'Roth IRA vs 401k 2026', 'student loan forgiveness update 2026',
 ]
 
 const CATEGORY_IMAGES: Record<string, string> = {
@@ -159,29 +161,59 @@ function parseJSON(raw: string) {
   return JSON.parse(raw.replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim())
 }
 
-// Replaces Google Trends (blocked on GitHub Actions IPs)
-// Uses newsdata.io to find real trending finance/scheme topics
-async function fetchNewsTopics(isUS = false): Promise<string[]> {
-  if (!NEWSDATA_KEY) {
-    console.warn('⚠️ NEWSDATA_API_KEY not set. Using seed topics.')
-    return isUS ? FINANCE_SEEDS_US : FINANCE_SEEDS_IN
-  }
+// ── Google Autocomplete: get real user search phrases ──────────────────
+async function fetchAutocomplete(seed: string): Promise<string[]> {
   try {
-    const q = isUS
-      ? 'personal finance loan insurance investment tax USA'
-      : 'personal finance loan scheme insurance investment India'
-    const country = isUS ? 'us' : 'in'
-    const url = `https://newsdata.io/api/1/latest?apikey=${NEWSDATA_KEY}&q=${encodeURIComponent(q)}&country=${country}&language=en&size=10`
-    const res = await axios.get(url, { timeout: 15000 })
-    const articles = res.data?.results || []
-    const titles = articles.map((a: any) => a.title).filter(Boolean)
-    console.log(`✅ newsdata.io → ${titles.length} finance topics (${isUS ? 'US' : 'IN'})`)
-    // Combine with seed queries so we always have fallback content
-    return [...titles, ...(isUS ? FINANCE_SEEDS_US : FINANCE_SEEDS_IN)]
-  } catch (e) {
-    console.warn(`⚠️ newsdata.io fetch failed: ${e}. Using seeds.`)
-    return isUS ? FINANCE_SEEDS_US : FINANCE_SEEDS_IN
+    const enc = encodeURIComponent(seed)
+    const res = await axios.get(
+      `https://suggestqueries.google.com/complete/search?output=firefox&q=${enc}`,
+      { timeout: 5000, headers: { 'User-Agent': 'Mozilla/5.0' } }
+    )
+    const suggestions = (res.data?.[1] || []).filter((s: any) => typeof s === 'string')
+    return suggestions as string[]
+  } catch {
+    return []
   }
+}
+
+// ── Demand-driven finance topic discovery ──────────────────────────────
+// Collects what users actually search, not what we guess
+async function discoverFinanceTopics(isUS: boolean): Promise<string[]> {
+  const seeds = isUS ? AUTOCOMPLETE_SEEDS_US : AUTOCOMPLETE_SEEDS_IN
+  const fallback = isUS ? FALLBACK_SEEDS_US : FALLBACK_SEEDS_IN
+  const collected = new Set<string>()
+
+  console.log(`\n🔍 Discovering ${isUS ? 'US' : 'IN'} finance topics via autocomplete (${seeds.length} seeds)...`)
+
+  for (const seed of seeds) {
+    const completions = await fetchAutocomplete(seed)
+    completions.forEach(c => collected.add(c))
+    await new Promise(r => setTimeout(r, 150))
+  }
+
+  const live = [...collected]
+  console.log(`   → ${live.length} real user search phrases discovered`)
+
+  // If autocomplete returned enough, use those. Otherwise fall back to seeds.
+  const topics = live.length >= 5 ? live : fallback
+
+  // Also fetch newsdata.io for trending finance news as additional context
+  if (NEWSDATA_KEY) {
+    try {
+      const q = isUS ? 'personal finance loan insurance investment USA' : 'personal finance loan scheme insurance India'
+      const country = isUS ? 'us' : 'in'
+      const url = `https://newsdata.io/api/1/latest?apikey=${NEWSDATA_KEY}&q=${encodeURIComponent(q)}&country=${country}&language=en&size=10`
+      const res = await axios.get(url, { timeout: 15000 })
+      const articles = res.data?.results || []
+      const newsTitles = articles.map((a: any) => a.title).filter(Boolean)
+      console.log(`   → ${newsTitles.length} trending news articles added as extra context`)
+      return [...topics, ...newsTitles, ...fallback] // topics first so AI prioritises them
+    } catch {
+      // newsdata failed, just use autocomplete
+    }
+  }
+
+  return [...topics, ...fallback]
 }
 
 async function pickTopics(all: string[], done: Set<string>, count: number, country = 'IN') {
@@ -246,17 +278,19 @@ function buildIndex() {
 }
 
 async function main() {
-  console.log(`🚀 SchemeAtlas Pipeline | ${new Date().toISOString()}`)
+  console.log(`🚀 SchemeAtlas Finance Articles Pipeline | ${new Date().toISOString()}`)
   const done = existingSlugs()
-  
-  // Get topics from newsdata.io (replaces blocked Google Trends)
-  const [newsIN, newsUS] = await Promise.all([
-    fetchNewsTopics(false), fetchNewsTopics(true)
+
+  // Demand-driven: discover what users are actually searching right now
+  console.log('\n🤖 Starting demand-driven topic discovery...')
+  const [topicsIN, topicsUS] = await Promise.all([
+    discoverFinanceTopics(false),
+    discoverFinanceTopics(true),
   ])
-  
-  const topicsIN = await pickTopics(newsIN, done, ARTICLES_IN, 'IN')
-  const topicsUS = await pickTopics(newsUS, done, ARTICLES_US, 'US')
-  const allSelected = [...topicsIN, ...topicsUS]
+
+  const selectedIN = await pickTopics(topicsIN, done, ARTICLES_IN, 'IN')
+  const selectedUS = await pickTopics(topicsUS, done, ARTICLES_US, 'US')
+  const allSelected = [...selectedIN, ...selectedUS]
   
   for (const item of allSelected) {
     try {

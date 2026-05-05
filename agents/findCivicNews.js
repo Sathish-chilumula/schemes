@@ -67,16 +67,74 @@ const parser = new XMLParser();
 function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 const CURRENT_YEAR = new Date().getFullYear();
 
-// ─── NEWSDATA.IO QUERIES (replaces blocked Google News RSS) ─────────
-// Each query maps to a content type for the AI writer
-const NEWSDATA_CIVIC_QUERIES = [
+// ── CORE GUARANTEED QUERIES (always run, regardless of autocomplete) ──
+const CORE_CIVIC_QUERIES = [
   { q: `government jobs recruitment vacancy SSC UPSC railway ${new Date().getFullYear()}`, type: 'job', country: 'IN', geo: 'in' },
   { q: `cabinet decision policy announcement india government ${new Date().getFullYear()}`, type: 'news', country: 'IN', geo: 'in' },
-  { q: `india economy geopolitics market financial impact ${new Date().getFullYear()}`, type: 'economy', country: 'IN', geo: 'in' },
-  { q: `india budget finance policy reform high impact ${new Date().getFullYear()}`, type: 'policy', country: 'IN', geo: 'in' },
-  { q: `usa government grants financial assistance benefits ${new Date().getFullYear()}`, type: 'scheme', country: 'US', geo: 'us' },
-  { q: `usa tax credit stimulus financial update ${new Date().getFullYear()}`, type: 'finance', country: 'US', geo: 'us' },
+  { q: `usa government grants benefits financial assistance ${new Date().getFullYear()}`, type: 'scheme', country: 'US', geo: 'us' },
+  { q: `usa social security tax credit stimulus ${new Date().getFullYear()}`, type: 'finance', country: 'US', geo: 'us' },
 ];
+
+// ── AUTOCOMPLETE SEEDS: what citizens search for govt jobs/news ──
+const CIVIC_AUTOCOMPLETE_SEEDS = [
+  // Job seekers' real searches
+  `government job 2026 india apply`,
+  `sarkari naukri 2026 latest`,
+  `state government vacancy 2026`,
+  `bank job 2026 notification`,
+  `railway job 2026 india`,
+  // Policy / cabinet news
+  `cabinet decision india today`,
+  `india new policy announced 2026`,
+  `budget 2026 india latest news`,
+  // USA benefits/jobs
+  `usa government benefits apply 2026`,
+  `social security update 2026`,
+];
+
+// Map civic autocomplete result to a content type
+function detectCivicType(q) {
+  const l = q.toLowerCase();
+  if (l.includes('job') || l.includes('vacancy') || l.includes('recruitment') || l.includes('naukri') || l.includes('railway') || l.includes('bank job')) return 'job';
+  if (l.includes('policy') || l.includes('cabinet') || l.includes('budget') || l.includes('reform')) return 'policy';
+  if (l.includes('usa') || l.includes('social security') || l.includes('irs') || l.includes('benefit')) return 'scheme';
+  return 'news';
+}
+
+// ── LIVE CIVIC QUERY DISCOVERY via AUTOCOMPLETE ────────────────
+async function discoverLiveCivicQueries() {
+  console.log('\n🔍 Discovering live civic searches via Google Autocomplete...');
+  const liveQueries = [];
+  const seen = new Set();
+
+  for (const seed of CIVIC_AUTOCOMPLETE_SEEDS) {
+    try {
+      const enc = encodeURIComponent(seed);
+      const res = await axios.get(
+        `https://suggestqueries.google.com/complete/search?output=firefox&q=${enc}`,
+        { timeout: 5000, headers: { 'User-Agent': 'Mozilla/5.0' } }
+      );
+      const suggestions = (res.data?.[1] || []).filter(s => typeof s === 'string');
+      for (const s of suggestions) {
+        if (!seen.has(s)) {
+          seen.add(s);
+          const isUS = s.toLowerCase().includes('usa') || s.toLowerCase().includes('social security') || s.toLowerCase().includes('irs');
+          liveQueries.push({
+            q: s,
+            type: detectCivicType(s),
+            country: isUS ? 'US' : 'IN',
+            geo: isUS ? 'us' : 'in',
+            isLive: true,
+          });
+        }
+      }
+      await delay(150);
+    } catch (e) { /* skip */ }
+  }
+
+  console.log(`   → Autocomplete found ${liveQueries.length} live civic search queries`);
+  return liveQueries;
+}
 
 // ─── IMAGE FETCHING (PEXELS + UNSPLASH FALLBACK) ────────────────
 const PEXELS_API_KEY = process.env.PEXELS_API_KEY || 'ew5YCrng0KjGO4zOZvLg2Vq4XNJ20arQsBERm9v10Ydz4hWsDQpYIx42';
@@ -216,14 +274,25 @@ async function main() {
     process.exit(1);
   }
 
+  // Phase A: Discover what citizens are actually searching for jobs/news today
+  const liveQueries = await discoverLiveCivicQueries();
+
+  // Phase B: Merge — core queries run first (guaranteed), then live queries
+  const allQueries = [
+    ...CORE_CIVIC_QUERIES,
+    ...liveQueries.slice(0, 15), // cap to stay within newsdata.io free budget
+  ];
+
+  console.log(`\n📡 Total queries: ${allQueries.length} (${CORE_CIVIC_QUERIES.length} core + ${Math.min(liveQueries.length, 15)} live)`);
+
   let newPublishedCount = 0;
 
-  for (const query of NEWSDATA_CIVIC_QUERIES) {
+  for (const query of allQueries) {
     if (newPublishedCount >= MAX_NEW_ITEMS_TOTAL) break;
 
     try {
       const apiUrl = `https://newsdata.io/api/1/latest?apikey=${NEWSDATA_API_KEY}&q=${encodeURIComponent(query.q)}&country=${query.geo}&language=en&size=5`;
-      console.log(`\n📡 Querying newsdata.io: "${query.q.substring(0, 50)}..."`);
+      console.log(`\n📡 Querying: "${query.q.substring(0, 50)}..."${query.isLive ? ' 🔥' : ''}`);
       const res = await axios.get(apiUrl, { timeout: 15000 });
       const articles = res.data?.results || [];
       console.log(`  ➜ Found ${articles.length} articles`);
