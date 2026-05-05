@@ -16,18 +16,40 @@ const INDEX_FILE = path.join(process.cwd(), 'content/articles-index.json')
 const MODEL = 'llama-3.3-70b-versatile'
 
 const FINANCE_SEEDS_IN = [
-  'personal loan India', 'health insurance India', 'earn money online India',
-  'government scheme 2025', 'home loan India', 'SBI loan apply',
-  'income tax saving India', 'mutual fund SIP India', 'business loan India',
-  'scholarship India 2025', 'PM scheme apply', 'insurance plan India',
-  'freelancing India', 'work from home India', 'PMKVY registration',
+  // Loans — very high CPC
+  'personal loan India 2026', 'SBI personal loan apply online', 'home loan interest rate India 2026',
+  'instant personal loan without documents India', 'gold loan interest rate India',
+  'business loan for small business India', 'education loan India without collateral',
+  'mudra loan apply online 2026', 'PMEGP loan scheme apply', 'EV vehicle loan scheme India',
+  // Insurance — high CPC
+  'best health insurance plan India 2026', 'term insurance plan comparison India',
+  'PM Jeevan Jyoti Bima Yojana benefits', 'LIC policy for poor India',
+  // Investment & Tax — high CPC
+  'income tax saving tips India 2026', 'ELSS tax saving mutual fund India',
+  'best SIP plan 2026 India', 'PPF vs NPS which is better 2026',
+  'Sukanya Samriddhi Yojana interest rate 2026', 'Atal Pension Yojana benefits 2026',
+  // Schemes — moderate-high CPC
+  'PM scheme apply 2026 new', 'scholarship India 2026 apply online',
+  'PMKVY registration 2026', 'earn money online India legally',
+  'work from home government scheme India'
 ]
 
 const FINANCE_SEEDS_US = [
-  'personal loan USA', 'best credit cards USA 2025', 'student loan forgiveness USA',
-  'IRS tax filing 2025', 'mortgage rates USA', 'high yield savings account USA',
-  'best index funds USA', 'health insurance plans USA', '401k vs IRA guide',
-  'side hustle ideas USA', 'unemployment benefits USA', 'disability insurance USA',
+  // Loans — high CPC
+  'best personal loan USA 2026', 'home equity loan vs HELOC 2026',
+  'FHA loan requirements 2026', 'student loan forgiveness update 2026',
+  'small business loan USA apply 2026',
+  // Credit & Banking
+  'best credit cards USA cashback 2026', 'high yield savings account rates 2026',
+  'best mortgage rates USA 2026',
+  // Investment & Tax
+  'IRS tax filing tips 2026', 'Roth IRA vs traditional IRA 2026',
+  'best index funds 2026 USA', '401k contribution limits 2026',
+  'how to invest 10000 dollars USA 2026',
+  // Benefits
+  'health insurance plans marketplace 2026 USA', 'unemployment benefits USA 2026',
+  'disability benefits apply SSA 2026', 'SNAP food stamp benefits 2026',
+  'social security benefits increase 2026'
 ]
 
 const CATEGORY_IMAGES: Record<string, string> = {

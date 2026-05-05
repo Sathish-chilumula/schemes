@@ -126,13 +126,34 @@ async function generateAICompletion(prompt, maxTokens = 2000) {
 // Replaces Google News RSS (blocked on GitHub Actions IPs)
 // ============================================
 const NEWSDATA_QUERIES = [
-  // India — Scheme/Yojana discovery
-  { q: 'government scheme yojana welfare launched india', country: 'in', lang: 'en', countryCode: 'IN' },
-  { q: 'pradhan mantri scheme new benefit subsidy 2026', country: 'in', lang: 'en', countryCode: 'IN' },
-  { q: 'mukhyamantri yojana state government scheme announced', country: 'in', lang: 'en', countryCode: 'IN' },
-  { q: 'scholarship pension housing health scheme india', country: 'in', lang: 'en', countryCode: 'IN' },
-  { q: 'ministry welfare scheme kisan rozgar empowerment', country: 'in', lang: 'en', countryCode: 'IN' },
-  { q: 'government benefit program assistance poor women india', country: 'in', lang: 'en', countryCode: 'IN' },
+  // ── INDIA: General scheme discovery ────────────────────────────────
+  { q: 'government scheme yojana welfare launched india', country: 'in', lang: 'en', countryCode: 'IN', stateCode: null },
+  { q: 'pradhan mantri scheme new benefit subsidy 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: null },
+  { q: 'mukhyamantri yojana state government scheme announced', country: 'in', lang: 'en', countryCode: 'IN', stateCode: null },
+  { q: 'scholarship pension housing health scheme india', country: 'in', lang: 'en', countryCode: 'IN', stateCode: null },
+  { q: 'ministry welfare scheme kisan rozgar empowerment', country: 'in', lang: 'en', countryCode: 'IN', stateCode: null },
+  { q: 'government benefit program assistance poor women india', country: 'in', lang: 'en', countryCode: 'IN', stateCode: null },
+
+  // ── INDIA: State-specific scheme discovery ──────────────────────────
+  // Major states searched individually so we catch CM-level state schemes
+  { q: 'government scheme Uttar Pradesh new yojana benefit 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: 'UP' },
+  { q: 'government scheme Maharashtra mukhyamantri yojana 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: 'MH' },
+  { q: 'government scheme Telangana benefit launched 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: 'TS' },
+  { q: 'government scheme Andhra Pradesh AP yojana welfare 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: 'AP' },
+  { q: 'government scheme Karnataka new benefit welfare 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: 'KA' },
+  { q: 'government scheme Tamil Nadu TN yojana launched 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: 'TN' },
+  { q: 'government scheme West Bengal yojana new benefit 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: 'WB' },
+  { q: 'government scheme Gujarat yojana welfare scheme 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: 'GJ' },
+  { q: 'government scheme Rajasthan welfare benefit launched 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: 'RJ' },
+  { q: 'government scheme Kerala welfare benefit yojana 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: 'KL' },
+
+  // ── INDIA: Ministry-specific discovery ─────────────────────────────
+  { q: 'Ministry Agriculture scheme kisan farmer benefit india 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: null },
+  { q: 'Ministry Education scholarship scheme students india 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: null },
+  { q: 'Ministry Health scheme hospital insurance poor india 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: null },
+  { q: 'Ministry MSME business loan scheme startup india 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: null },
+  { q: 'Ministry Women Child scheme welfare benefit india 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: null },
+  { q: 'Ministry Social Justice SC ST OBC disability scheme 2026', country: 'in', lang: 'en', countryCode: 'IN', stateCode: null },
 ];
 
 // ============================================
@@ -328,6 +349,7 @@ async function fetchNewsdata() {
         for (const a of articles) {
           allItems.push({
             country: q.countryCode,
+            stateCode: q.stateCode || null,
             title: a.title || '',
             link: a.link || '',
             summary: a.description || '',
