@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import './globals.css';
 import { LocationDetector } from '@/components/LocationDetector';
 import { ChatWidget } from '@/components/ChatWidget';
@@ -30,40 +31,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
-        {/* Google tag (gtag.js) */}
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-Z2RDTXCHHX"></script>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', 'G-Z2RDTXCHHX');
-            `,
-          }}
-        />
-        {/* Google AdSense */}
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3809505002238691"
-          crossOrigin="anonymous"
-        />
-        {/* Google News Subscribe with Google */}
-        <script async type="application/javascript" src="https://news.google.com/swg/js/v1/swg-basic.js"></script>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (self.SWG_BASIC = self.SWG_BASIC || []).push( basicSubscriptions => {
-                basicSubscriptions.init({
-                  type: "NewsArticle",
-                  isPartOfType: ["Product"],
-                  isPartOfProductId: "CAowienfCw:openaccess",
-                  clientOptions: { theme: "light", lang: "en" },
-                });
-              });
-            `
-          }}
-        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
@@ -72,6 +39,39 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="bg-slate-50 text-slate-900 antialiased">
+        {/* Google Analytics - afterInteractive */}
+        <Script src="https://www.googletagmanager.com/gtag/js?id=G-Z2RDTXCHHX" strategy="afterInteractive" />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-Z2RDTXCHHX');
+          `}
+        </Script>
+
+        {/* Google AdSense - lazyOnload to prevent render blocking */}
+        <Script
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3809505002238691"
+          crossOrigin="anonymous"
+          strategy="lazyOnload"
+        />
+
+        {/* Google News Subscribe - lazyOnload */}
+        <Script src="https://news.google.com/swg/js/v1/swg-basic.js" strategy="lazyOnload" />
+        <Script id="google-news" strategy="lazyOnload">
+          {`
+            (self.SWG_BASIC = self.SWG_BASIC || []).push( basicSubscriptions => {
+              basicSubscriptions.init({
+                type: "NewsArticle",
+                isPartOfType: ["Product"],
+                isPartOfProductId: "CAowienfCw:openaccess",
+                clientOptions: { theme: "light", lang: "en" },
+              });
+            });
+          `}
+        </Script>
+
         <LocationDetector />
         {children}
         <ChatWidget />
@@ -79,3 +79,4 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
+
