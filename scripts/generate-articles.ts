@@ -7,6 +7,7 @@ const GROQ_KEY = process.env.GROQ_API_KEY!
 const GEMINI_KEY = process.env.GEMINI_API_KEY || ''
 const OPENAI_KEY = process.env.OPENAI_API_KEY || ''
 const PEXELS_API_KEY = process.env.PEXELS_API_KEY || ''
+const NEWSDATA_KEY = process.env.NEWSDATA_API_KEY || ''
 const FORCE_TOPIC = process.env.FORCE_TOPIC || ''
 const ARTICLES_IN = parseInt(process.env.ARTICLES_IN || '4')
 const ARTICLES_US = parseInt(process.env.ARTICLES_US || '2')
@@ -136,36 +137,29 @@ function parseJSON(raw: string) {
   return JSON.parse(raw.replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim())
 }
 
-async function getTrendingIndia(): Promise<string[]> {
+// Replaces Google Trends (blocked on GitHub Actions IPs)
+// Uses newsdata.io to find real trending finance/scheme topics
+async function fetchNewsTopics(isUS = false): Promise<string[]> {
+  if (!NEWSDATA_KEY) {
+    console.warn('⚠️ NEWSDATA_API_KEY not set. Using seed topics.')
+    return isUS ? FINANCE_SEEDS_US : FINANCE_SEEDS_IN
+  }
   try {
-    const r = await fetch('https://trends.google.com/trending/rss?geo=IN', {
-      headers:{ 'User-Agent':'Mozilla/5.0 (compatible; SchemeAtlas/1.0)', 'Accept':'application/rss+xml' }
-    })
-    if (!r.ok) return []
-    const xml = await r.text()
-    const parsed = await parseStringPromise(xml)
-    const items = parsed?.rss?.channel?.[0]?.item || []
-    return items.slice(0,30).map((i:any)=>i?.title?.[0]||'').filter(Boolean)
-  } catch { return [] }
-}
-
-async function getRelatedFinanceQueries(isUS = false): Promise<string[]> {
-  try {
-    const gt = (await import('google-trends-api')).default;
-    const results: string[] = []
-    const seeds = (isUS ? FINANCE_SEEDS_US : FINANCE_SEEDS_IN).sort(()=>Math.random()-0.5).slice(0,5)
-    for (const seed of seeds) {
-      try {
-        const raw = await gt.relatedQueries({ keyword:seed, geo: isUS ? 'US' : 'IN',
-          startTime: new Date(Date.now() - 7*24*60*60*1000) })
-        const data = JSON.parse(raw)
-        const rising = data?.default?.rankedList?.[0]?.rankedKeyword || []
-        rising.slice(0,4).map((k:any)=>k?.query).filter(Boolean).forEach((q:string)=>results.push(q))
-        await new Promise(r=>setTimeout(r,1000))
-      } catch { }
-    }
-    return [...new Set(results)]
-  } catch { return [] }
+    const q = isUS
+      ? 'personal finance loan insurance investment tax USA'
+      : 'personal finance loan scheme insurance investment India'
+    const country = isUS ? 'us' : 'in'
+    const url = `https://newsdata.io/api/1/latest?apikey=${NEWSDATA_KEY}&q=${encodeURIComponent(q)}&country=${country}&language=en&size=10`
+    const res = await axios.get(url, { timeout: 15000 })
+    const articles = res.data?.results || []
+    const titles = articles.map((a: any) => a.title).filter(Boolean)
+    console.log(`✅ newsdata.io → ${titles.length} finance topics (${isUS ? 'US' : 'IN'})`)
+    // Combine with seed queries so we always have fallback content
+    return [...titles, ...(isUS ? FINANCE_SEEDS_US : FINANCE_SEEDS_IN)]
+  } catch (e) {
+    console.warn(`⚠️ newsdata.io fetch failed: ${e}. Using seeds.`)
+    return isUS ? FINANCE_SEEDS_US : FINANCE_SEEDS_IN
+  }
 }
 
 async function pickTopics(all: string[], done: Set<string>, count: number, country = 'IN') {
@@ -233,13 +227,13 @@ async function main() {
   console.log(`🚀 SchemeAtlas Pipeline | ${new Date().toISOString()}`)
   const done = existingSlugs()
   
-  // Get topics for both IN and US
-  const [trendIN, relIN, relUS] = await Promise.all([
-    getTrendingIndia(), getRelatedFinanceQueries(false), getRelatedFinanceQueries(true)
+  // Get topics from newsdata.io (replaces blocked Google Trends)
+  const [newsIN, newsUS] = await Promise.all([
+    fetchNewsTopics(false), fetchNewsTopics(true)
   ])
   
-  const topicsIN = await pickTopics([...trendIN, ...relIN], done, ARTICLES_IN, 'IN')
-  const topicsUS = await pickTopics(relUS, done, ARTICLES_US, 'US')
+  const topicsIN = await pickTopics(newsIN, done, ARTICLES_IN, 'IN')
+  const topicsUS = await pickTopics(newsUS, done, ARTICLES_US, 'US')
   const allSelected = [...topicsIN, ...topicsUS]
   
   for (const item of allSelected) {

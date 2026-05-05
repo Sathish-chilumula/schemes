@@ -24,6 +24,7 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const CLOUDFLARE_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID;
 const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
+const NEWSDATA_API_KEY = process.env.NEWSDATA_API_KEY;
 const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY || 'mRrS9UjMl45wy4Hy-Pm6oMv7TGG55Sb-o6VLDxcJQOA';
 
 // ─── LIMITS ────────────────────────────────────────────────────────
@@ -66,13 +67,15 @@ const parser = new XMLParser();
 function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 const CURRENT_YEAR = new Date().getFullYear();
 
-const RSS_FEEDS = [
-  { url: `https://news.google.com/rss/search?q=government+jobs+notification+india+ssc+upsc+railway+${CURRENT_YEAR}&hl=en-IN&gl=IN&ceid=IN:en&when=2d`, type: 'job', country: 'IN' },
-  { url: `https://news.google.com/rss/search?q=cabinet+decisions+india+today+pib+${CURRENT_YEAR}&hl=en-IN&gl=IN&ceid=IN:en&when=2d`, type: 'news', country: 'IN' },
-  { url: `https://news.google.com/rss/search?q=india+economy+impact+global+geopolitics+market+${CURRENT_YEAR}&hl=en-IN&gl=IN&ceid=IN:en&when=2d`, type: 'economy', country: 'IN' },
-  { url: `https://news.google.com/rss/search?q=india+finance+budget+high+impact+policy+${CURRENT_YEAR}&hl=en-IN&gl=IN&ceid=IN:en&when=2d`, type: 'policy', country: 'IN' },
-  { url: `https://news.google.com/rss/search?q=usa+government+grants+schemes+financial+assistance+${CURRENT_YEAR}&hl=en-US&gl=US&ceid=US:en&when=2d`, type: 'scheme', country: 'US' },
-  { url: `https://news.google.com/rss/search?q=usa+stimulus+check+tax+credit+financial+updates+${CURRENT_YEAR}&hl=en-US&gl=US&ceid=US:en&when=2d`, type: 'finance', country: 'US' }
+// ─── NEWSDATA.IO QUERIES (replaces blocked Google News RSS) ─────────
+// Each query maps to a content type for the AI writer
+const NEWSDATA_CIVIC_QUERIES = [
+  { q: `government jobs recruitment vacancy SSC UPSC railway ${new Date().getFullYear()}`, type: 'job', country: 'IN', geo: 'in' },
+  { q: `cabinet decision policy announcement india government ${new Date().getFullYear()}`, type: 'news', country: 'IN', geo: 'in' },
+  { q: `india economy geopolitics market financial impact ${new Date().getFullYear()}`, type: 'economy', country: 'IN', geo: 'in' },
+  { q: `india budget finance policy reform high impact ${new Date().getFullYear()}`, type: 'policy', country: 'IN', geo: 'in' },
+  { q: `usa government grants financial assistance benefits ${new Date().getFullYear()}`, type: 'scheme', country: 'US', geo: 'us' },
+  { q: `usa tax credit stimulus financial update ${new Date().getFullYear()}`, type: 'finance', country: 'US', geo: 'us' },
 ];
 
 // ─── IMAGE FETCHING (PEXELS + UNSPLASH FALLBACK) ────────────────
@@ -205,43 +208,57 @@ function isFresh(pubDate) {
 
 // ─── MAIN RUNNER ───────────────────────────────────────────────────
 async function main() {
-  console.log("🚀 Civic News Discovery Agent Starting...");
+  console.log("\n🚀 Civic News Discovery Agent Starting...");
   console.log(`📊 Session Cap: ${MAX_NEW_ITEMS_TOTAL} new articles`);
-  
+
+  if (!NEWSDATA_API_KEY) {
+    console.error("❌ NEWSDATA_API_KEY is not set. Cannot fetch civic news.");
+    process.exit(1);
+  }
+
   let newPublishedCount = 0;
 
-  for (const feed of RSS_FEEDS) {
+  for (const query of NEWSDATA_CIVIC_QUERIES) {
     if (newPublishedCount >= MAX_NEW_ITEMS_TOTAL) break;
 
     try {
-      console.log(`\n📡 Checking: ${feed.url.substring(0, 70)}...`);
-      const res = await axios.get(feed.url, { timeout: 15000 });
-      const data = parser.parse(res.data);
-      const items = data.rss?.channel?.item || [];
+      const apiUrl = `https://newsdata.io/api/1/latest?apikey=${NEWSDATA_API_KEY}&q=${encodeURIComponent(query.q)}&country=${query.geo}&language=en&size=5`;
+      console.log(`\n📡 Querying newsdata.io: "${query.q.substring(0, 50)}..."`);
+      const res = await axios.get(apiUrl, { timeout: 15000 });
+      const articles = res.data?.results || [];
+      console.log(`  ➜ Found ${articles.length} articles`);
 
-      for (const item of items.slice(0, 3)) {
+      for (const article of articles.slice(0, 3)) {
         if (newPublishedCount >= MAX_NEW_ITEMS_TOTAL) break;
-        if (!isFresh(item.pubDate)) continue;
+        if (!isFresh(article.pubDate)) continue;
+        if (!article.link || !article.title) continue;
 
-        const sourceHash = crypto.createHash('md5').update(item.link).digest('hex');
-        
-        // Deduplicate check (URL Hash + Slug)
+        const sourceHash = crypto.createHash('md5').update(article.link).digest('hex');
+
+        // Deduplicate check
         const { data: existing } = await supabase.from('schemes').select('id').eq('source_hash', sourceHash).single();
         if (existing) continue;
 
-        // Peak ahead for slug collision
-        const tempSlug = item.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').substring(0, 50);
+        // Slug collision check
+        const tempSlug = article.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').substring(0, 50);
         const { data: existingSlug } = await supabase.from('schemes').select('id').eq('slug', `${tempSlug}-in`).single();
         if (existingSlug) continue;
 
+        // Build compatible item object for processItem()
+        const item = { title: article.title, link: article.link, pubDate: article.pubDate };
+        const feed = { type: query.type, country: query.country };
         const result = await processItem(item, feed);
         if (result === 'published') newPublishedCount++;
+
+        await delay(500);
       }
+
+      await delay(1000); // between queries
     } catch (e) {
-      console.error(`❌ Feed failure: ${e.message}`);
+      console.error(`❌ Query failure: ${e.message}`);
     }
   }
-  
+
   console.log('\n━'.repeat(50));
   console.log(`🏁 FINISHED! Total Published This Run: ${newPublishedCount}`);
 }

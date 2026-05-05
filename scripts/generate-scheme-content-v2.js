@@ -279,11 +279,10 @@ async function runV2Pipeline() {
   } else {
     query = query.eq('is_seo_optimized', false);
     
-    // Master automation pipeline (isBulk=false) only touches recent discoveries
-    // to prevent churning through the entire database automatically.
-    // Manual bulk generation (isBulk=true) will process ALL unoptimized schemes regardless of date.
-    if (!isBulk) {
-      query = query.gte('discovered_at', '2026-05-01T00:00:00Z');
+    // Master automation pipeline (isBulk=false) only processes the most recent
+    // unoptimized schemes to avoid churn. Bulk mode processes all.
+    if (isBulk) {
+      // no extra filter — process everything
     }
     
     query = query

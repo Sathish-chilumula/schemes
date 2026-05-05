@@ -28,11 +28,12 @@ jobs:
       - run: npm ci
 
       - name: Install script deps
-        run: npm install --no-save xml2js google-trends-api axios
+        run: npm install --no-save xml2js axios
 
       - name: Generate articles
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          NEWSDATA_API_KEY: ${{ secrets.NEWSDATA_API_KEY }}
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
           FORCE_TOPIC: ${{ github.event.inputs.force_topic }}
         run: npx tsx scripts/generate-articles.ts

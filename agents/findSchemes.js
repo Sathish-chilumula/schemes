@@ -19,6 +19,7 @@ const openaiKey = process.env.OPENAI_API_KEY;
 const groqKey = process.env.GROQ_API_KEY;
 const cfAccountId = process.env.CLOUDFLARE_ACCOUNT_ID;
 const cfApiToken = process.env.CLOUDFLARE_API_TOKEN;
+const newsdataKey = process.env.NEWSDATA_API_KEY;
 
 if (!url || !key) {
   console.error('\n❌ CRITICAL STARTUP ERROR ❌');
@@ -121,28 +122,25 @@ async function generateAICompletion(prompt, maxTokens = 2000) {
 }
 
 // ============================================
-// RSS FEED SOURCES PER COUNTRY
+// NEWSDATA.IO — SCHEME DISCOVERY QUERIES
+// Replaces Google News RSS (blocked on GitHub Actions IPs)
 // ============================================
-const RSS_SOURCES = {
-  IN: [
-    'https://pib.gov.in/RssMain.aspx',
-    'https://news.google.com/rss/search?q=government+scheme+india+new+welfare+program&hl=en-IN&gl=IN'
-  ],
-  GB: [
-    'https://www.gov.uk/search/news-and-communications.atom',
-    'https://news.google.com/rss/search?q=UK+benefits+scheme+2025&hl=en-GB&gl=GB'
-  ],
-  US: [
-    'https://www.federalregister.gov/api/v1/articles.rss?conditions[type][]=RULE',
-    'https://news.google.com/rss/search?q=USA+government+assistance+program+2025&hl=en-US&gl=US'
-  ],
-  NG: [
-    'https://news.google.com/rss/search?q=Nigeria+government+welfare+scheme+2025&hl=en-NG&gl=NG'
-  ],
-  KE: [
-    'https://news.google.com/rss/search?q=Kenya+government+benefit+program+2025&hl=en-KE&gl=KE'
-  ]
-};
+const NEWSDATA_QUERIES = [
+  // India — Scheme/Yojana discovery
+  { q: 'government scheme yojana welfare launched india', country: 'in', lang: 'en', countryCode: 'IN' },
+  { q: 'pradhan mantri scheme new benefit subsidy 2026', country: 'in', lang: 'en', countryCode: 'IN' },
+  { q: 'mukhyamantri yojana state government scheme announced', country: 'in', lang: 'en', countryCode: 'IN' },
+  { q: 'scholarship pension housing health scheme india', country: 'in', lang: 'en', countryCode: 'IN' },
+  { q: 'ministry welfare scheme kisan rozgar empowerment', country: 'in', lang: 'en', countryCode: 'IN' },
+  { q: 'government benefit program assistance poor women india', country: 'in', lang: 'en', countryCode: 'IN' },
+];
+
+// ============================================
+// RELIABLE GOV RSS (NON-GOOGLE, WON'T BE BLOCKED)
+// ============================================
+const RELIABLE_RSS = [
+  { url: 'https://pib.gov.in/RssMain.aspx', country: 'IN' },
+];
 
 // ============================================
 // INDIA: myScheme.gov.in API CONFIG
@@ -200,7 +198,7 @@ MINISTRIES.forEach(min => {
   RSS_SOURCES.IN.push(`https://news.google.com/rss/search?q=${encodeURIComponent(min)}+scheme+launched+2026&hl=en-IN&gl=IN&ceid=IN:en&tbs=qdr:w`);
 });
 
-// Removed duplicate array
+// Newsdata.io replaces the old per-state Google News RSS loop
 
 const MYSCHEME_KEYWORDS = ['welfare', 'scholarship', 'housing', 'health', 'agriculture', 'women', 'disability'];
 
@@ -311,42 +309,68 @@ async function fetchIndiamyScheme() {
 }
 
 // ============================================
-// STEP 1: FETCH RSS FEEDS (PARALLEL)
+// STEP 1: FETCH NEWS via NEWSDATA.IO API
+// Replaces blocked Google News RSS feeds
 // ============================================
-async function fetchRSSFeeds() {
+async function fetchNewsdata() {
   const allItems = [];
-  const feedList = [];
-  
-  for (const [country, feeds] of Object.entries(RSS_SOURCES)) {
-    for (const feedUrl of feeds) {
-      feedList.push({ country, url: feedUrl });
+
+  if (!newsdataKey) {
+    console.warn('⚠️  NEWSDATA_API_KEY not set. Falling back to PIB RSS only.');
+  } else {
+    console.log(`\n📡 Fetching from newsdata.io (${NEWSDATA_QUERIES.length} queries)...`);
+    for (const q of NEWSDATA_QUERIES) {
+      try {
+        const url = `https://newsdata.io/api/1/latest?apikey=${newsdataKey}&q=${encodeURIComponent(q.q)}&country=${q.country}&language=${q.lang}&size=10`;
+        const res = await axios.get(url, { timeout: 15000 });
+        const articles = res.data?.results || [];
+        console.log(`  ✅ "${q.q.substring(0,40)}..." → ${articles.length} articles`);
+        for (const a of articles) {
+          allItems.push({
+            country: q.countryCode,
+            title: a.title || '',
+            link: a.link || '',
+            summary: a.description || '',
+            published: a.pubDate || ''
+          });
+        }
+        await new Promise(r => setTimeout(r, 500)); // gentle rate limit
+      } catch (err) {
+        console.warn(`  ⚠️  Newsdata query failed: ${err.message}`);
+      }
     }
   }
 
-  const chunk = (arr, size) => Array.from({ length: Math.ceil(arr.length / size) }, (v, i) => arr.slice(i * size, i * size + size));
-  
-  const batches = chunk(feedList, 10);
-  for (const batch of batches) {
-    await Promise.allSettled(batch.map(async (feed) => {
-      try {
-        console.log(`Fetching RSS: ${feed.url.substring(0, 60)}...`);
-        const parsed = await parser.parseURL(feed.url);
-        for (const item of parsed.items.slice(0, 10)) {
-          allItems.push({
-            country: feed.country,
-            title: item.title,
-            link: item.link,
-            summary: item.contentSnippet || item.content || '',
-            published: item.pubDate
-          });
-        }
-      } catch (err) {
-        // Silent catch for bad feeds to keep logs clean
+  // Also fetch PIB RSS (reliable government source, not Google)
+  for (const feed of RELIABLE_RSS) {
+    try {
+      console.log(`  📡 Fetching PIB RSS...`);
+      const parsed = await parser.parseURL(feed.url);
+      for (const item of (parsed.items || []).slice(0, 15)) {
+        allItems.push({
+          country: feed.country,
+          title: item.title || '',
+          link: item.link || '',
+          summary: item.contentSnippet || item.content || '',
+          published: item.pubDate || ''
+        });
       }
-    }));
+      console.log(`  ✅ PIB RSS → ${Math.min(15, parsed.items?.length || 0)} articles`);
+    } catch (err) {
+      console.warn(`  ⚠️  PIB RSS failed: ${err.message}`);
+    }
   }
-  console.log(`Total RSS items found: ${allItems.length}`);
-  return allItems;
+
+  // Deduplicate by link
+  const seen = new Set();
+  const unique = allItems.filter(item => {
+    if (!item.link || seen.has(item.link)) return false;
+    seen.add(item.link);
+    return true;
+  });
+
+  console.log(`\n📊 Total unique news items fetched: ${unique.length}`);
+  return unique;
 }
 
 // ============================================
@@ -630,9 +654,9 @@ async function runFindAgent() {
     }
   }
 
-  // --- STEP 2: RSS Discovery with Pre-AI Funnel ---
-  console.log('\n📡 Starting RSS Discovery & Funnel...');
-  const rssItems = await fetchRSSFeeds();
+  // --- STEP 2: News Discovery via newsdata.io + PIB RSS ---
+  console.log('\n📡 Starting News Discovery & Funnel...');
+  const rssItems = await fetchNewsdata();
   stats.rssTotal = rssItems.length;
 
   for (const item of rssItems) {
