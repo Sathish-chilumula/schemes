@@ -358,16 +358,6 @@ const MINISTRIES = [
   'Ministry Of Science', 'Ministry Of Minority Affairs', 'Ministry Of Social Justice', 'Ministry Of Youth Affairs'
 ];
 
-INDIAN_STATES.forEach(state => {
-  RSS_SOURCES.IN.push(`https://news.google.com/rss/search?q=government+scheme+${encodeURIComponent(state.name)}+launched+2026&hl=en-IN&gl=IN&ceid=IN:en&tbs=qdr:w`);
-});
-
-MINISTRIES.forEach(min => {
-  RSS_SOURCES.IN.push(`https://news.google.com/rss/search?q=${encodeURIComponent(min)}+scheme+launched+2026&hl=en-IN&gl=IN&ceid=IN:en&tbs=qdr:w`);
-});
-
-// Newsdata.io replaces the old per-state Google News RSS loop
-
 const MYSCHEME_KEYWORDS = ['welfare', 'scholarship', 'housing', 'health', 'agriculture', 'women', 'disability'];
 
 function mapCategory(raw) {
