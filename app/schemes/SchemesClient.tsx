@@ -9,7 +9,15 @@ import { SchemeCard } from '@/components/SchemeCard';
 
 const ALL_COUNTRIES = ['all', ...Object.keys(COUNTRIES)];
 
-export function SchemesClient({ initialSchemes }: { initialSchemes: Scheme[] }) {
+export function SchemesClient({ 
+  initialSchemes, 
+  title = "All Government Schemes",
+  subtitle 
+}: { 
+  initialSchemes: Scheme[],
+  title?: string,
+  subtitle?: string
+}) {
   const [filtered, setFiltered] = useState<Scheme[]>(initialSchemes);
   const [search, setSearch] = useState('');
   const [activeCountry, setActiveCountry] = useState('all');
@@ -175,9 +183,9 @@ export function SchemesClient({ initialSchemes }: { initialSchemes: Scheme[] }) 
       {/* ── Header ── */}
       <div className="bg-slate-900 text-white py-10">
         <div className="page-container">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">All Government Schemes</h1>
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">{title}</h1>
           <p className="text-slate-400">
-            {initialSchemes.length} schemes across {Object.keys(COUNTRIES).length} countries
+            {subtitle || `${initialSchemes.length} items across ${Object.keys(COUNTRIES).length} countries`}
           </p>
         </div>
       </div>

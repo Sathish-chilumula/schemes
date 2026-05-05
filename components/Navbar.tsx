@@ -123,6 +123,31 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
                 </div>
               </div>
 
+              {/* Mega Menu: Updates & Jobs */}
+              <div className="group relative">
+                <div className={navItemClass}>
+                  Updates & Jobs ▾
+                </div>
+                <div className="absolute top-[50px] left-1/2 -translate-x-1/2 bg-white rounded-[var(--radius-lg)] p-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.14)] border border-[var(--border)] min-w-[350px] z-[999] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none group-hover:pointer-events-auto" style={{animation: 'megaDown 0.18s ease'}}>
+                  <div className="flex flex-col gap-[15px]">
+                    <Link href="/jobs" className="flex items-center gap-[12px] px-[12px] py-[10px] rounded-[var(--radius-sm)] hover:bg-[#F0F4FF] group/item transition-colors">
+                      <div className="w-[36px] h-[36px] rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 text-lg group-hover/item:bg-indigo-100 transition-colors">💼</div>
+                      <div>
+                        <p className="text-[14px] font-[600] text-[var(--text-primary)] group-hover/item:text-[var(--indigo)]">Govt Jobs & Exams</p>
+                        <p className="text-[12px] text-[var(--text-muted)] mt-0.5">Latest recruitment notifications and exam updates</p>
+                      </div>
+                    </Link>
+                    <Link href="/news" className="flex items-center gap-[12px] px-[12px] py-[10px] rounded-[var(--radius-sm)] hover:bg-[#F0F4FF] group/item transition-colors">
+                      <div className="w-[36px] h-[36px] rounded-full bg-blue-50 flex items-center justify-center text-blue-600 text-lg group-hover/item:bg-blue-100 transition-colors">📰</div>
+                      <div>
+                        <p className="text-[14px] font-[600] text-[var(--text-primary)] group-hover/item:text-[var(--indigo)]">News & Policies</p>
+                        <p className="text-[12px] text-[var(--text-muted)] mt-0.5">Cabinet decisions, updates, and economic alerts</p>
+                      </div>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
               <Link href="/schemes" className={navItemClass}>
                 All Schemes
               </Link>
@@ -211,6 +236,14 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
                   <Link href="/in?category=Students" onClick={() => setMobileMenuOpen(false)} className="text-[14px] text-[var(--text-muted)]">🎓 Scholarships & Education</Link>
                   <Link href="/in?category=Healthcare" onClick={() => setMobileMenuOpen(false)} className="text-[14px] text-[var(--text-muted)]">❤️ Health & Insurance</Link>
                   <Link href="/in?category=Business" onClick={() => setMobileMenuOpen(false)} className="text-[14px] text-[var(--text-muted)]">💼 Business & Startup</Link>
+                </div>
+              </div>
+              
+              <div className="py-[14px] border-b border-[var(--border)] flex flex-col gap-3">
+                <span className="text-[16px] font-[600] text-[var(--text-primary)]">Updates & Jobs</span>
+                <div className="flex flex-col gap-3 pl-4">
+                  <Link href="/jobs" onClick={() => setMobileMenuOpen(false)} className="text-[14px] text-[var(--text-muted)]">💼 Govt Jobs & Exams</Link>
+                  <Link href="/news" onClick={() => setMobileMenuOpen(false)} className="text-[14px] text-[var(--text-muted)]">📰 News & Policies</Link>
                 </div>
               </div>
               <Link href="/in/check" onClick={() => setMobileMenuOpen(false)} className="text-[16px] font-[600] text-[var(--indigo)] py-[14px] border-b border-[var(--border)]">Eligibility Check ✨</Link>

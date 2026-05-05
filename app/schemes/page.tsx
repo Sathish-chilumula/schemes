@@ -23,6 +23,7 @@ export default async function SchemesPage() {
       .from('schemes')
       .select('id, name, slug, category, country_code, what_you_get, benefit_amount, scheme_type, views, target_group, image_url, state_code, state_codes, is_central')
       .eq('is_published', true)
+      .not('category', 'in', '("news","job","policy","economy","finance")')
       .order('discovered_at', { ascending: false });
 
     if (error) {

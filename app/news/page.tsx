@@ -1,25 +1,44 @@
 import { supabaseAdmin, type Scheme } from '@/lib/supabase';
-import { NewsClient } from './NewsClient';
+import { SchemesClient } from '@/app/schemes/SchemesClient';
 import { Metadata } from 'next';
 
+export const runtime = 'edge';
 
 export const metadata: Metadata = {
-  title: 'Government Decisions & Civic News 2026 | Daily Updates',
-  description: 'Stay updated with the latest government decisions, cabinet approvals, policy changes, and important civic announcements for Aadhaar, PAN, and more.',
+  title: `Government News & Policy Updates ${new Date().getFullYear()} | SchemeAtlas`,
+  description: 'Read the latest government news, cabinet decisions, policy changes, and economic updates across India. Stay informed about the decisions that affect citizens.',
   alternates: {
     canonical: 'https://schemeatlas.com/news',
   },
 };
 
 export default async function NewsPage() {
-  const supabase = supabaseAdmin({ next: { revalidate: 3600 } });
+  let news: Scheme[] = [];
 
-  const { data: news } = await supabase
-    .from('schemes')
-    .select('id, name, slug, category, discovered_at, content_en')
-    .eq('is_published', true)
-    .in('category', ['news', 'alert', 'budget', 'decision'])
-    .order('discovered_at', { ascending: false });
+  try {
+    const supabase = supabaseAdmin({ next: { revalidate: 3600 } });
 
-  return <NewsClient initialNews={news || []} />;
+    const { data, error } = await supabase
+      .from('schemes')
+      .select('id, name, slug, category, country_code, what_you_get, benefit_amount, scheme_type, views, target_group, image_url, state_code, state_codes, is_central')
+      .eq('is_published', true)
+      .in('category', ['news', 'policy', 'economy'])
+      .order('discovered_at', { ascending: false });
+
+    if (error) {
+      console.error('Supabase error fetching news:', error.message);
+    } else if (data) {
+      news = data as Scheme[];
+    }
+  } catch (err) {
+    console.error('Crash fetching news:', err);
+  }
+
+  return (
+    <SchemesClient 
+      initialSchemes={news} 
+      title="Government News & Policy Updates" 
+      subtitle={`${news.length} latest cabinet decisions, news, and policies`}
+    />
+  );
 }
