@@ -4,9 +4,10 @@ import { COUNTRIES } from '@/lib/config';
 import * as fs from 'fs';
 import * as path from 'path';
 
-// Removed Edge Runtime to allow static generation during build
-// export const runtime = 'edge';
-
+// Enable Incremental Static Regeneration (ISR)
+// This tells Next.js to regenerate the sitemap in the background every hour,
+// so search engines always get the latest schemes without needing a full site rebuild.
+export const revalidate = 3600;
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://schemeatlas.com';
   
