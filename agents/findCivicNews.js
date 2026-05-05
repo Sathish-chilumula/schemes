@@ -433,17 +433,17 @@ Respond with ONLY valid JSON: {"hi": "Hindi text", "te": "Telugu text"}\n\n${enF
 }
 
 async function rewriteWithAI(title, url, hintType, countryCode) {
-  const isGeoPol = hintType === 'economy' || hintType === 'policy';
+  const isNewsFormat = hintType === 'economy' || hintType === 'policy' || hintType === 'news' || hintType === 'finance';
   const targetAudience = countryCode === 'US' ? 'Americans' : 'Indians';
   
-  const tableOfContents = isGeoPol
-    ? '["What Is This?", "Global Impact 🌍", "Impact on Economy 📈", "Sectors Affected 🏢", "Key Takeaways 💡", "Future Outlook 🔭"]'
+  const tableOfContents = isNewsFormat
+    ? '["What Is This?", "Global Impact 🌍", "Impact on Citizens 📈", "Sectors Affected 🏢", "Key Takeaways 💡", "Future Outlook 🔭"]'
     : '["What Is This?", "Key Benefits 💰", "Who Is Eligible? ✅", "Who Cannot Apply? 🚫", "Documents Required 📄", "How To Apply 📝", "Important Dates 📅", "Pro Tips 💡"]';
 
-  const sectionsList = isGeoPol
+  const sectionsList = isNewsFormat
     ? `      {"heading": "📋 What Is This?", "content": "150-word explanation of the news or policy."},
       {"heading": "🌍 Global Impact", "content": "How this affects global markets or international relations."},
-      {"heading": "📈 Impact on Economy", "content": "Direct impact on the economy for ${targetAudience}."},
+      {"heading": "📈 Impact on Citizens", "content": "Direct impact on citizens or the economy for ${targetAudience}."},
       {"heading": "🏢 Sectors Affected", "content": "Which industries or sectors will feel the most impact?"},
       {"heading": "💡 Key Takeaways", "content": "Bullet points summarizing the most important aspects."},
       {"heading": "🔭 Future Outlook", "content": "What to expect in the next 6-12 months."}`
@@ -456,7 +456,7 @@ async function rewriteWithAI(title, url, hintType, countryCode) {
       {"heading": "📅 Important Dates", "content": "Last date to apply, exam date, result date if known."},
       {"heading": "💡 Pro Tips", "content": "2 insider tips to improve chances."}`;
 
-  const faqsList = isGeoPol
+  const faqsList = isNewsFormat
     ? `      {"q": "What is the main objective of this policy/news?", "a": "Direct specific answer."},
       {"q": "How will this affect the common man?", "a": "Direct answer."},
       {"q": "Which sectors will benefit the most?", "a": "Direct answer."},
