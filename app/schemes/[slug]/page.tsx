@@ -104,11 +104,14 @@ function generateFAQSchema(scheme: any) {
 }
 
 export async function generateMetadata({ 
-  params 
+  params,
+  searchParams
 }: { 
-  params: { slug: string } 
+  params: { slug: string };
+  searchParams: { [key: string]: string | string[] | undefined };
 }): Promise<Metadata> {
   const resolvedParams = params;
+  const lang = typeof searchParams.lang === 'string' ? searchParams.lang : 'en';
   
   try {
     const supabase = supabaseAdmin({ next: { revalidate: 3600 } });
@@ -131,6 +134,7 @@ export async function generateMetadata({
     const description = `${scheme.name} provides ${benefitText} for eligible citizens in ${location}. Check eligibility and apply online.`;
 
     const baseUrl = `https://schemeatlas.com/schemes/${resolvedParams.slug}`;
+    const canonicalUrl = lang === 'en' ? baseUrl : `${baseUrl}?lang=${lang}`;
 
     const languages: Record<string, string> = {
       en: baseUrl,
@@ -147,7 +151,7 @@ export async function generateMetadata({
       openGraph: {
         title,
         description,
-        url: baseUrl,
+        url: canonicalUrl,
         type: 'article',
       },
       twitter: {
@@ -156,7 +160,7 @@ export async function generateMetadata({
         description,
       },
       alternates: {
-        canonical: baseUrl,
+        canonical: canonicalUrl,
         languages,
       },
     };
