@@ -420,7 +420,8 @@ Respond with ONLY valid JSON: {"hi": "Hindi text", "te": "Telugu text"}\n\n${enF
     is_published: true,
     is_central: true,
     country_code: feed.country,
-    is_active: true
+    is_active: true,
+    is_seo_optimized: true
   });
 
   if (error) {
