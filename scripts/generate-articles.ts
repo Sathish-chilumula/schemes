@@ -231,7 +231,24 @@ Return only valid JSON.`
 Pick ${count} best high-intent, high-CPC finance topics. Avoid duplicates.
 Return JSON: { "selected": [{ "articleTitle": "...", "category": "...", "slug": "...", "whyNow": "..." }] }`
 
-  const raw = await groq(user, system, 2000)
+  let raw: string;
+  try {
+    raw = await groq(user, system, 2000)
+  } catch (err) {
+    console.warn(`⚠️ Groq pickTopics failed, falling back to Gemini: ${err}`)
+    try {
+      raw = await gemini(user, system)
+    } catch (err2) {
+      console.warn(`⚠️ Gemini pickTopics failed, falling back to OpenAI: ${err2}`)
+      try {
+        raw = await openai(user, system)
+      } catch (err3) {
+        console.error(`❌ All providers failed for pickTopics: ${err3}`)
+        throw err3
+      }
+    }
+  }
+
   const parsed = parseJSON(raw)
   return (parsed.selected||[]).slice(0,count).map((s:any) => ({ ...s, country }))
 }
