@@ -128,7 +128,9 @@ export async function generateMetadata({
 
     const location = scheme.state_name || 'India';
     const currentYear = new Date().getFullYear();
-    const title = `${scheme.name} — Eligibility, Benefits & How to Apply ${currentYear} | SchemeAtlas`;
+    const title = scheme.name.length > 40 
+      ? `${scheme.name} - Apply Online` 
+      : `${scheme.name} - Eligibility & Apply ${currentYear}`;
     const benefitText = scheme.benefit_amount || 'government benefits';
     const description = `${scheme.name} provides ${benefitText} for eligible citizens in ${location}. Check eligibility and apply online.`;
 
@@ -395,16 +397,25 @@ export default async function SchemeDetailPage({
               />
 
               <div className="flex flex-col sm:flex-row gap-4 mt-12 bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
-                {scheme.official_url && (
-                  <a 
-                    href={scheme.official_url} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-bold text-lg text-center hover:bg-blue-700 hover:scale-[1.02] transform transition-all shadow-lg hover:shadow-blue-200/50 flex-1"
-                  >
-                    Apply on Official Site ↗
-                  </a>
-                )}
+                {(() => {
+                  let url = scheme.official_url;
+                  if (url) {
+                    const match = url.match(/https?:\/\/[^\s\)]+/);
+                    url = match ? match[0] : null;
+                  }
+                  if (!url) return null;
+                  
+                  return (
+                    <a 
+                      href={url} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-bold text-lg text-center hover:bg-blue-700 hover:scale-[1.02] transform transition-all shadow-lg hover:shadow-blue-200/50 flex-1"
+                    >
+                      Apply on Official Site ↗
+                    </a>
+                  );
+                })()}
                 {country && (
                   <Link 
                     href={`/${scheme.country_code.toLowerCase()}/check`} 

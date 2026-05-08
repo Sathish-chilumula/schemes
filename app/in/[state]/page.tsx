@@ -70,7 +70,7 @@ export async function generateMetadata({ params }: { params: { state: string } }
   if (!stateInfo) return {};
 
   return {
-    title: `${stateInfo.name} Government Schemes ${new Date().getFullYear()} — Eligibility & Benefits | SchemeAtlas`,
+    title: `${stateInfo.name} Govt Schemes ${new Date().getFullYear()} - Apply Online`,
     description: `Browse active government schemes for ${stateInfo.name} residents. Check eligibility, required documents and apply online. Updated ${new Date().getFullYear()}.`,
     alternates: {
       canonical: `https://schemeatlas.com/in/${normalizedSlug}`,

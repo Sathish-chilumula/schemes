@@ -3,6 +3,7 @@ import Script from 'next/script';
 import './globals.css';
 import { LocationDetector } from '@/components/LocationDetector';
 import { ChatWidget } from '@/components/ChatWidget';
+import { Footer } from '@/components/Footer';
 
 export const metadata: Metadata = {
   title: `SchemeAtlas — Find Every Government Scheme & Benefit You Qualify For ${new Date().getFullYear()}`,
@@ -74,6 +75,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         <LocationDetector />
         {children}
+        <Footer />
         <ChatWidget />
       </body>
     </html>

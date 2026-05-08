@@ -256,14 +256,17 @@ export default async function ArticlePage({ params }: { params: { slug: string }
               <div className="bg-white border border-[var(--border)] p-[20px] rounded-[var(--radius-md)] shadow-sm">
                 <h3 className="font-[700] text-[15px] mb-[14px] text-[var(--text-primary)]">📚 Related Guides</h3>
                 <div className="space-y-[16px]">
-                  {article.relatedArticles.map((rel: any, i: number) => (
-                    <Link key={i} href={`/articles/${rel.slug || rel}`} className="block group">
+                  {article.relatedArticles.map((rel: any, i: number) => {
+                    const title = rel.title || (typeof rel === 'string' ? rel : 'Related Article');
+                    const targetSlug = rel.slug || (typeof rel === 'string' ? title.toLowerCase().replace(/[^a-z0-9]+/g, '-') : '#');
+                    return (
+                    <Link key={i} href={`/articles/${targetSlug}`} className="block group">
                       <div className="text-[10px] font-[700] text-[var(--indigo)] mb-[4px] uppercase tracking-wide">Guide</div>
                       <div className="text-[13px] font-[600] text-[var(--text-primary)] group-hover:text-[var(--indigo)] transition-colors leading-[1.4]">
-                        {rel.title || (typeof rel === 'string' ? rel.split('-').join(' ') : 'Related Article')}
+                        {title.split('-').join(' ')}
                       </div>
                     </Link>
-                  ))}
+                  )})}
                 </div>
               </div>
             )}
