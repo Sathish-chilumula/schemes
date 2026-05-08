@@ -60,4 +60,4 @@ export default async function DiagPage() {
   );
 }
 
-export const runtime = 'edge';
+// Removed: edge runtime blocks Supabase TCP connections (caused 503s)

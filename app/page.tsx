@@ -9,7 +9,6 @@ import { HomeTabs } from './HomeTabs';
 import { FAQAccordion } from '@/components/FAQAccordion';
 import articlesIndex from '@/content/articles-index.json';
 
-export const runtime = 'edge';
 export const revalidate = 3600;
 
 export const metadata: Metadata = {

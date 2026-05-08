@@ -4,7 +4,7 @@ import { Navbar } from '@/components/Navbar';
 import { supabaseAdmin } from '@/lib/supabase';
 import { Metadata } from 'next';
 
-export const runtime = 'edge';
+// Removed: edge runtime blocks Supabase TCP connections (caused 503s)
 export const dynamicParams = true;
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {

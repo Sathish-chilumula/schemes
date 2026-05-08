@@ -9,7 +9,6 @@ import { slugify } from '@/lib/seo';
 import { ViewCounter } from '@/components/ViewCounter';
 import { RelatedArticlesBlock } from '@/components/RelatedArticlesBlock';
 import React from 'react';
-export const runtime = 'edge';
 export const revalidate = 3600;
 const COUNTRY_NAMES: Record<string, string> = {
   'IN': 'India',
@@ -126,23 +125,32 @@ export async function generateMetadata({
     const rawDesc = scheme.content_en || '';
     const cleanDesc = cleanMarkdown(rawDesc).substring(0, 160);
 
-    const location = scheme.state_name || 'India';
+    const location = (scheme.state_name || 'India').replace(/^null\s+/i, '');
     const currentYear = new Date().getFullYear();
-    const title = scheme.name.length > 40 
-      ? `${scheme.name} - Apply Online` 
-      : `${scheme.name} - Eligibility & Apply ${currentYear}`;
-    const benefitText = scheme.benefit_amount || 'government benefits';
+    // Keep title under 60 chars — 1553 pages were over limit
+    const nameForTitle = scheme.name.length > 44
+      ? scheme.name.substring(0, 41) + '…'
+      : scheme.name;
+    const title = `${nameForTitle} — Eligibility & Apply ${currentYear}`;
+    // Never surface "Not specified" / null into meta description
+    const rawBenefit = scheme.benefit_amount || '';
+    const isValidBenefit = rawBenefit.trim().length > 2 &&
+      !rawBenefit.toLowerCase().includes('not specified') &&
+      !rawBenefit.toLowerCase().includes('not applicable');
+    const benefitText = isValidBenefit ? rawBenefit : 'financial assistance';
     const description = `${scheme.name} provides ${benefitText} for eligible citizens in ${location}. Check eligibility and apply online.`;
 
     const baseUrl = `https://schemeatlas.com/schemes/${resolvedParams.slug}`;
-    const canonicalUrl = lang === 'en' ? baseUrl : `${baseUrl}?lang=${lang}`;
+    // Canonical always points to the base English URL — never to ?lang= variants
+    const canonicalUrl = baseUrl;
 
     const languages: Record<string, string> = {
+      'x-default': baseUrl,
       en: baseUrl,
       hi: `${baseUrl}?lang=hi`,
     };
     
-    if (scheme.local_language && scheme.local_language !== 'hi') {
+    if (scheme.local_language && scheme.local_language !== 'hi' && scheme.local_language !== 'en') {
       languages[scheme.local_language] = `${baseUrl}?lang=${scheme.local_language}`;
     }
 

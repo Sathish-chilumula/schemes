@@ -11,11 +11,10 @@ export const revalidate = 3600;
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://schemeatlas.com';
   
-  // 1. Static Pages
+  // 1. Static Pages — exclude /admin (should never be indexed) and /signup
   const staticPaths = [
     '',
     '/schemes',
-    '/saved',
     '/about',
     '/contact',
     '/privacy',
@@ -59,42 +58,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         const lastMod = scheme.updated_at ? new Date(scheme.updated_at) : new Date();
         const baseUrl = `${SITE_URL}/schemes/${scheme.slug}`;
 
-        // Add primary page with multilingual alternates
-        const alternates: any = {
-          en: baseUrl,
-          hi: `${baseUrl}?lang=hi`,
-        };
-
-        if (scheme.local_language && scheme.local_language !== 'hi' && scheme.local_language !== 'en') {
-          alternates[scheme.local_language] = `${baseUrl}?lang=${scheme.local_language}`;
-        }
-
+        // IMPORTANT: Only submit the canonical English URL to the sitemap.
+        // Do NOT submit ?lang=hi or ?lang=te variants as separate sitemap entries.
+        // Those are duplicate pages — they share the same canonical tag pointing
+        // back to baseUrl. Submitting them creates orphan pages and wastes crawl budget.
+        // hreflang alternates live in the page <head>, not in the sitemap.
         dynamicRoutes.push({
           url: baseUrl,
           lastModified: lastMod,
           changeFrequency: 'weekly',
           priority: 0.7,
-          alternates: { languages: alternates } // Next.js 14.2+ support
         });
-
-        // Also index translation URLs directly to ensure they are crawled
-        if (scheme.content_hi) {
-          dynamicRoutes.push({
-            url: `${baseUrl}?lang=hi`,
-            lastModified: lastMod,
-            changeFrequency: 'weekly',
-            priority: 0.6,
-          });
-        }
-
-        if (scheme.content_local && scheme.local_language && scheme.local_language !== 'hi') {
-          dynamicRoutes.push({
-            url: `${baseUrl}?lang=${scheme.local_language}`,
-            lastModified: lastMod,
-            changeFrequency: 'weekly',
-            priority: 0.6,
-          });
-        }
       });
     }
   } catch (error) {

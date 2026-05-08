@@ -5,7 +5,7 @@ import { COUNTRIES } from '@/lib/config';
 import { slugify } from '@/lib/seo';
 import { Metadata } from 'next';
 
-export const runtime = 'edge';
+// Removed: edge runtime blocks Supabase TCP connections (caused 503s)
 
 export function generateMetadata({ params }: { params: { state: string } }): Metadata {
   const resolvedParams = params;

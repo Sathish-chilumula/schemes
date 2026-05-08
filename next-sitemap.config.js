@@ -1,10 +1,22 @@
 module.exports = {
   siteUrl: 'https://schemeatlas.com',
-  generateRobotsTxt: true,
+  generateRobotsTxt: false, // We manage public/robots.txt manually — do not overwrite
   changefreq: 'weekly',
   priority: 0.7,
   sitemapSize: 5000,
-  exclude: ['/saved', '/IN/check'],
+  exclude: [
+    '/saved',
+    '/admin',
+    '/signup',
+    '/diag',
+    '/IN/check',
+    '/GB/check',
+    '/US/check',
+    '/NG/check',
+    '/KE/check',
+    '/*?lang=*',   // Never index ?lang= variants — they are duplicates
+    '/*?category=*', // Category filter params — not indexable standalone pages
+  ],
   additionalPaths: async (config) => {
     require('dotenv').config({ path: '.env.local' });
     require('dotenv').config({ path: '.env' });
@@ -32,10 +44,5 @@ module.exports = {
       priority: 0.8,
     })) ?? [];
   },
-  robotsTxtOptions: {
-    policies: [
-      { userAgent: '*', allow: '/' },
-      { userAgent: '*', disallow: ['/saved', '/api/'] },
-    ],
-  },
+  // robots.txt is managed manually at public/robots.txt
 };

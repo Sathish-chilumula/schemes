@@ -1,11 +1,13 @@
-# *
 User-agent: *
 Allow: /
-
-# *
-User-agent: *
 Disallow: /saved
 Disallow: /api/
+Disallow: /admin
+Disallow: /signup
+
+# Block ?lang= query parameter variants — these are duplicate content
+# Canonical versions live at the base URLs without query parameters
+Disallow: /*?lang=
 
 # Host
 Host: https://schemeatlas.com
