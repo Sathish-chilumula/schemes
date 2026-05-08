@@ -3,7 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { ResultsClient } from './ResultsClient';
 import { Metadata } from 'next';
 
-// Removed: edge runtime blocks Supabase TCP connections (caused 503s)
+export const runtime = 'edge';
 
 
 export async function generateMetadata(): Promise<Metadata> {

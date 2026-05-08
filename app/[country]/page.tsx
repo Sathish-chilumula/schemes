@@ -4,7 +4,7 @@ import { COUNTRIES } from '@/lib/config';
 import { supabaseAdmin } from '@/lib/supabase';
 import Link from 'next/link';
 
-// Removed: edge runtime blocks Supabase TCP connections (caused 503s)
+export const runtime = 'edge';
 
 export function generateMetadata({ 
   params 

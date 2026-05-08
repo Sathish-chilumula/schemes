@@ -2,7 +2,7 @@ import CheckPageClient from './CheckPageClient';
 import { Metadata } from 'next';
 import { COUNTRIES } from '@/lib/config';
 
-// Removed: edge runtime blocks Supabase TCP connections (caused 503s)
+export const runtime = 'edge';
 
 export function generateMetadata({ 
   params 

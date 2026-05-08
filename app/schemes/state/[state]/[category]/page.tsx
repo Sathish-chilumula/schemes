@@ -5,8 +5,8 @@ import { supabaseAdmin, type Scheme } from '@/lib/supabase';
 import { slugify, getIndianStateBySlug, getCanonicalCategory } from '@/lib/seo';
 import { Metadata } from 'next';
 
-// Removed: edge runtime blocks Supabase TCP connections (caused 503s)
-// export const dynamicParams = true;
+export const runtime = 'edge';
+export const dynamicParams = true;
 
 export async function generateMetadata({ 
   params 
