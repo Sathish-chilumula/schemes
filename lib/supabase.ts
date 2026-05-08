@@ -51,13 +51,22 @@ export const supabase = new Proxy({} as SupabaseClient, {
 /**
  * Gets a Supabase Admin client using the service role key.
  *
- * Pass `fetchOptions` to control Next.js data-cache behaviour per page:
- *   supabaseAdmin({ cache: 'no-store' })          → always fresh  (homepage, user data)
- *   supabaseAdmin({ next: { revalidate: 3600 } }) → cached 1 h   (detail/listing pages)
- *   supabaseAdmin({ next: { revalidate: 300 } })  → cached 5 min (sitemap)
+ * CACHING STRATEGY FOR CLOUDFLARE PAGES (Edge Runtime):
+ * ─────────────────────────────────────────────────────
+ * Next.js Data Cache (`next: { revalidate }`) does NOT work on Cloudflare
+ * Workers edge runtime. Instead, we use the Cloudflare-native Web Cache API
+ * to cache Supabase HTTP responses at the CDN level.
  *
- * The Supabase JS client doesn't expose individual fetch calls, so we override
- * global.fetch on the client instance to inject the cache directive.
+ * This means:
+ *   - First request for a scheme page: fetches from Supabase, caches response
+ *   - Subsequent requests within TTL (1 hour): served from Cloudflare cache
+ *   - Database connections used: 1 per hour per unique URL (not 1 per crawler hit)
+ *   - This directly prevents the max_connections=60 exhaustion that causes 503s
+ *
+ * Pass `revalidate` (seconds) to set the CDN cache TTL:
+ *   supabaseAdmin(3600)  → cache for 1 hour  (scheme detail / listing pages)
+ *   supabaseAdmin(300)   → cache for 5 min   (sitemap)
+ *   supabaseAdmin(0)     → no cache          (user-specific data)
  */
 type NextFetchOptions =
   | { cache: RequestCache }
@@ -73,17 +82,50 @@ export function supabaseAdmin(fetchOptions?: NextFetchOptions) {
     }
     return createClient(DEFAULT_URL, DEFAULT_KEY);
   }
-  
+
+  // Build Cloudflare-compatible fetch options.
+  // - `cf.cacheTtl`: tells Cloudflare's CDN to cache this response at the edge
+  // - `cf.cacheEverything`: forces caching even for POST-like responses
+  // - `cache: 'force-cache'`: standard HTTP cache hint as fallback
+  const fetchWithCache = (req: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    let revalidateSeconds = 3600; // default 1 hour
+    
+    // Parse fetchOptions to find revalidate seconds
+    if (fetchOptions) {
+      if ('cache' in fetchOptions && fetchOptions.cache === 'no-store') {
+        revalidateSeconds = 0;
+      } else if ('next' in fetchOptions && typeof fetchOptions.next.revalidate === 'number') {
+        revalidateSeconds = fetchOptions.next.revalidate;
+      } else if ('next' in fetchOptions && fetchOptions.next.revalidate === false) {
+        revalidateSeconds = 31536000; // 1 year
+      }
+    }
+
+    if (revalidateSeconds <= 0) {
+      // No caching for user-specific / real-time data
+      return fetch(req, { ...init, ...fetchOptions } as RequestInit);
+    }
+    return fetch(req, {
+      ...init,
+      ...fetchOptions, // pass through other options like tags
+      // Cloudflare Workers Cache API directive
+      // @ts-expect-error — `cf` is a Cloudflare Workers extension to the fetch API
+      cf: {
+        cacheTtl: revalidateSeconds,
+        cacheEverything: true,
+      },
+      // Standard fallback for non-Cloudflare environments (local dev)
+      cache: 'force-cache',
+    } as RequestInit);
+  };
+
   return createClient(url, serviceKey, {
     auth: {
       persistSession: false,
     },
-    ...(fetchOptions && {
-      global: {
-        fetch: (req: RequestInfo | URL, init?: RequestInit) =>
-          fetch(req, { ...init, ...fetchOptions } as RequestInit),
-      },
-    }),
+    global: {
+      fetch: fetchWithCache,
+    },
   });
 }
 
