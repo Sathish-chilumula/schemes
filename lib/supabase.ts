@@ -105,17 +105,18 @@ export function supabaseAdmin(fetchOptions?: NextFetchOptions) {
       // No caching for user-specific / real-time data
       return fetch(req, { ...init, ...fetchOptions } as RequestInit);
     }
+    // Strip Next.js specific options that crash Cloudflare next-on-pages
+    const safeInit = { ...init };
+    delete (safeInit as any).cache;
+    delete (safeInit as any).next;
+
     return fetch(req, {
-      ...init,
-      ...fetchOptions, // pass through other options like tags
+      ...safeInit,
       // Cloudflare Workers Cache API directive
-      // @ts-expect-error — `cf` is a Cloudflare Workers extension to the fetch API
       cf: {
         cacheTtl: revalidateSeconds,
         cacheEverything: true,
       },
-      // Standard fallback for non-Cloudflare environments (local dev)
-      cache: 'force-cache',
     } as RequestInit);
   };
 
