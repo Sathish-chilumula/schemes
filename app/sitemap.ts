@@ -74,7 +74,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           lastModified: lastMod,
           changeFrequency: 'weekly',
           priority: 0.7,
-          // alternates: { languages: alternates } // Next.js 14.2+ support
+          alternates: { languages: alternates } // Next.js 14.2+ support
         });
 
         // Also index translation URLs directly to ensure they are crawled

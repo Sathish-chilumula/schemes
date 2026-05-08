@@ -15,16 +15,34 @@ import ClientArticles from './ClientArticles';
 
 import { Navbar } from '@/components/Navbar';
 
-export default async function ArticlesPage() {
-  
+export default async function ArticlesPage({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
+  // Read active category on the SERVER — no useSearchParams() or Suspense needed.
+  // This ensures all article card links are in the initial SSR HTML, making them
+  // crawlable by Ahrefs, Googlebot, and all other search engine crawlers.
+  const activeCategory = typeof searchParams.category === 'string'
+    ? searchParams.category
+    : 'All';
+
   const articlesDir = path.join(process.cwd(), 'content/articles');
   let articles: any[] = [];
-  
+
   if (fs.existsSync(articlesDir)) {
-    const files = fs.readdirSync(articlesDir).filter(f => f.endsWith('.json'));
+    const files = fs.readdirSync(articlesDir)
+      .filter(f => f.endsWith('.json'))
+      // Exclude language variant files (e.g. article-slug-hi.json, article-slug-te.json).
+      // These are accessed via the language switcher on the base article page, not as
+      // separate listing cards. Keeping them here would create duplicate/orphan entries.
+      .filter(f => !/-(hi|te|ta|mr|gu|kn|ml|pa|or|yo|sw)\.(json)$/.test(f));
+
     articles = files.map(file => {
       const content = fs.readFileSync(path.join(articlesDir, file), 'utf-8');
-      return JSON.parse(content);
+      const parsed = JSON.parse(content);
+      // Ensure slug matches the filename (source of truth)
+      return { ...parsed, slug: parsed.slug || file.replace('.json', '') };
     });
   }
 
@@ -55,7 +73,7 @@ export default async function ArticlesPage() {
         </div>
       </section>
 
-      <ClientArticles articles={articles} />
+      <ClientArticles articles={articles} activeCategory={activeCategory} />
     </div>
   );
 }

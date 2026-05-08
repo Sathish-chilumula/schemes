@@ -2,9 +2,7 @@ import CheckPageClient from './CheckPageClient';
 import { Metadata } from 'next';
 import { COUNTRIES } from '@/lib/config';
 
-
-
-
+export const revalidate = 3600;
 
 export function generateMetadata({ 
   params 
@@ -57,4 +55,4 @@ export default function CheckPage({
   );
 }
 
-export const runtime = 'edge';
+

@@ -5,7 +5,7 @@ import { supabaseAdmin, type Scheme } from '@/lib/supabase';
 import { slugify, getIndianStateBySlug, getCanonicalCategory } from '@/lib/seo';
 import { Metadata } from 'next';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 // export const dynamicParams = true;
 
 export async function generateMetadata({ 
@@ -183,4 +183,4 @@ export default async function PSEOPage({
   );
 }
 
-export const runtime = 'edge';
+

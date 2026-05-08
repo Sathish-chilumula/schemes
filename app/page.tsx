@@ -9,7 +9,6 @@ import { HomeTabs } from './HomeTabs';
 import { FAQAccordion } from '@/components/FAQAccordion';
 import articlesIndex from '@/content/articles-index.json';
 
-export const runtime = 'edge';
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
@@ -422,6 +421,7 @@ export default async function HomePage() {
             <div>
               <h4 className="text-[12px] font-[700] text-white tracking-[1px] uppercase mb-[16px]">Schemes</h4>
               <Link href="/schemes" className="text-[13px] text-[#64748B] block mb-[10px] hover:text-[#94A3B8] hover:pl-[4px] transition-all">All Schemes</Link>
+              <Link href="/gb" className="text-[13px] text-[#64748B] block mb-[10px] hover:text-[#94A3B8] hover:pl-[4px] transition-all">UK Schemes</Link>
               <Link href="/saved" className="text-[13px] text-[#64748B] block mb-[10px] hover:text-[#94A3B8] hover:pl-[4px] transition-all">Saved Schemes</Link>
               <Link href="/in/delhi" className="text-[13px] text-[#64748B] block mb-[10px] hover:text-[#94A3B8] hover:pl-[4px] transition-all">Delhi Schemes</Link>
               <Link href="/in/maharashtra" className="text-[13px] text-[#64748B] block mb-[10px] hover:text-[#94A3B8] hover:pl-[4px] transition-all">Maharashtra Schemes</Link>

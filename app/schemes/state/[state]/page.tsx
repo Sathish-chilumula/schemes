@@ -5,7 +5,7 @@ import { COUNTRIES } from '@/lib/config';
 import { slugify } from '@/lib/seo';
 import { Metadata } from 'next';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 export function generateMetadata({ params }: { params: { state: string } }): Metadata {
   const resolvedParams = params;
@@ -103,4 +103,4 @@ export default function StateHubPage({ params }: { params: { state: string } }) 
   );
 }
 
-export const runtime = 'edge';
+

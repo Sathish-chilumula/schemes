@@ -1,16 +1,16 @@
 "use client";
 
-import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Suspense } from 'react';
 
 const TABS = ["All", "Loans", "Insurance", "Earn Money", "Schemes", "Investment", "Tax"];
 
-function ArticleList({ articles }: { articles: any[] }) {
-  const searchParams = useSearchParams();
-  const activeTab = searchParams.get('category') || "All";
+function ArticleList({ articles, activeCategory }: { articles: any[]; activeCategory: string }) {
 
-  const filteredArticles = activeTab === "All" 
+  // activeCategory is passed from the server component (read from searchParams).
+  // This avoids useSearchParams() which would require Suspense and break SSR,
+  // causing crawlers to see only the loading fallback instead of actual article links.
+  const activeTab = activeCategory;
+  const filteredArticles = activeTab === "All"
     ? articles 
     : articles.filter(a => a.category?.toLowerCase() === activeTab.toLowerCase());
 
@@ -81,10 +81,8 @@ function ArticleList({ articles }: { articles: any[] }) {
   );
 }
 
-export default function ClientArticles({ articles }: { articles: any[] }) {
-  return (
-    <Suspense fallback={<div className="p-10 text-center text-[var(--text-muted)]">Loading articles...</div>}>
-      <ArticleList articles={articles} />
-    </Suspense>
-  );
+export default function ClientArticles({ articles, activeCategory }: { articles: any[]; activeCategory: string }) {
+  // No Suspense needed — activeCategory comes from the server, not useSearchParams().
+  // All article cards are in the SSR HTML, fully crawlable by search engines.
+  return <ArticleList articles={articles} activeCategory={activeCategory} />;
 }

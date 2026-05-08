@@ -201,13 +201,14 @@ export function SchemeContent({
   documents = [],
   schemeName = 'this scheme'
 }: SchemeContentProps) {
+  // Read initial lang from URL on client mount; default to 'en' for SSR
   const [lang, setLang] = useState('en');
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const urlLang = params.get('lang');
-      if (urlLang) setLang(urlLang);
+      if (urlLang && urlLang !== 'en') setLang(urlLang);
     }
   }, []);
 
@@ -232,26 +233,45 @@ export function SchemeContent({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         {availableLangs.length > 1 ? (
           <div className="flex gap-1 bg-slate-100 p-1 rounded-xl w-fit">
-            {availableLangs.map(l => (
-              <button
-                key={l.code}
-                onClick={() => {
-                  setLang(l.code);
-                  if (typeof window !== 'undefined') {
-                    const url = new URL(window.location.href);
-                    url.searchParams.set('lang', l.code);
-                    window.history.replaceState({}, '', url);
-                  }
-                }}
-                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 ${
-                  lang === l.code
-                    ? 'bg-white text-brand-600 shadow-sm'
-                    : 'text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                {l.label}
-              </button>
-            ))}
+            {availableLangs.map(l => {
+              // Build the href for this language variant:
+              // - English → remove ?lang param (canonical URL)
+              // - Others  → ?lang=hi / ?lang=te / etc.
+              // The href is ALWAYS rendered in SSR HTML so Ahrefs/Googlebot
+              // can discover and index ?lang=hi pages as real inbound links.
+              const langHref = l.code === 'en'
+                ? `?`
+                : `?lang=${l.code}`;
+
+              return (
+                <a
+                  key={l.code}
+                  href={langHref}
+                  onClick={(e) => {
+                    // Progressive enhancement: prevent full page reload.
+                    // JS handles the content switch inline; href stays crawlable.
+                    e.preventDefault();
+                    setLang(l.code);
+                    if (typeof window !== 'undefined') {
+                      const url = new URL(window.location.href);
+                      if (l.code === 'en') {
+                        url.searchParams.delete('lang');
+                      } else {
+                        url.searchParams.set('lang', l.code);
+                      }
+                      window.history.replaceState({}, '', url);
+                    }
+                  }}
+                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 no-underline ${
+                    lang === l.code
+                      ? 'bg-white text-brand-600 shadow-sm'
+                      : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  {l.label}
+                </a>
+              );
+            })}
           </div>
         ) : <div />}
 

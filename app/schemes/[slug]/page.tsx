@@ -10,7 +10,7 @@ import { ViewCounter } from '@/components/ViewCounter';
 import { RelatedArticlesBlock } from '@/components/RelatedArticlesBlock';
 import React from 'react';
 
-export const runtime = 'edge';
+
 
 const COUNTRY_NAMES: Record<string, string> = {
   'IN': 'India',
@@ -515,8 +515,7 @@ export async function generateStaticParams() {
   const { data } = await supabase
     .from('schemes')
     .select('slug')
-    .order('views', { ascending: false })
-    .limit(200);
+    .eq('is_published', true);
 
   if (!data) return [];
   return data.map((s) => ({ slug: s.slug }));

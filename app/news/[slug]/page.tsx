@@ -128,4 +128,4 @@ export default async function NewsDetailPage({ params }: { params: { slug: strin
   );
 }
 
-export const runtime = 'edge';
+
