@@ -151,8 +151,13 @@ Do not change slugs or URLs. Only translate user-facing text (title, intro, head
     try {
       return await gemini(user, system)
     } catch (e2) {
-      console.error(`❌ All translation providers failed: ${e2}`)
-      throw e2
+      console.warn(`⚠️ Gemini translation failed, falling back to OpenAI: ${e2}`)
+      try {
+        return await openai(user, system)
+      } catch (e3) {
+        console.error(`❌ All translation providers failed: ${e3}`)
+        throw e3
+      }
     }
   }
 }
@@ -256,8 +261,15 @@ REQUIREMENTS:
       const parsed = parseJSON(raw)
       return { ...parsed, slug: s, category, publishedAt: today, updatedAt: today, imageUrl, country }
     } catch (err2) {
-      console.error(`❌ All content providers failed: ${err2}`)
-      throw err2
+      console.warn(`⚠️ Gemini write failed, falling back to OpenAI: ${err2}`)
+      try {
+        const raw = await openai(user, system)
+        const parsed = parseJSON(raw)
+        return { ...parsed, slug: s, category, publishedAt: today, updatedAt: today, imageUrl, country }
+      } catch (err3) {
+        console.error(`❌ All content providers failed: ${err3}`)
+        throw err3
+      }
     }
   }
 }
