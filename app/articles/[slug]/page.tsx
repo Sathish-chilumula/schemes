@@ -227,14 +227,17 @@ export default async function ArticlePage({ params }: { params: { slug: string }
               <div className="bg-[var(--indigo-light)] rounded-[var(--radius-md)] p-[24px] mt-[40px]">
                 <div className="font-[700] text-[16px] text-[var(--text-primary)] mb-[16px]">🏛️ Related Government Schemes</div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-[12px]">
-                  {article.relatedSchemes.map((schemeSlug: string, i: number) => (
-                    <Link key={i} href={`/schemes/${schemeSlug}`} className="bg-white border border-[var(--border)] rounded-[var(--radius-sm)] p-[14px] hover:-translate-y-[2px] transition-transform shadow-sm flex flex-col justify-between">
-                      <div className="text-[13px] font-[600] text-[var(--text-primary)] mb-[8px] line-clamp-2">
-                        {schemeSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                      </div>
-                      <div className="text-[var(--indigo)] text-[12px] font-[700]">Check Details →</div>
-                    </Link>
-                  ))}
+                  {article.relatedSchemes.map((schemeSlug: string, i: number) => {
+                    const sSlug = schemeSlug.toLowerCase().replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-');
+                    return (
+                      <Link key={i} href={`/schemes/${sSlug}`} className="bg-white border border-[var(--border)] rounded-[var(--radius-sm)] p-[14px] hover:-translate-y-[2px] transition-transform shadow-sm flex flex-col justify-between">
+                        <div className="text-[13px] font-[600] text-[var(--text-primary)] mb-[8px] line-clamp-2">
+                          {schemeSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                        </div>
+                        <div className="text-[var(--indigo)] text-[12px] font-[700]">Check Details →</div>
+                      </Link>
+                    )
+                  })}
                 </div>
               </div>
             )}
@@ -258,7 +261,13 @@ export default async function ArticlePage({ params }: { params: { slug: string }
                 <div className="space-y-[16px]">
                   {article.relatedArticles.map((rel: any, i: number) => {
                     const title = rel.title || (typeof rel === 'string' ? rel : 'Related Article');
-                    const targetSlug = rel.slug || (typeof rel === 'string' ? title.toLowerCase().replace(/[^a-z0-9]+/g, '-') : '#');
+                    // Robust slugification to prevent 404s if AI provides a sentence or emoji
+                    const targetSlug = rel.slug || title.toLowerCase()
+                      .replace(/[^a-z0-9\s-]/g, '') // Remove emojis and special chars
+                      .trim()
+                      .replace(/\s+/g, '-')
+                      .replace(/-+/g, '-');
+                    
                     return (
                     <Link key={i} href={`/articles/${targetSlug}`} className="block group">
                       <div className="text-[10px] font-[700] text-[var(--indigo)] mb-[4px] uppercase tracking-wide">Guide</div>
@@ -267,6 +276,30 @@ export default async function ArticlePage({ params }: { params: { slug: string }
                       </div>
                     </Link>
                   )})}
+                </div>
+              </div>
+            )}
+
+            {/* Related Schemes block */}
+            {article.relatedSchemes && article.relatedSchemes.length > 0 && (
+              <div className="bg-[var(--indigo-light)] rounded-[var(--radius-md)] p-[20px] border border-[var(--border)]">
+                <div className="font-[700] text-[15px] text-[var(--text-primary)] mb-[14px]">🏛️ Related Schemes</div>
+                <div className="space-y-[12px]">
+                  {article.relatedSchemes.map((rel: any, i: number) => {
+                    const title = typeof rel === 'string' ? rel : rel.name || 'View Scheme';
+                    const sSlug = typeof rel === 'string' 
+                      ? rel.toLowerCase().replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-')
+                      : rel.slug;
+
+                    return (
+                      <Link key={i} href={`/schemes/${sSlug}`} className="bg-white border border-[var(--border)] rounded-[var(--radius-sm)] p-[12px] hover:-translate-y-[2px] transition-transform shadow-sm block">
+                        <div className="text-[13px] font-[600] text-[var(--text-primary)] mb-[4px] line-clamp-1">
+                          {title}
+                        </div>
+                        <div className="text-[var(--indigo)] text-[11px] font-[700]">Check Details →</div>
+                      </Link>
+                    );
+                  })}
                 </div>
               </div>
             )}

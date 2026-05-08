@@ -182,11 +182,14 @@ export async function generateMetadata({
 }
 
 export default async function SchemeDetailPage({ 
-  params
+  params,
+  searchParams
 }: { 
-  params: { slug: string }
+  params: { slug: string },
+  searchParams: { lang?: string }
 }) {
   const resolvedParams = params;
+  const lang = searchParams.lang || 'en';
   
   try {
     const supabase = supabaseAdmin({ next: { revalidate: 3600 } });
@@ -402,6 +405,7 @@ export default async function SchemeDetailPage({
                 howToApplyList={howToApplyList}
                 documents={documents}
                 schemeName={scheme.name}
+                initialLang={lang}
               />
 
               <div className="flex flex-col sm:flex-row gap-4 mt-12 bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
@@ -409,7 +413,11 @@ export default async function SchemeDetailPage({
                   let url = scheme.official_url;
                   if (url) {
                     const match = url.match(/https?:\/\/[^\s\)]+/);
-                    url = match ? match[0] : null;
+                    if (match) {
+                      url = match[0].replace(/[.,:;]$/, ''); // Remove trailing punctuation
+                    } else {
+                      url = null;
+                    }
                   }
                   if (!url) return null;
                   
@@ -481,8 +489,10 @@ export default async function SchemeDetailPage({
                       Similar Programs
                     </h3>
                     <div className="space-y-6 relative z-10">
-                      {relatedSchemes.map(r => (
-                        <Link key={r.id} href={`/schemes/${r.slug}`} className="group flex gap-4 items-start">
+                      {relatedSchemes.map(r => {
+                        const sSlug = r.slug.toLowerCase().replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-');
+                        return (
+                        <Link key={r.id} href={`/schemes/${sSlug}`} className="group flex gap-4 items-start">
                           <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-slate-100 border border-slate-200">
                              {r.image_url ? (
                                <img src={r.image_url} alt={r.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
@@ -497,7 +507,7 @@ export default async function SchemeDetailPage({
                             <p className="text-xs text-green-600 font-extrabold">{r.benefit_amount || 'View Details'}</p>
                           </div>
                         </Link>
-                      ))}
+                      )})}
                     </div>
                   </div>
                 )}

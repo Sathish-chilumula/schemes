@@ -1,8 +1,6 @@
 import { MetadataRoute } from 'next';
 import { supabaseAdmin } from '@/lib/supabase';
 import { COUNTRIES } from '@/lib/config';
-import * as fs from 'fs';
-import * as path from 'path';
 
 // Enable Incremental Static Regeneration (ISR)
 // This tells Next.js to regenerate the sitemap in the background every hour,
@@ -76,17 +74,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   // 4. Articles Section
-  const articlesDir = path.join(process.cwd(), 'content/articles');
-  const articleEntries: MetadataRoute.Sitemap = fs.existsSync(articlesDir)
-    ? fs.readdirSync(articlesDir)
-        .filter(f => f.endsWith('.json'))
-        .map(f => ({
-          url: `${SITE_URL}/articles/${f.replace('.json', '')}`,
-          lastModified: new Date(),
-          changeFrequency: 'monthly' as const,
-          priority: 0.7,
-        }))
-    : [];
+  let articleEntries: MetadataRoute.Sitemap = [];
+  try {
+    // Import using require for dynamic behavior or just import at top.
+    // Here we use the pre-generated index to avoid 'fs' which fails on Edge.
+    const articlesIndex = require('@/content/articles-index.json');
+    articleEntries = articlesIndex.map((article: any) => ({
+      url: `${SITE_URL}/articles/${article.slug}`,
+      lastModified: new Date(article.updatedAt || new Date()),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    }));
+  } catch (err) {
+    console.warn('⚠️ Could not load articles-index.json for sitemap');
+  }
 
   return [...allStaticRoutes, ...dynamicRoutes, ...articleEntries];
 }

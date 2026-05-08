@@ -14,6 +14,7 @@ interface SchemeContentProps {
   howToApplyList?: string[];
   documents?: string[];
   schemeName?: string;
+  initialLang?: string;
 }
 
 interface StructuredContent {
@@ -199,18 +200,19 @@ export function SchemeContent({
   eligibilityList = [],
   howToApplyList = [],
   documents = [],
-  schemeName = 'this scheme'
+  schemeName = 'this scheme',
+  initialLang = 'en'
 }: SchemeContentProps) {
-  // Read initial lang from URL on client mount; default to 'en' for SSR
-  const [lang, setLang] = useState('en');
+  // Read initial lang from server prop for SSR
+  const [lang, setLang] = useState(initialLang);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const urlLang = params.get('lang');
-      if (urlLang && urlLang !== 'en') setLang(urlLang);
+      if (urlLang && urlLang !== lang) setLang(urlLang);
     }
-  }, []);
+  }, [lang]);
 
   const formatTextAsParagraphs = (text: string, baseClassName: string) => {
     if (!text) return null;
