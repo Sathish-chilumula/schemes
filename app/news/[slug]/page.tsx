@@ -5,6 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { Metadata } from 'next';
 
 
+export const runtime = 'edge';
 export const dynamicParams = true;
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {

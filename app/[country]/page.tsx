@@ -4,7 +4,7 @@ import { COUNTRIES } from '@/lib/config';
 import { supabaseAdmin } from '@/lib/supabase';
 import Link from 'next/link';
 
-export const revalidate = 3600;
+export const runtime = 'edge';
 
 export function generateMetadata({ 
   params 

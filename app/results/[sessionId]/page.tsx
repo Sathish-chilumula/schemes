@@ -3,9 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { ResultsClient } from './ResultsClient';
 import { Metadata } from 'next';
 
-
-
-
+export const runtime = 'edge';
 
 
 export async function generateMetadata(): Promise<Metadata> {

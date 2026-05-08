@@ -2,6 +2,7 @@ import { supabaseAdmin, type Scheme } from '@/lib/supabase';
 import { SchemesClient } from '@/app/schemes/SchemesClient';
 import { Metadata } from 'next';
 
+export const runtime = 'edge';
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
