@@ -6,6 +6,7 @@ import { COUNTRIES } from '@/lib/config';
 // This tells Next.js to regenerate the sitemap in the background every hour,
 // so search engines always get the latest schemes without needing a full site rebuild.
 export const revalidate = 3600;
+export const dynamic = 'force-dynamic';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://schemeatlas.com';
   
@@ -41,33 +42,47 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // 3. Dynamic Scheme Pages
   let dynamicRoutes: MetadataRoute.Sitemap = [];
+  const PAGE_SIZE = 1000;
+  let offset = 0;
+  let hasMore = true;
   
   try {
     const supabase = supabaseAdmin();
-    const { data: schemes } = await supabase
-      .from('schemes')
-      .select('slug, updated_at, content_hi, content_local, local_language')
-      .eq('is_published', true)
-      .order('views', { ascending: false })
-      .limit(45000); // Max sitemap limit is 50k
+    while (hasMore) {
+      const { data: schemes, error } = await supabase
+        .from('schemes')
+        .select('slug, updated_at')
+        .eq('is_published', true)
+        .order('views', { ascending: false })
+        .range(offset, offset + PAGE_SIZE - 1);
 
-    if (schemes) {
-      schemes.forEach(scheme => {
-        const lastMod = scheme.updated_at ? new Date(scheme.updated_at) : new Date();
-        const baseUrl = `${SITE_URL}/schemes/${scheme.slug}`;
+      if (error) {
+        console.warn('⚠️ Supabase error in sitemap:', error.message);
+        break;
+      }
 
-        // IMPORTANT: Only submit the canonical English URL to the sitemap.
-        // Do NOT submit ?lang=hi or ?lang=te variants as separate sitemap entries.
-        // Those are duplicate pages — they share the same canonical tag pointing
-        // back to baseUrl. Submitting them creates orphan pages and wastes crawl budget.
-        // hreflang alternates live in the page <head>, not in the sitemap.
-        dynamicRoutes.push({
-          url: baseUrl,
-          lastModified: lastMod,
-          changeFrequency: 'weekly',
-          priority: 0.7,
+      if (schemes && schemes.length > 0) {
+        schemes.forEach(scheme => {
+          const lastMod = scheme.updated_at ? new Date(scheme.updated_at) : new Date();
+          const baseUrl = `${SITE_URL}/schemes/${scheme.slug}`;
+
+          // IMPORTANT: Only submit the canonical English URL to the sitemap.
+          dynamicRoutes.push({
+            url: baseUrl,
+            lastModified: lastMod,
+            changeFrequency: 'weekly',
+            priority: 0.7,
+          });
         });
-      });
+
+        if (schemes.length < PAGE_SIZE) {
+          hasMore = false;
+        } else {
+          offset += PAGE_SIZE;
+        }
+      } else {
+        hasMore = false;
+      }
     }
   } catch (error) {
     console.warn('⚠️ Failed to fetch schemes for sitemap:', error);

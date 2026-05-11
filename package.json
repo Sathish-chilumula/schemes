@@ -13,8 +13,7 @@
     "deploy": "npm run pages:build && wrangler pages deploy .vercel/output/static --project-name schemes",
     "agents:find": "node agents/findSchemes.js",
     "agents:social": "node agents/postSocial.js",
-    "agents:generate": "node scripts/generate-content.js",
-    "postbuild": "next-sitemap"
+    "agents:generate": "node scripts/generate-content.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
