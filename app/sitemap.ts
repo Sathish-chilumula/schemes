@@ -7,6 +7,7 @@ import { COUNTRIES } from '@/lib/config';
 // so search engines always get the latest schemes without needing a full site rebuild.
 export const revalidate = 3600;
 export const dynamic = 'force-dynamic';
+export const runtime = 'edge';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://schemeatlas.com';
   
