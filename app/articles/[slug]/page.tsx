@@ -227,12 +227,20 @@ export default async function ArticlePage({ params }: { params: { slug: string }
               <div className="bg-[var(--indigo-light)] rounded-[var(--radius-md)] p-[24px] mt-[40px]">
                 <div className="font-[700] text-[16px] text-[var(--text-primary)] mb-[16px]">🏛️ Related Government Schemes</div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-[12px]">
-                  {article.relatedSchemes.map((schemeSlug: string, i: number) => {
-                    const sSlug = schemeSlug.toLowerCase().replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-');
+                  {article.relatedSchemes.map((rel: any, i: number) => {
+                    const title = typeof rel === 'string' ? rel : rel.name || 'View Scheme';
+                    const sSlug = typeof rel === 'string' 
+                      ? rel.toLowerCase().replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-')
+                      : (rel.slug || title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-'));
+                    
+                    const displayName = typeof rel === 'string'
+                      ? rel.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                      : title;
+
                     return (
                       <Link key={i} href={`/schemes/${sSlug}`} className="bg-white border border-[var(--border)] rounded-[var(--radius-sm)] p-[14px] hover:-translate-y-[2px] transition-transform shadow-sm flex flex-col justify-between">
                         <div className="text-[13px] font-[600] text-[var(--text-primary)] mb-[8px] line-clamp-2">
-                          {schemeSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                          {displayName}
                         </div>
                         <div className="text-[var(--indigo)] text-[12px] font-[700]">Check Details →</div>
                       </Link>
@@ -289,7 +297,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
                     const title = typeof rel === 'string' ? rel : rel.name || 'View Scheme';
                     const sSlug = typeof rel === 'string' 
                       ? rel.toLowerCase().replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-')
-                      : rel.slug;
+                      : (rel.slug || title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-'));
 
                     return (
                       <Link key={i} href={`/schemes/${sSlug}`} className="bg-white border border-[var(--border)] rounded-[var(--radius-sm)] p-[12px] hover:-translate-y-[2px] transition-transform shadow-sm block">
