@@ -29,7 +29,7 @@ export async function generateMetadata({
 
 import ClientArticles from './ClientArticles';
 import { Navbar } from '@/components/Navbar';
-import { Footer } from '@/components/Footer';
+
 // Static import — bundled at build time, works on edge runtime.
 // This index is updated every time the GitHub automation pipeline runs and rebuilds.
 import articlesIndex from '@/content/articles-index.json';
@@ -78,7 +78,7 @@ export default async function ArticlesPage({
       </section>
 
       <ClientArticles articles={displayArticles} activeCategory={activeCategory} />
-      <Footer />
+
     </div>
   );
 }

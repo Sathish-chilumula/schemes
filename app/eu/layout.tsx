@@ -1,5 +1,5 @@
 import { Navbar } from '@/components/Navbar';
-import { Footer } from '@/components/Footer';
+
 export default function EULayout({ children }: { children: React.ReactNode }) {
-  return (<><Navbar /><main>{children}</main><Footer /></>);
+  return (<><Navbar /><main>{children}</main></>);
 }

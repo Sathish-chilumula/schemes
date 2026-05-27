@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
-import { Footer } from '@/components/Footer';
+
 import { supabaseAdmin } from '@/lib/supabase';
 import { COUNTRIES, CATEGORIES } from '@/lib/config';
 import { Metadata } from 'next';
@@ -602,22 +602,43 @@ export default async function SchemeDetailPage({
             </div>
           </div>
         </div>
-        <Footer />
       </main>
     );
   } catch (error) {
+    const slug = resolvedParams.slug || '';
+    const isCa = slug.endsWith('-ca');
+    const isUs = slug.endsWith('-us');
+    const isGb = slug.endsWith('-gb');
+    const isAu = slug.endsWith('-au');
+    const isEu = slug.endsWith('-eu');
+
+    let countryUrl = '/schemes';
+    let countryName = 'Other Schemes';
+
+    if (isCa) { countryUrl = '/ca'; countryName = 'Canada Programs'; }
+    else if (isUs) { countryUrl = '/us'; countryName = 'US Benefits'; }
+    else if (isGb) { countryUrl = '/gb'; countryName = 'UK Benefits'; }
+    else if (isAu) { countryUrl = '/au'; countryName = 'Australian Programs'; }
+    else if (isEu) { countryUrl = '/eu'; countryName = 'EU Programs'; }
+
     return (
-      <main className="min-h-screen bg-slate-50 font-sans flex items-center justify-center p-8">
-        <div className="text-center max-w-lg">
-          <Navbar />
-          <h1 className="text-5xl font-black text-slate-900 mb-6 mt-20">Error</h1>
-          <h2 className="text-2xl font-bold text-slate-700 mb-4">Error loading scheme details</h2>
-          <p className="text-slate-500 mb-8">
-            This government scheme information is currently undergoing an update or contains malformed data.
-          </p>
-          <Link href="/schemes" className="bg-blue-600 text-white px-8 py-3 rounded-2xl font-bold">
-            Browse Other Schemes
-          </Link>
+      <main className="min-h-screen bg-slate-50 font-sans flex flex-col">
+        <Navbar />
+        <div className="flex-1 max-w-4xl mx-auto px-4 py-16 w-full flex flex-col items-center justify-center">
+          <div className="text-center mb-12 mt-8">
+            <div className="text-[80px] mb-4">⏳</div>
+            <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-6">Information Updating</h1>
+            <p className="text-lg text-slate-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+              This government scheme is currently being documented by our researchers or is undergoing a data update. Full details will be published soon!
+            </p>
+            <Link href={countryUrl} className="inline-block bg-blue-600 text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-blue-700 hover:scale-105 transition-all shadow-lg">
+              Browse {countryName} →
+            </Link>
+          </div>
+          
+          <div className="w-full mt-12 pt-12 border-t border-slate-200 text-left">
+            <RelatedArticlesBlock category="General" schemeTitle="Government Programs" />
+          </div>
         </div>
       </main>
     );

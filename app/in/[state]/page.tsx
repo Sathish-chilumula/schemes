@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { supabaseAdmin } from '@/lib/supabase';
 import { Navbar } from '@/components/Navbar';
-import { Footer } from '@/components/Footer';
+
 import { SchemeCard } from '@/components/SchemeCard';
 import { Metadata } from 'next';
 import React from 'react';
@@ -218,7 +218,7 @@ export default async function StatePage({ params }: { params: { state: string } 
         )}
       </div>
       
-      <Footer />
+
     </div>
   );
 }

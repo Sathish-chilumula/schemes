@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { COUNTRIES } from '@/lib/config';
 import { Navbar } from '@/components/Navbar';
-import { Footer } from '@/components/Footer';
+
 import { HomeSearch } from './HomeSearch';
 import { FAQAccordion } from '@/components/FAQAccordion';
 import articlesIndex from '@/content/articles-index.json';
@@ -677,7 +677,6 @@ export default async function HomePage() {
       </section>
 
       {/* ── FOOTER ───────────────────────────────────────────────────── */}
-      <Footer />
     </div>
   );
 }

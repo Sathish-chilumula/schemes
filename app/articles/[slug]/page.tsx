@@ -5,7 +5,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { FAQAccordion } from '@/components/FAQAccordion';
 import { Navbar } from '@/components/Navbar';
-import { Footer } from '@/components/Footer';
+
 import articlesIndex from '@/content/articles-index.json';
 
 // Do NOT use runtime = 'edge' here because we need fs
@@ -476,7 +476,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
 
         </div>
       </div>
-      <Footer />
+
     </div>
   );
 }
