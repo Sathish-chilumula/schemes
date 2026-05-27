@@ -5,9 +5,9 @@ import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { SchemeCard } from '@/components/SchemeCard';
 import { Metadata } from 'next';
-
-export const revalidate = 3600;
 import React from 'react';
+
+export const runtime = 'edge';
 
 const STATE_MAPPING: Record<string, { code: string, name: string }> = {
   // States

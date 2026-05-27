@@ -2,8 +2,7 @@ import { supabaseAdmin, type Scheme } from '@/lib/supabase';
 import { SchemesClient } from './SchemesClient';
 import { Metadata } from 'next';
 
-// Removed: edge runtime blocks Supabase TCP connections (caused 503s)
-export const revalidate = 3600;
+export const runtime = 'edge';
 
 export async function generateMetadata({
   searchParams,

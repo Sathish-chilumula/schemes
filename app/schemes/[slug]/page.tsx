@@ -11,7 +11,6 @@ import { ViewCounter } from '@/components/ViewCounter';
 import { RelatedArticlesBlock } from '@/components/RelatedArticlesBlock';
 import React from 'react';
 export const runtime = 'edge';
-export const revalidate = 3600;
 const COUNTRY_NAMES: Record<string, string> = {
   'IN': 'India',
   'GB': 'United Kingdom', 
