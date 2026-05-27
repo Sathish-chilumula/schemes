@@ -137,7 +137,28 @@ const CORE_NEWSDATA_QUERIES = [
 ];
 
 // ============================================
-// GOOGLE AUTOCOMPLETE SEEDS
+// GNEWS API QUERIES — High-quality newspaper sources
+// India: The Hindu, NDTV, Times of India, Livemint, etc.
+// Global: USA, UK, EU government schemes
+// ============================================
+const GNEWS_QUERIES_IN = [
+  { q: 'government scheme benefit launched india 2026', stateCode: null },
+  { q: 'pradhan mantri yojana new benefit 2026', stateCode: null },
+  { q: 'mukhyamantri yojana state government scheme 2026', stateCode: null },
+  { q: 'central government subsidy loan scheme poor india', stateCode: null },
+  { q: 'ministry MSME business loan scheme india 2026', stateCode: null },
+  { q: 'Telangana Andhra Pradesh government scheme benefit 2026', stateCode: null },
+  { q: 'Karnataka Tamil Nadu Kerala government scheme 2026', stateCode: null },
+  { q: 'UP Maharashtra Bihar government scheme benefit 2026', stateCode: null },
+];
+
+const GNEWS_QUERIES_GLOBAL = [
+  { q: 'government benefit scheme USA 2026 apply eligibility', countryCode: 'US', country: 'us' },
+  { q: 'SNAP Medicaid SBA loan government benefit program 2026', countryCode: 'US', country: 'us' },
+  { q: 'universal credit government benefit UK 2026', countryCode: 'GB', country: 'gb' },
+  { q: 'government grant welfare scheme UK Europe 2026', countryCode: 'GB', country: 'gb' },
+];
+
 // 40 human-perspective seeds covering every angle
 // a citizen would use to search for govt benefits.
 // The autocomplete API returns REAL search phrases
@@ -468,12 +489,68 @@ async function fetchIndiamyScheme() {
 
 // ============================================
 // STEP 1: FETCH NEWS — Demand-Driven Engine
+// Phase 0: GNews API (highest quality curated news)
 // Phase A: Google Autocomplete → real user searches
 // Phase B: newsdata.io for each discovered query
 // Phase C: PIB RSS (official govt source)
 // ============================================
-async function fetchNewsdata() {
+async function fetchGNews() {
+  const gnewsKey = process.env.GNEWS_API_KEY;
+  if (!gnewsKey) {
+    console.log('⏭️  GNEWS_API_KEY not set. Skipping GNews fetch.');
+    return [];
+  }
+
   const allItems = [];
+  console.log('\n📰 Fetching from GNews API (India + Global)...');
+
+  // India queries
+  for (const q of GNEWS_QUERIES_IN) {
+    try {
+      const url = `https://gnews.io/api/v4/search?q=${encodeURIComponent(q.q)}&country=in&lang=en&max=10&apikey=${gnewsKey}`;
+      const res = await axios.get(url, { timeout: 10000 });
+      const articles = res.data?.articles || [];
+      for (const a of articles) {
+        allItems.push({
+          country: 'IN', stateCode: q.stateCode || null,
+          title: a.title || '', link: a.url || '',
+          summary: a.description || (a.content || '').substring(0, 500),
+          published: a.publishedAt || '',
+        });
+      }
+      if (articles.length > 0) console.log(`  ✅ GNews [IN] "${q.q.substring(0, 40)}" → ${articles.length} articles`);
+      await new Promise(r => setTimeout(r, 350));
+    } catch (err) { console.warn(`  ⚠️  GNews IN failed: ${err.message}`); }
+  }
+
+  // Global queries (USA, UK, EU)
+  for (const q of GNEWS_QUERIES_GLOBAL) {
+    try {
+      const url = `https://gnews.io/api/v4/search?q=${encodeURIComponent(q.q)}&country=${q.country}&lang=en&max=10&apikey=${gnewsKey}`;
+      const res = await axios.get(url, { timeout: 10000 });
+      const articles = res.data?.articles || [];
+      for (const a of articles) {
+        allItems.push({
+          country: q.countryCode, stateCode: null,
+          title: a.title || '', link: a.url || '',
+          summary: a.description || (a.content || '').substring(0, 500),
+          published: a.publishedAt || '',
+        });
+      }
+      if (articles.length > 0) console.log(`  ✅ GNews [${q.countryCode}] "${q.q.substring(0, 40)}" → ${articles.length} articles`);
+      await new Promise(r => setTimeout(r, 350));
+    } catch (err) { console.warn(`  ⚠️  GNews global failed: ${err.message}`); }
+  }
+
+  console.log(`  📊 GNews total: ${allItems.length} articles`);
+  return allItems;
+}
+
+async function fetchNewsdata() {
+  // Phase 0: GNews (highest quality)
+  const allItems = [];
+  const gnewsItems = await fetchGNews();
+  allItems.push(...gnewsItems);
 
   if (!newsdataKey) {
     console.warn('⚠️  NEWSDATA_API_KEY not set. Falling back to PIB RSS only.');

@@ -5,14 +5,27 @@ import { Metadata } from 'next';
 // Removed: edge runtime blocks Supabase TCP connections (caused 503s)
 export const revalidate = 3600;
 
-
-export const metadata: Metadata = {
-  title: `All Government Schemes ${new Date().getFullYear()} — Benefits & Eligibility | SchemeAtlas`,
-  description: 'Browse hundreds of active government schemes, financial aid, and welfare programs across multiple countries. Find benefits by category, state, or target group. Updated for 2026.',
-  alternates: {
-    canonical: 'https://schemeatlas.com/schemes',
-  },
-};
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined };
+}): Promise<Metadata> {
+  // ?category= filtered views are NOT independently indexable pages.
+  // They are client-side filter states — canonical is always /schemes (no query string).
+  if (searchParams.category) {
+    return {
+      robots: { index: false, follow: true },
+      alternates: { canonical: 'https://schemeatlas.com/schemes' },
+    };
+  }
+  return {
+    title: `All Government Schemes ${new Date().getFullYear()} — Benefits & Eligibility | SchemeAtlas`,
+    description: 'Browse hundreds of active government schemes, financial aid, and welfare programs across multiple countries. Find benefits by category, state, or target group. Updated for 2026.',
+    alternates: {
+      canonical: 'https://schemeatlas.com/schemes',
+    },
+  };
+}
 
 export default async function SchemesPage() {
   let schemes: Scheme[] = [];

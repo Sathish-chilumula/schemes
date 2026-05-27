@@ -5,16 +5,31 @@ import { Metadata } from 'next';
 // pre-built JSON index which is bundled at build time.
 export const runtime = 'edge';
 
-export const metadata: Metadata = {
-  title: "Money Guides & Financial Articles | SchemeAtlas",
-  description: "Expert guides on loans, insurance, earning online and government schemes for Indians.",
-  alternates: {
-    canonical: 'https://schemeatlas.com/articles'
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined };
+}): Promise<Metadata> {
+  // ?category= filtered views are NOT independently indexable pages.
+  // The canonical is always /articles (no query string).
+  if (searchParams.category) {
+    return {
+      robots: { index: false, follow: true },
+      alternates: { canonical: 'https://schemeatlas.com/articles' },
+    };
   }
-};
+  return {
+    title: "Money Guides & Financial Articles | SchemeAtlas",
+    description: "Expert guides on loans, insurance, earning online and government schemes for Indians.",
+    alternates: {
+      canonical: 'https://schemeatlas.com/articles'
+    }
+  };
+}
 
 import ClientArticles from './ClientArticles';
 import { Navbar } from '@/components/Navbar';
+import { Footer } from '@/components/Footer';
 // Static import — bundled at build time, works on edge runtime.
 // This index is updated every time the GitHub automation pipeline runs and rebuilds.
 import articlesIndex from '@/content/articles-index.json';
@@ -63,6 +78,7 @@ export default async function ArticlesPage({
       </section>
 
       <ClientArticles articles={displayArticles} activeCategory={activeCategory} />
+      <Footer />
     </div>
   );
 }

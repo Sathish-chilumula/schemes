@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { supabaseAdmin } from '@/lib/supabase';
 import { Navbar } from '@/components/Navbar';
+import { Footer } from '@/components/Footer';
 import { SchemeCard } from '@/components/SchemeCard';
 import { Metadata } from 'next';
 
@@ -61,16 +62,53 @@ function getNormalizedStateSlug(stateParam: string): string | null {
   return null;
 }
 
-export async function generateMetadata({ params }: { params: { state: string } }): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: { params: { state: string }; searchParams: { [key: string]: string | string[] | undefined } }): Promise<Metadata> {
   const { state } = params;
   const normalizedSlug = getNormalizedStateSlug(state);
   const stateInfo = normalizedSlug ? STATE_MAPPING[normalizedSlug] : null;
   
   if (!stateInfo) return {};
 
+  // If a ?category= filter is present, this is a filtered view — not independently indexable.
+  // The canonical page (/in/[state]) is the authoritative URL.
+  if (searchParams.category) {
+    return {
+      robots: { index: false, follow: true },
+      alternates: { canonical: `https://schemeatlas.com/in/${normalizedSlug}` },
+    };
+  }
+
+  // Fetch scheme count for this state to make meta description accurate
+  let schemeCount = 50; // sensible fallback
+  try {
+    const supabase = supabaseAdmin({ next: { revalidate: 3600 } });
+    const { count } = await supabase
+      .from('schemes')
+      .select('*', { count: 'exact', head: true })
+      .eq('is_published', true)
+      .eq('country_code', 'IN')
+      .or(`state_code.eq.${stateInfo.code},state_name.ilike.%${stateInfo.name}%`);
+    if (count) schemeCount = count;
+  } catch { /* use fallback */ }
+
+  const currentYear = new Date().getFullYear();
+  const title = `Government Schemes in ${stateInfo.name} ${currentYear} — ${schemeCount}+ Schemes | SchemeAtlas`;
+  const description = `Find all ${schemeCount}+ government schemes available in ${stateInfo.name} for farmers, women, students, SC/ST and more. Check eligibility instantly. Updated ${currentYear}.`;
+
   return {
-    title: `${stateInfo.name} Govt Schemes ${new Date().getFullYear()} - Apply Online`,
-    description: `Browse active government schemes for ${stateInfo.name} residents. Check eligibility, required documents and apply online. Updated ${new Date().getFullYear()}.`,
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `https://schemeatlas.com/in/${normalizedSlug}`,
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+    },
     alternates: {
       canonical: `https://schemeatlas.com/in/${normalizedSlug}`,
     },
@@ -180,20 +218,7 @@ export default async function StatePage({ params }: { params: { state: string } 
         )}
       </div>
       
-       {/* Mobile nav */}
-       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200
-                      flex justify-around items-center py-2 z-50 md:hidden">
-        {[
-          { href: '/', icon: '🏠', label: 'Home' },
-          { href: '/IN/check', icon: '🔍', label: 'Check' },
-          { href: '/schemes', icon: '📋', label: 'Schemes' },
-        ].map(item => (
-          <Link key={item.href} href={item.href} className="nav-link text-center">
-            <span className="text-xl block">{item.icon}</span>
-            <span className="text-xs font-medium">{item.label}</span>
-          </Link>
-        ))}
-      </div>
+      <Footer />
     </div>
   );
 }

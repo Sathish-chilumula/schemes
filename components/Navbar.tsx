@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { CountrySwitcher } from './CountrySwitcher';
 import { useAuth } from '@/hooks/useAuth';
 
 interface NavbarProps {
@@ -19,7 +18,7 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
 
   const navWrapperClass = isDark
     ? 'absolute top-0 left-0 right-0 z-[100] bg-[var(--navy)] border-b border-[rgba(255,255,255,0.1)]'
-    : 'sticky top-0 z-[100] bg-white border-b border-[var(--border)] shadow-[0_2px_16px_rgba(0,0,0,0.06)]';
+    : 'sticky top-0 z-[100] bg-white/90 backdrop-blur-md border-b border-[var(--border)] shadow-[0_1px_12px_rgba(0,0,0,0.05)]';
 
   const logoColor = isDark ? 'text-white' : 'text-[var(--text-primary)]';
   const navItemClass = `px-[14px] py-[8px] rounded-[var(--radius-sm)] text-[14px] font-[600] cursor-pointer transition-colors whitespace-nowrap ${isDark ? 'text-white hover:bg-[rgba(255,255,255,0.1)]' : 'text-[var(--text-primary)] hover:bg-[var(--indigo-light)] hover:text-[var(--indigo)]'}`;
@@ -32,19 +31,17 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
 
   return (
     <>
-      {/* Announcement Bar */}
-      <div className="bg-[var(--navy)] py-[6px] text-[12px] text-[#94A3B8] text-center">
-        <div className="max-w-[1200px] mx-auto px-[24px] flex justify-center items-center gap-[16px]">
-          <span>🇮🇳 1815+ Active Central & State Schemes · Updated Daily</span>
-          <Link href="/articles" className="text-[var(--amber)] font-[700] hover:underline">
-            ✦ New: Loans & Insurance Guides →
-          </Link>
-        </div>
+      {/* Announcement Bar — slim single line */}
+      <div className="bg-[var(--navy)] py-[5px] text-[12px] text-[#94A3B8] text-center leading-none">
+        <span>🇮🇳 1815+ Active Central &amp; State Schemes · Updated Daily &nbsp;·&nbsp;</span>
+        <Link href="/articles" className="text-[var(--amber)] font-[700] hover:underline">
+          ✦ New: Loans &amp; Insurance Guides →
+        </Link>
       </div>
 
       <nav className={`${navWrapperClass} h-[60px]`}>
         <div className="max-w-[1200px] mx-auto px-[24px] flex items-center h-full relative gap-[6px] justify-between">
-          
+
           <div className="flex items-center gap-[6px]">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-[8px] mr-[16px]">
@@ -68,12 +65,12 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
                   <div className="grid grid-cols-3 gap-[28px]">
                     <div>
                       <span className="text-[11px] font-[700] tracking-[1.5px] uppercase text-[var(--text-faint)] mb-[10px] block">By Category</span>
-                      <Link href="/in?category=Farmers" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">🌾 Farmers & Agriculture</Link>
-                      <Link href="/in?category=Students" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">🎓 Scholarships & Education</Link>
-                      <Link href="/in?category=Healthcare" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">❤️ Health & Insurance</Link>
-                      <Link href="/in?category=Business" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">💼 Business & Startup</Link>
+                      <Link href="/in?category=Farmers" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">🌾 Farmers &amp; Agriculture</Link>
+                      <Link href="/in?category=Students" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">🎓 Scholarships &amp; Education</Link>
+                      <Link href="/in?category=Healthcare" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">❤️ Health &amp; Insurance</Link>
+                      <Link href="/in?category=Business" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">💼 Business &amp; Startup</Link>
                       <Link href="/in?category=Women" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">👩 Women Empowerment</Link>
-                      <Link href="/in?category=Housing" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">🏘️ Housing & Land</Link>
+                      <Link href="/in?category=Housing" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">🏘️ Housing &amp; Land</Link>
                     </div>
                     <div>
                       <span className="text-[11px] font-[700] tracking-[1.5px] uppercase text-[var(--text-faint)] mb-[10px] block">Browse by State</span>
@@ -111,10 +108,10 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
                     </div>
                     <div>
                       <span className="text-[11px] font-[700] tracking-[1.5px] uppercase text-[var(--text-faint)] mb-[10px] block">Loans</span>
-                      <Link href="/articles?category=Loans" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">🏦 Loan Guides & Tips</Link>
+                      <Link href="/articles?category=Loans" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">🏦 Loan Guides &amp; Tips</Link>
                     </div>
                     <div>
-                      <span className="text-[11px] font-[700] tracking-[1.5px] uppercase text-[var(--text-faint)] mb-[10px] block">Insurance & Invest</span>
+                      <span className="text-[11px] font-[700] tracking-[1.5px] uppercase text-[var(--text-faint)] mb-[10px] block">Insurance &amp; Invest</span>
                       <Link href="/articles?category=Insurance" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">🛡️ Insurance Guides</Link>
                       <Link href="/articles?category=Investment" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">📊 Investment Strategies</Link>
                       <Link href="/articles?category=Tax" className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[var(--radius-sm)] text-[13px] font-[500] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">💹 Tax Saving Tips</Link>
@@ -123,48 +120,40 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
                 </div>
               </div>
 
-              {/* Mega Menu: Updates & Jobs */}
+              {/* Jobs — direct link, no dropdown */}
+              <Link href="/jobs" className={navItemClass}>
+                Jobs
+              </Link>
+
+              {/* Global Countries Dropdown */}
               <div className="group relative">
-                <div className={navItemClass}>
-                  Updates & Jobs ▾
-                </div>
-                <div className="absolute top-[50px] left-1/2 -translate-x-1/2 bg-white rounded-[var(--radius-lg)] p-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.14)] border border-[var(--border)] min-w-[350px] z-[999] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none group-hover:pointer-events-auto" style={{animation: 'megaDown 0.18s ease'}}>
-                  <div className="flex flex-col gap-[15px]">
-                    <Link href="/jobs" className="flex items-center gap-[12px] px-[12px] py-[10px] rounded-[var(--radius-sm)] hover:bg-[#F0F4FF] group/item transition-colors">
-                      <div className="w-[36px] h-[36px] rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 text-lg group-hover/item:bg-indigo-100 transition-colors">💼</div>
+                <div className={navItemClass}>🌍 Global ▾</div>
+                <div className="absolute top-[50px] right-0 bg-white rounded-[var(--radius-lg)] p-[20px] shadow-[0_20px_60px_rgba(0,0,0,0.14)] border border-[var(--border)] min-w-[300px] z-[999] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none group-hover:pointer-events-auto">
+                  <span className="text-[11px] font-[700] tracking-[1.5px] uppercase text-[var(--text-faint)] mb-[10px] block">Browse by Country</span>
+                  {([
+                    { href: '/in', flag: '🇮🇳', label: 'India', sub: 'PM schemes, State schemes' },
+                    { href: '/us', flag: '🇺🇸', label: 'United States', sub: 'SNAP, Medicaid, Section 8' },
+                    { href: '/gb', flag: '🇬🇧', label: 'United Kingdom', sub: 'Universal Credit, PIP' },
+                    { href: '/ca', flag: '🇨🇦', label: 'Canada', sub: 'CPP, OAS, EI, CCB' },
+                    { href: '/au', flag: '🇦🇺', label: 'Australia', sub: 'Centrelink, NDIS' },
+                    { href: '/eu', flag: '🇪🇺', label: 'European Union', sub: 'Horizon Europe, Erasmus+' },
+                  ] as {href:string;flag:string;label:string;sub:string}[]).map(c => (
+                    <Link key={c.href} href={c.href} className="flex items-center gap-[10px] px-[10px] py-[8px] rounded-[var(--radius-sm)] hover:bg-[#F0F4FF] hover:text-[var(--indigo)] text-[var(--text-primary)]">
+                      <span className="text-[20px]">{c.flag}</span>
                       <div>
-                        <p className="text-[14px] font-[600] text-[var(--text-primary)] group-hover/item:text-[var(--indigo)]">Govt Jobs & Exams</p>
-                        <p className="text-[12px] text-[var(--text-muted)] mt-0.5">Latest recruitment notifications and exam updates</p>
+                        <div className="text-[13px] font-[600]">{c.label}</div>
+                        <div className="text-[11px] text-[var(--text-faint)]">{c.sub}</div>
                       </div>
                     </Link>
-                    <Link href="/news" className="flex items-center gap-[12px] px-[12px] py-[10px] rounded-[var(--radius-sm)] hover:bg-[#F0F4FF] group/item transition-colors">
-                      <div className="w-[36px] h-[36px] rounded-full bg-blue-50 flex items-center justify-center text-blue-600 text-lg group-hover/item:bg-blue-100 transition-colors">📰</div>
-                      <div>
-                        <p className="text-[14px] font-[600] text-[var(--text-primary)] group-hover/item:text-[var(--indigo)]">News & Policies</p>
-                        <p className="text-[12px] text-[var(--text-muted)] mt-0.5">Cabinet decisions, updates, and economic alerts</p>
-                      </div>
-                    </Link>
-                  </div>
+                  ))}
                 </div>
               </div>
-
-              <Link href="/schemes" className={navItemClass}>
-                All Schemes
-              </Link>
-              <Link href="/in/check" className={navItemClass + ' flex items-center gap-1'}>
-                Eligibility Check
-                <span className="w-[6px] h-[6px] rounded-full bg-[var(--green)] inline-block ml-[2px]"></span>
-              </Link>
             </div>
           </div>
 
+
           {/* Right Side */}
           <div className="flex items-center gap-[12px]">
-            {/* Country Switcher (Pill style) */}
-            <div className={`border border-[var(--border)] rounded-[var(--radius-sm)] px-[14px] py-[6px] text-[13px] font-[600] ${isDark ? 'text-white border-[rgba(255,255,255,0.2)]' : 'text-[var(--text-primary)]'}`}>
-              <CountrySwitcher />
-            </div>
-
             {/* Auth Dropdown */}
             {!loading && user ? (
               <div className="relative hidden sm:block">
@@ -190,8 +179,13 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
               <Link href="/signup" className={`text-[13px] font-[600] hidden sm:block ${isDark ? 'text-white' : 'text-[var(--text-primary)]'}`}>Sign In</Link>
             )}
 
-            <Link href="/in/check" className="btn-primary-new hidden sm:inline-block py-[8px] px-[20px] text-[13px] glow-border">
-              ✓ Check Eligibility
+            {/* CTA — saffron pill */}
+            <Link
+              href="/in/check"
+              className="btn-saffron hidden sm:inline-block py-[9px] px-[20px] text-[13px]"
+              style={{ background: '#FF6B00', color: 'white' }}
+            >
+              Check Eligibility →
             </Link>
 
             {/* Mobile Hamburger */}
@@ -206,61 +200,71 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
         </div>
       </nav>
 
-      {/* Mobile Menu Drawer */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 z-[200] bg-[rgba(0,0,0,0.5)] md:hidden">
-          <div className="absolute top-0 right-0 h-[100vh] w-full max-w-[300px] bg-white p-[28px_24px] shadow-[-10px_0_40px_rgba(0,0,0,0.1)] flex flex-col transform transition-transform">
-            <div className="flex items-center justify-between mb-[24px]">
-              <Link href="/" className="flex items-center gap-[8px]" onClick={() => setMobileMenuOpen(false)}>
-                <div className="w-[30px] h-[30px] rounded-[8px] bg-gradient-to-br from-[var(--indigo)] to-[var(--indigo-mid)] flex items-center justify-center text-[16px]">🗺️</div>
-                <span className="font-[800] text-[16px] text-[var(--text-primary)]">Scheme<span className="text-[var(--indigo)]">Atlas</span></span>
-              </Link>
-              <button onClick={() => setMobileMenuOpen(false)} className="text-[24px] text-[var(--text-primary)]">✕</button>
+      {/* Mobile Menu Drawer — with slide-in animation */}
+      <div
+        className={`fixed inset-0 z-[200] md:hidden transition-opacity duration-300 ${mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        style={{ background: 'rgba(0,0,0,0.5)' }}
+        onClick={() => setMobileMenuOpen(false)}
+      >
+        <div
+          className="absolute top-0 right-0 h-[100vh] w-full max-w-[300px] bg-white p-[28px_24px] shadow-[-10px_0_40px_rgba(0,0,0,0.1)] flex flex-col"
+          style={{
+            transform: mobileMenuOpen ? 'translateX(0)' : 'translateX(100%)',
+            transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1)',
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between mb-[24px]">
+            <Link href="/" className="flex items-center gap-[8px]" onClick={() => setMobileMenuOpen(false)}>
+              <div className="w-[30px] h-[30px] rounded-[8px] bg-gradient-to-br from-[var(--indigo)] to-[var(--indigo-mid)] flex items-center justify-center text-[16px]">🗺️</div>
+              <span className="font-[800] text-[16px] text-[var(--text-primary)]">Scheme<span className="text-[var(--indigo)]">Atlas</span></span>
+            </Link>
+            <button onClick={() => setMobileMenuOpen(false)} className="text-[24px] text-[var(--text-primary)]">✕</button>
+          </div>
+
+          <div className="flex flex-col gap-[8px] flex-1 overflow-y-auto">
+            <div className="py-[14px] border-b border-[var(--border)] flex flex-col gap-3">
+              <Link href="/articles" onClick={() => setMobileMenuOpen(false)} className="text-[16px] font-[600] text-[var(--text-primary)]">Money Guides</Link>
+              <div className="flex flex-col gap-3 pl-4">
+                <Link href="/articles?category=Loans" onClick={() => setMobileMenuOpen(false)} className="text-[14px] text-[var(--text-muted)]">🏦 Loans</Link>
+                <Link href="/articles?category=Insurance" onClick={() => setMobileMenuOpen(false)} className="text-[14px] text-[var(--text-muted)]">🛡️ Insurance</Link>
+                <Link href="/articles?category=Earn%20Money" onClick={() => setMobileMenuOpen(false)} className="text-[14px] text-[var(--text-muted)]">💰 Earn Money</Link>
+                <Link href="/articles?category=Investment" onClick={() => setMobileMenuOpen(false)} className="text-[14px] text-[var(--text-muted)]">📊 Investment</Link>
+              </div>
             </div>
 
-            <div className="flex flex-col gap-[8px] flex-1">
-              <div className="py-[14px] border-b border-[var(--border)] flex flex-col gap-3">
-                <Link href="/articles" onClick={() => setMobileMenuOpen(false)} className="text-[16px] font-[600] text-[var(--text-primary)]">Money Guides</Link>
-                <div className="flex flex-col gap-3 pl-4">
-                  <Link href="/articles?category=Loans" onClick={() => setMobileMenuOpen(false)} className="text-[14px] text-[var(--text-muted)]">🏦 Loans</Link>
-                  <Link href="/articles?category=Insurance" onClick={() => setMobileMenuOpen(false)} className="text-[14px] text-[var(--text-muted)]">🛡️ Insurance</Link>
-                  <Link href="/articles?category=Earn%20Money" onClick={() => setMobileMenuOpen(false)} className="text-[14px] text-[var(--text-muted)]">💰 Earn Money</Link>
-                  <Link href="/articles?category=Investment" onClick={() => setMobileMenuOpen(false)} className="text-[14px] text-[var(--text-muted)]">📊 Investment</Link>
-                </div>
+            <div className="py-[14px] border-b border-[var(--border)] flex flex-col gap-3">
+              <Link href="/schemes" onClick={() => setMobileMenuOpen(false)} className="text-[16px] font-[600] text-[var(--text-primary)]">All Schemes</Link>
+              <div className="flex flex-col gap-3 pl-4">
+                <Link href="/in?category=Farmers" onClick={() => setMobileMenuOpen(false)} className="text-[14px] text-[var(--text-muted)]">🌾 Farmers &amp; Agriculture</Link>
+                <Link href="/in?category=Students" onClick={() => setMobileMenuOpen(false)} className="text-[14px] text-[var(--text-muted)]">🎓 Scholarships &amp; Education</Link>
+                <Link href="/in?category=Healthcare" onClick={() => setMobileMenuOpen(false)} className="text-[14px] text-[var(--text-muted)]">❤️ Health &amp; Insurance</Link>
+                <Link href="/in?category=Business" onClick={() => setMobileMenuOpen(false)} className="text-[14px] text-[var(--text-muted)]">💼 Business &amp; Startup</Link>
               </div>
-
-              <div className="py-[14px] border-b border-[var(--border)] flex flex-col gap-3">
-                <Link href="/schemes" onClick={() => setMobileMenuOpen(false)} className="text-[16px] font-[600] text-[var(--text-primary)]">All Schemes</Link>
-                <div className="flex flex-col gap-3 pl-4">
-                  <Link href="/in?category=Farmers" onClick={() => setMobileMenuOpen(false)} className="text-[14px] text-[var(--text-muted)]">🌾 Farmers & Agriculture</Link>
-                  <Link href="/in?category=Students" onClick={() => setMobileMenuOpen(false)} className="text-[14px] text-[var(--text-muted)]">🎓 Scholarships & Education</Link>
-                  <Link href="/in?category=Healthcare" onClick={() => setMobileMenuOpen(false)} className="text-[14px] text-[var(--text-muted)]">❤️ Health & Insurance</Link>
-                  <Link href="/in?category=Business" onClick={() => setMobileMenuOpen(false)} className="text-[14px] text-[var(--text-muted)]">💼 Business & Startup</Link>
-                </div>
-              </div>
-              
-              <div className="py-[14px] border-b border-[var(--border)] flex flex-col gap-3">
-                <span className="text-[16px] font-[600] text-[var(--text-primary)]">Updates & Jobs</span>
-                <div className="flex flex-col gap-3 pl-4">
-                  <Link href="/jobs" onClick={() => setMobileMenuOpen(false)} className="text-[14px] text-[var(--text-muted)]">💼 Govt Jobs & Exams</Link>
-                  <Link href="/news" onClick={() => setMobileMenuOpen(false)} className="text-[14px] text-[var(--text-muted)]">📰 News & Policies</Link>
-                </div>
-              </div>
-              <Link href="/in/check" onClick={() => setMobileMenuOpen(false)} className="text-[16px] font-[600] text-[var(--indigo)] py-[14px] border-b border-[var(--border)]">Eligibility Check ✨</Link>
-              
-              {!loading && user ? (
-                <button onClick={handleLogout} className="text-[16px] font-[600] text-red-600 py-[14px] border-b border-[var(--border)] text-left">Sign Out</button>
-              ) : (
-                <Link href="/signup" onClick={() => setMobileMenuOpen(false)} className="text-[16px] font-[600] text-[var(--text-primary)] py-[14px] border-b border-[var(--border)]">Sign In</Link>
-              )}
             </div>
 
-            <Link href="/in/check" onClick={() => setMobileMenuOpen(false)} className="btn-primary-new w-full text-center mt-auto">
+            <Link href="/jobs" onClick={() => setMobileMenuOpen(false)} className="text-[16px] font-[600] text-[var(--text-primary)] py-[14px] border-b border-[var(--border)]">💼 Jobs</Link>
+
+            <Link href="/in/check" onClick={() => setMobileMenuOpen(false)} className="text-[16px] font-[600] text-[var(--indigo)] py-[14px] border-b border-[var(--border)]">Eligibility Check ✨</Link>
+
+            {!loading && user ? (
+              <button onClick={handleLogout} className="text-[16px] font-[600] text-red-600 py-[14px] border-b border-[var(--border)] text-left">Sign Out</button>
+            ) : (
+              <Link href="/signup" onClick={() => setMobileMenuOpen(false)} className="text-[16px] font-[600] text-[var(--text-primary)] py-[14px] border-b border-[var(--border)]">Sign In</Link>
+            )}
+          </div>
+
+          {/* Mobile drawer footer */}
+          <div className="mt-[16px] pt-[14px] border-t border-[var(--border)] flex flex-col gap-[10px]">
+            <Link href="/in/check" onClick={() => setMobileMenuOpen(false)} className="btn-saffron w-full text-center" style={{ background: '#FF6B00', color: 'white' }}>
               ✓ Check Eligibility
+            </Link>
+            <Link href="/gb" onClick={() => setMobileMenuOpen(false)} className="text-[13px] text-[var(--text-muted)] text-center hover:text-[var(--indigo)] transition-colors">
+              🇬🇧 Also: UK Schemes →
             </Link>
           </div>
         </div>
-      )}
+      </div>
     </>
   );
 }

@@ -1,4 +1,9 @@
-name: Supabase Keep Alive
+# ============================================
+# SCHEMEATLAS — UTILITY: SUPABASE KEEP-ALIVE
+# Purpose : Prevent Supabase free-tier from pausing (inactivity timeout)
+# Runs    : Every 3 days at 10:00 UTC
+# ============================================
+name: "Utility: Supabase Keep-Alive"
 
 on:
   schedule:

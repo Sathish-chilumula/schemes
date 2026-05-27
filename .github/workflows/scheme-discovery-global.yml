@@ -1,0 +1,40 @@
+# ============================================
+# SCHEMEATLAS — GLOBAL SCHEME DISCOVERY
+# Purpose : Discover USA, UK, CA, AU, EU schemes via GNews
+# SEPARATE from India pipeline — no conflicts possible
+# Runs    : Every 8 hours
+# ============================================
+
+name: "Global Scheme Discovery (USA · UK · CA · AU · EU)"
+
+on:
+  schedule:
+    - cron: '0 */8 * * *'   # Every 8 hours (offsets India's every 6h)
+  workflow_dispatch:
+
+jobs:
+  discover-global:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install @supabase/supabase-js axios
+
+      - name: Discover global schemes
+        run: node agents/findSchemes-global.js
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          GNEWS_API_KEY: ${{ secrets.GNEWS_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+      - name: Report
+        if: always()
+        run: echo "✅ Global discovery done at $(date)"

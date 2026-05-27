@@ -2,77 +2,111 @@ import Link from 'next/link';
 
 export function Footer() {
   return (
-    <footer className="bg-[#1a1c2e] text-slate-300 py-16 mt-16 border-t border-white/10">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12">
-          {/* Column 1: Brand */}
-          <div className="lg:col-span-1">
-            <h3 className="text-white font-bold text-2xl mb-6">SchemeAtlas</h3>
-            <p className="text-sm text-slate-400 mb-8 leading-relaxed">
-              India's largest independent platform for government schemes, benefits, and financial aid discovery.
+    <footer style={{ background: '#0F172A' }} className="text-slate-300 py-16 mt-16 border-t border-white/10">
+      <div className="max-w-[1200px] mx-auto px-[24px]">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+
+          {/* Column 1 — About SchemeAtlas */}
+          <div>
+            {/* Logo */}
+            <div className="flex items-center gap-[8px] mb-[14px]">
+              <div className="w-[32px] h-[32px] rounded-[8px] bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center text-[16px]">
+                🗺️
+              </div>
+              <span className="font-[800] text-[18px] tracking-[-0.5px] text-white">
+                Scheme<span className="text-indigo-400">Atlas</span>
+              </span>
+            </div>
+
+            <p className="text-[13px] text-slate-400 mb-[20px] leading-relaxed">
+              India&apos;s most comprehensive government schemes platform. Plus expert guides on loans, insurance and earning opportunities.
             </p>
-            <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-              <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1">Independence Notice</p>
-              <p className="text-[11px] text-slate-400 leading-tight">
-                Not affiliated with any government body. Information is for reference only.
-              </p>
+
+            {/* Language buttons */}
+            <div className="flex flex-wrap gap-[6px] mb-[18px]">
+              <button className="text-[11px] bg-white/8 hover:bg-white/15 border border-white/10 text-slate-300 hover:text-white rounded-[6px] px-[8px] py-[4px] transition-colors" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                🇮🇳 हिंदी
+              </button>
+              <button className="text-[11px] bg-white/8 hover:bg-white/15 border border-white/10 text-slate-300 hover:text-white rounded-[6px] px-[8px] py-[4px] transition-colors" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                తెలుగు
+              </button>
+              <button className="text-[11px] bg-white/8 hover:bg-white/15 border border-white/10 text-slate-300 hover:text-white rounded-[6px] px-[8px] py-[4px] transition-colors" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                தமிழ்
+              </button>
+              <button className="text-[11px] bg-white/8 hover:bg-white/15 border border-white/10 text-slate-300 hover:text-white rounded-[6px] px-[8px] py-[4px] transition-colors" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                বাংলা
+              </button>
+              <button className="text-[11px] bg-white/8 hover:bg-white/15 border border-white/10 text-slate-300 hover:text-white rounded-[6px] px-[8px] py-[4px] transition-colors" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                ਪੰਜਾਬੀ
+              </button>
+            </div>
+
+            {/* Country switcher */}
+            <div className="flex flex-col gap-[6px]">
+              <Link href="/gb" className="inline-flex items-center gap-[6px] text-[13px] text-indigo-400 hover:text-indigo-300 font-[600] transition-colors">
+                🇬🇧 Also: UK Schemes →
+              </Link>
+              <span className="inline-flex items-center gap-[6px] text-[13px] text-slate-500 cursor-not-allowed">
+                🇺🇸 US Schemes <span className="text-[10px] bg-slate-700 text-slate-400 rounded-[4px] px-[5px] py-[1px]">Soon</span>
+              </span>
             </div>
           </div>
-          
-          {/* Column 2: Popular States */}
+
+          {/* Column 2 — States */}
           <div>
-            <h4 className="text-white font-bold mb-6 uppercase tracking-wider text-xs">States</h4>
-            <ul className="grid grid-cols-1 gap-2 text-sm">
-              <li><Link href="/in/andhra-pradesh" className="hover:text-white transition-colors">Andhra Pradesh</Link></li>
-              <li><Link href="/in/delhi" className="hover:text-white transition-colors">Delhi</Link></li>
-              <li><Link href="/in/gujarat" className="hover:text-white transition-colors">Gujarat</Link></li>
-              <li><Link href="/in/karnataka" className="hover:text-white transition-colors">Karnataka</Link></li>
-              <li><Link href="/in/maharashtra" className="hover:text-white transition-colors">Maharashtra</Link></li>
-              <li><Link href="/in/tamil-nadu" className="hover:text-white transition-colors">Tamil Nadu</Link></li>
-              <li><Link href="/in/uttar-pradesh" className="hover:text-white transition-colors">Uttar Pradesh</Link></li>
+            <h4 className="text-white font-[700] mb-[20px] uppercase tracking-[1.5px] text-[11px]">States</h4>
+            <ul className="flex flex-col gap-[9px] text-[13px]">
+              <li><Link href="/in/andhra-pradesh" className="text-slate-400 hover:text-white transition-colors">Andhra Pradesh</Link></li>
+              <li><Link href="/in/delhi" className="text-slate-400 hover:text-white transition-colors">Delhi</Link></li>
+              <li><Link href="/in/gujarat" className="text-slate-400 hover:text-white transition-colors">Gujarat</Link></li>
+              <li><Link href="/in/karnataka" className="text-slate-400 hover:text-white transition-colors">Karnataka</Link></li>
+              <li><Link href="/in/maharashtra" className="text-slate-400 hover:text-white transition-colors">Maharashtra</Link></li>
+              <li><Link href="/in/tamil-nadu" className="text-slate-400 hover:text-white transition-colors">Tamil Nadu</Link></li>
+              <li><Link href="/in/uttar-pradesh" className="text-slate-400 hover:text-white transition-colors">Uttar Pradesh</Link></li>
+              <li><Link href="/in/west-bengal" className="text-slate-400 hover:text-white transition-colors">West Bengal</Link></li>
+            </ul>
+            <Link href="/schemes" className="text-indigo-400 hover:text-indigo-300 font-[600] text-[13px] mt-[14px] block transition-colors">
+              View all 28 states →
+            </Link>
+          </div>
+
+          {/* Column 3 — Categories */}
+          <div>
+            <h4 className="text-white font-[700] mb-[20px] uppercase tracking-[1.5px] text-[11px]">Categories</h4>
+            <ul className="flex flex-col gap-[9px] text-[13px]">
+              <li><Link href="/in?category=Farmers" className="text-slate-400 hover:text-white transition-colors">🌾 Farmers</Link></li>
+              <li><Link href="/in?category=Students" className="text-slate-400 hover:text-white transition-colors">🎓 Students</Link></li>
+              <li><Link href="/in?category=Women" className="text-slate-400 hover:text-white transition-colors">👩 Women</Link></li>
+              <li><Link href="/in?category=Healthcare" className="text-slate-400 hover:text-white transition-colors">❤️ Healthcare</Link></li>
+              <li><Link href="/in?category=Business" className="text-slate-400 hover:text-white transition-colors">💼 Business &amp; MSME</Link></li>
+              <li><Link href="/in?category=SC-ST" className="text-slate-400 hover:text-white transition-colors">🤝 SC/ST</Link></li>
+              <li><Link href="/in?category=Housing" className="text-slate-400 hover:text-white transition-colors">🏘️ Housing</Link></li>
             </ul>
           </div>
 
-          {/* Column 3: Categories */}
+          {/* Column 4 — Legal */}
           <div>
-            <h4 className="text-white font-bold mb-6 uppercase tracking-wider text-xs">Categories</h4>
-            <ul className="grid grid-cols-1 gap-2 text-sm">
-              <li><Link href="/in?category=Farmers" className="hover:text-white transition-colors">🌾 Farmers</Link></li>
-              <li><Link href="/in?category=Students" className="hover:text-white transition-colors">🎓 Students</Link></li>
-              <li><Link href="/in?category=Women" className="hover:text-white transition-colors">👩 Women</Link></li>
-              <li><Link href="/in?category=Healthcare" className="hover:text-white transition-colors">❤️ Healthcare</Link></li>
-              <li><Link href="/in?category=Business" className="hover:text-white transition-colors">💼 MSME & Biz</Link></li>
-              <li><Link href="/jobs" className="hover:text-white transition-colors">🏛️ Govt Jobs</Link></li>
+            <h4 className="text-white font-[700] mb-[20px] uppercase tracking-[1.5px] text-[11px]">Legal</h4>
+            <ul className="flex flex-col gap-[9px] text-[13px]">
+              <li><Link href="/about" className="text-slate-400 hover:text-white transition-colors">About Us</Link></li>
+              <li><Link href="/contact" className="text-slate-400 hover:text-white transition-colors">Contact</Link></li>
+              <li><Link href="/privacy" className="text-slate-400 hover:text-white transition-colors">Privacy Policy</Link></li>
+              <li><Link href="/terms" className="text-slate-400 hover:text-white transition-colors">Terms of Service</Link></li>
+              <li><Link href="/disclaimer" className="text-slate-400 hover:text-white transition-colors">Disclaimer</Link></li>
+              <li><Link href="/sitemap.xml" className="text-slate-400 hover:text-white transition-colors">XML Sitemap</Link></li>
             </ul>
           </div>
 
-          {/* Column 4: Resources */}
-          <div>
-            <h4 className="text-white font-bold mb-6 uppercase tracking-wider text-xs">Resources</h4>
-            <ul className="space-y-2 text-sm">
-              <li><Link href="/schemes" className="hover:text-white transition-colors">All Schemes</Link></li>
-              <li><Link href="/articles" className="hover:text-white transition-colors">Money Guides</Link></li>
-              <li><Link href="/news" className="hover:text-white transition-colors">Latest News</Link></li>
-              <li><Link href="/about" className="hover:text-white transition-colors">About Us</Link></li>
-              <li><Link href="/contact" className="hover:text-white transition-colors">Contact</Link></li>
-            </ul>
-          </div>
-
-          {/* Column 5: Legal */}
-          <div>
-            <h4 className="text-white font-bold mb-6 uppercase tracking-wider text-xs">Legal</h4>
-            <ul className="space-y-2 text-sm">
-              <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
-              <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
-              <li><Link href="/disclaimer" className="hover:text-white transition-colors">Disclaimer</Link></li>
-              <li><Link href="/sitemap.xml" className="hover:text-white transition-colors">XML Sitemap</Link></li>
-            </ul>
-          </div>
         </div>
-        
-        <div className="mt-16 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
-          <p>&copy; {new Date().getFullYear()} SchemeAtlas. All rights reserved.</p>
-          <p>Built for financial inclusion and transparency.</p>
+
+        {/* Bottom Bar */}
+        <div className="mt-[56px] pt-[24px] border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-[12px] text-[12px] text-slate-500">
+          <p>© 2026 SchemeAtlas. Not affiliated with any government entity.</p>
+          <p className="font-[600] text-slate-400">Made in India 🇮🇳</p>
+          <div className="flex items-center gap-[16px]">
+            <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
+            <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
+          </div>
         </div>
       </div>
     </footer>

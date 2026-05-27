@@ -1,0 +1,47 @@
+# ============================================
+# SCHEMEATLAS — GLOBAL SCHEME CONTENT WRITER
+# Purpose : Write EN content for USA, UK, CA, AU, EU schemes
+# SEPARATE from India pipeline — no conflicts
+# AI      : Groq primary → OpenAI fallback
+# Batch   : 10 per run
+# Runs    : Every 8 hours (offset from India at 6h)
+# ============================================
+
+name: "Global Content Writer (USA · UK · CA · AU · EU)"
+
+on:
+  schedule:
+    - cron: '0 2,10,18 * * *'   # 02:00, 10:00, 18:00 UTC (offset from India runs)
+  workflow_dispatch:
+    inputs:
+      batch_size:
+        description: 'Schemes to process (default: 10)'
+        required: false
+        default: '10'
+
+jobs:
+  write-global-content:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install @supabase/supabase-js axios
+
+      - name: Write global scheme content (English)
+        run: node scripts/generate-scheme-content-global.js
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          BATCH_SIZE: ${{ github.event.inputs.batch_size || '10' }}
+
+      - name: Report
+        if: always()
+        run: echo "✅ Global writer done at $(date)"

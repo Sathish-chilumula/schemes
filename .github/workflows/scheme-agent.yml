@@ -1,10 +1,10 @@
 # ============================================
-# CLAIMIT — AUTOMATION PIPELINE
-# Runs every 6 hours automatically
-# .github/workflows/scheme-agent.yml
+# SCHEMEATLAS — SOCIAL MEDIA POSTER
+# Purpose : Auto-post new schemes to Telegram, Reddit, LinkedIn
+# Runs    : Every 6 hours automatically
 # ============================================
 
-name: Scheme Discovery & Social Posting
+name: "Social Media Poster (Telegram + Reddit + LinkedIn)"
 
 on:
   schedule:

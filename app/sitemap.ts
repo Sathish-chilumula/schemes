@@ -22,24 +22,53 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/disclaimer',
   ];
 
-  // 2. Country & State Index Pages
-  const _countryPaths = Object.keys(COUNTRIES).flatMap(code => [
-    `/${code.toLowerCase()}`,
-    `/${code.toLowerCase()}/check`
-  ]);
+  // 2. Country Hub Pages — explicit high-priority entries for new countries
+  const globalHubs = [
+    '/us', '/us/check',
+    '/gb', '/gb/check',
+    '/ca', '/ca/check',
+    '/au', '/au/check',
+    '/eu', '/eu/check',
+  ];
 
-  const statePaths = COUNTRIES['IN']?.states?.map(state => 
+  // US States
+  const usStates = [
+    'california','texas','new-york','florida','illinois','pennsylvania',
+    'ohio','georgia','michigan','arizona','north-carolina','washington',
+    'colorado','tennessee','new-jersey','virginia','minnesota',
+  ].map(s => `/us/${s}`);
+
+  // UK Nations
+  const ukNations = ['england','scotland','wales','northern-ireland'].map(n => `/gb/${n}`);
+
+  // Canada Provinces
+  const caProvinces = ['ontario','british-columbia','quebec','alberta','manitoba','nova-scotia'].map(p => `/ca/${p}`);
+
+  // Australia States
+  const auStates = ['new-south-wales','victoria','queensland','western-australia','south-australia','tasmania'].map(s => `/au/${s}`);
+
+  // India States (existing)
+  const statePaths = COUNTRIES['IN']?.states?.map(state =>
     `/in/${state.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
   ) || [];
 
-  const countryPaths = [..._countryPaths, ...statePaths];
+  const countryPaths = [...globalHubs, ...usStates, ...ukNations, ...caProvinces, ...auStates, ...statePaths];
 
-  const allStaticRoutes: MetadataRoute.Sitemap = [...staticPaths, ...countryPaths].map(route => ({
+
+  const allStaticRoutes: MetadataRoute.Sitemap = [...staticPaths].map(route => ({
     url: `${SITE_URL}${route}`,
     lastModified: new Date(),
     changeFrequency: 'daily',
-    priority: route === '' ? 1.0 : (route.includes('/check') ? 0.9 : 0.8),
+    priority: route === '' ? 1.0 : 0.9,
   }));
+
+  const countryRoutes: MetadataRoute.Sitemap = countryPaths.map(route => ({
+    url: `${SITE_URL}${route}`,
+    lastModified: new Date(),
+    changeFrequency: 'daily',
+    priority: route.includes('/check') ? 0.9 : (route.split('/').length <= 2 ? 0.85 : 0.75),
+  }));
+
 
   // 3. Dynamic Scheme Pages
   let dynamicRoutes: MetadataRoute.Sitemap = [];
@@ -105,5 +134,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.warn('⚠️ Could not load articles-index.json for sitemap');
   }
 
-  return [...allStaticRoutes, ...dynamicRoutes, ...articleEntries];
+  return [...allStaticRoutes, ...countryRoutes, ...dynamicRoutes, ...articleEntries];
 }

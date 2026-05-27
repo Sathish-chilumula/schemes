@@ -13,12 +13,12 @@
   --amber:         #F59E0B;
   --amber-light:   #FFFBEB;
   --surface:       #FFFFFF;
-  --surface-gray:  #F7F8FC;
-  --border:        #E8EAF0;
-  --text-primary:  #1A1F2E;
-  --text-muted:    #6B7280;
+  --surface-gray:  #FAFAF8;
+  --border:        #E5E3DC;
+  --text-primary:  #1A1A1A;
+  --text-muted:    #5C5C5C;
   --text-faint:    #9CA3AF;
-  --green:         #059669;
+  --green:         #138808;
   --radius-sm:     8px;
   --radius-md:     12px;
   --radius-lg:     16px;
@@ -28,6 +28,24 @@
   --shadow-glow:   0 0 40px rgba(59,59,249,0.20);
   --font-body:     'DM Sans', system-ui, sans-serif;
   --font-heading:  'Sora', system-ui, sans-serif;
+
+  /* ── SchemeAtlas Brand Tokens ── */
+  --saffron:           #FF6B00;
+  --saffron-light:     #FFF3E0;
+  --saffron-hover:     #E55C00;
+  --india-green:       #138808;
+  --india-green-light: #E8F5E9;
+  --warm-bg:           #FAFAF8;
+  --border-warm:       #E5E3DC;
+  --navy-accent:       #06038D;
+
+  /* ── Category Accent Colours ── */
+  --cat-farmers:   #2D7A3A;
+  --cat-students:  #1B5FA8;
+  --cat-women:     #C2185B;
+  --cat-health:    #C62828;
+  --cat-business:  #E65100;
+  --cat-scst:      #4527A0;
 }
 
 /* ── Global Resets & Google Translate Fix ─────────────────── */
@@ -131,6 +149,19 @@ body { top: 0px !important; }
   .btn-primary-new:hover { transform:translateY(-2px); box-shadow:0 12px 32px rgba(59,59,249,0.35); }
   .btn-outline { background:transparent; color:var(--indigo); border:2px solid var(--indigo); padding:10px 22px; border-radius:var(--radius-sm); font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.2s; }
   .btn-outline:hover { background:var(--indigo-light); }
+
+  /* ── New Saffron CTA button ── */
+  .btn-saffron { background:var(--saffron); color:white; border:none; padding:14px 28px; border-radius:var(--radius-sm); font-size:15px; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.2s; box-shadow:0 4px 16px rgba(255,107,0,0.30); display:inline-flex; align-items:center; gap:8px; }
+  .btn-saffron:hover { background:var(--saffron-hover); transform:translateY(-2px); box-shadow:0 8px 24px rgba(255,107,0,0.40); }
+
+  /* ── Benefit badge (green pill on scheme cards) ── */
+  .benefit-badge { background:var(--india-green); color:white; font-size:12px; font-weight:700; padding:3px 10px; border-radius:20px; display:inline-block; }
+
+  /* ── Category left border (applied via inline style for dynamic colour) ── */
+  .cat-border-card { border-left-width:3px; border-left-style:solid; }
+
+  /* ── Scheme card hover states ── */
+  .scheme-card-hover:hover { transform:scale(1.02); box-shadow:0 4px 12px rgba(0,0,0,0.08); }
 
   .glass-hero { background: rgba(255,255,255,0.08); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.15); }
   .text-gradient { background: linear-gradient(90deg, #F59E0B, #FBBF24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }

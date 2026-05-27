@@ -5,6 +5,8 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { FAQAccordion } from '@/components/FAQAccordion';
 import { Navbar } from '@/components/Navbar';
+import { Footer } from '@/components/Footer';
+import articlesIndex from '@/content/articles-index.json';
 
 // Do NOT use runtime = 'edge' here because we need fs
 export const dynamicParams = false;
@@ -36,19 +38,45 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   const article = await getArticle(params.slug);
   if (!article) return {};
 
+  const title = `${article.title} | SchemeAtlas Money Guides`;
+  const description = article.metaDescription || article.desc || `Read the complete guide: ${article.title}`;
+  const ogImage = article.imageUrl || `https://schemeatlas.com/og/category-${(article.category || 'guide').toLowerCase().replace(/\s+/g, '-')}.jpg`;
+
+  // Build article-specific keywords
+  const baseKeywords = article.keywords || [];
+  const categoryKeywords: Record<string, string[]> = {
+    'Loans': ['personal loan india', 'home loan', 'loan eligibility', 'EMI calculator', 'bank loan rates'],
+    'Insurance': ['health insurance', 'term insurance', 'life insurance india', 'insurance premium', 'coverage'],
+    'Earn Money': ['earn money online india', 'work from home', 'passive income', 'freelancing india'],
+    'Schemes': ['government scheme', 'central scheme india', 'state scheme', 'benefit amount', 'apply online'],
+    'Investment': ['investment india', 'mutual funds', 'SIP', 'stock market', 'fixed deposit'],
+    'Tax': ['income tax india', 'tax saving', 'ITR filing', 'deductions', 'tax rebate'],
+  };
+  const catKw = categoryKeywords[article.category] || [];
+  const allKeywords = [...new Set([...baseKeywords, ...catKw])].slice(0, 15).join(', ');
+
   return {
-    title: article.metaTitle || article.title,
-    description: article.metaDescription,
+    title,
+    description,
+    keywords: allKeywords,
     alternates: {
       canonical: `https://schemeatlas.com/articles/${params.slug}`
     },
     openGraph: {
-      title: article.metaTitle || article.title,
-      description: article.metaDescription,
+      title,
+      description,
       type: 'article',
       publishedTime: article.publishedAt,
+      modifiedTime: article.updatedAt || article.publishedAt,
       url: `https://schemeatlas.com/articles/${params.slug}`,
-    }
+      images: [{ url: ogImage, width: 1200, height: 630, alt: article.title }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [ogImage],
+    },
   };
 }
 
@@ -62,13 +90,27 @@ export default async function ArticlePage({ params }: { params: { slug: string }
   const articleSchema = {
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": article.metaTitle || article.title,
-    "description": article.metaDescription,
+    "headline": article.title,
+    "description": article.metaDescription || article.desc,
     "datePublished": article.publishedAt,
     "dateModified": article.updatedAt || article.publishedAt,
     "author": {
       "@type": "Organization",
-      "name": "SchemeAtlas"
+      "name": "SchemeAtlas Editorial Team",
+      "url": "https://schemeatlas.com/about"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "SchemeAtlas",
+      "url": "https://schemeatlas.com",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://schemeatlas.com/logo.png"
+      }
+    },
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": `https://schemeatlas.com/articles/${params.slug}`
     }
   };
 
@@ -82,6 +124,36 @@ export default async function ArticlePage({ params }: { params: { slug: string }
       { "@type": "ListItem", "position": 4, "name": article.title, "item": `https://schemeatlas.com/articles/${params.slug}` }
     ]
   };
+
+  // ─── Category colours and icons used in rendering ──────────────────────
+  const CATEGORY_COLOURS: Record<string, string> = {
+    'Loans': '#1B5FA8',
+    'Insurance': '#4527A0',
+    'Earn Money': '#2D7A3A',
+    'Schemes': '#FF6B00',
+    'Investment': '#E65100',
+    'Tax': '#C62828',
+    'Guide': '#3B3BF9',
+  };
+
+  const CATEGORY_ICONS: Record<string, string> = {
+    'Loans': '🏦',
+    'Insurance': '🛡️',
+    'Earn Money': '💰',
+    'Schemes': '🏛️',
+    'Investment': '📈',
+    'Tax': '🧾',
+    'Guide': '📚',
+  };
+
+  // ─── Next / Previous article navigation (same category) ───────────────
+  const allArticles = (articlesIndex as any[]).filter(
+    (a) => !/-(hi|te|ta|mr|gu|kn|ml|pa|or|yo|sw)$/.test(a.slug || '')
+  );
+  const sameCatArticles = allArticles.filter((a) => a.category === article.category);
+  const currentIdx = sameCatArticles.findIndex((a) => a.slug === params.slug);
+  const prevArticle = currentIdx > 0 ? sameCatArticles[currentIdx - 1] : null;
+  const nextArticle = currentIdx >= 0 && currentIdx < sameCatArticles.length - 1 ? sameCatArticles[currentIdx + 1] : null;
 
   return (
     <div className="bg-white min-h-screen">
@@ -138,21 +210,44 @@ export default async function ArticlePage({ params }: { params: { slug: string }
               <span className="text-[var(--text-muted)] font-[500] truncate max-w-[200px] sm:max-w-none">{article.title}</span>
             </div>
 
-            {/* Hero Image */}
-            {article.imageUrl && (
+            {/* Hero Image — with category gradient fallback */}
+            {article.imageUrl ? (
               <div className="relative w-full aspect-video rounded-[var(--radius-md)] overflow-hidden mb-[24px] border border-[var(--border)]">
-                <img 
-                  src={article.imageUrl} 
+                <img
+                  src={article.imageUrl}
                   alt={article.title}
                   className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                 />
+              </div>
+            ) : (
+              <div
+                className="w-full aspect-video rounded-[var(--radius-md)] overflow-hidden mb-[24px] flex items-center justify-center"
+                style={{
+                  background: `linear-gradient(135deg, ${CATEGORY_COLOURS[article.category] || '#3B3BF9'}22 0%, ${CATEGORY_COLOURS[article.category] || '#3B3BF9'}08 100%)`,
+                  border: `1px solid ${CATEGORY_COLOURS[article.category] || '#3B3BF9'}30`,
+                }}
+              >
+                <div className="text-center">
+                  <div style={{ fontSize: 48, marginBottom: 12 }}>
+                    {CATEGORY_ICONS[article.category] || '📄'}
+                  </div>
+                  <span
+                    className="text-[12px] font-[700] px-[10px] py-[4px] rounded-[20px]"
+                    style={{ background: `${CATEGORY_COLOURS[article.category] || '#3B3BF9'}20`, color: CATEGORY_COLOURS[article.category] || '#3B3BF9' }}
+                  >
+                    {article.category || 'Guide'}
+                  </span>
+                </div>
               </div>
             )}
 
             {/* Category Pill & Date */}
             <div className="flex items-center gap-[12px] mb-[16px]">
-              <span className="bg-[#E0E7FF] text-[#4338CA] text-[11px] font-[700] px-[10px] py-[4px] rounded-[20px]">
-                {article.category || "Guide"}
+              <span
+                className="text-[11px] font-[700] px-[10px] py-[4px] rounded-[20px]"
+                style={{ background: `${CATEGORY_COLOURS[article.category] || '#3B3BF9'}18`, color: CATEGORY_COLOURS[article.category] || '#3B3BF9' }}
+              >
+                {article.category || 'Guide'}
               </span>
               <span className="text-[13px] text-[var(--text-muted)]">
                 Updated: {new Date(article.updatedAt || article.publishedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -164,16 +259,29 @@ export default async function ArticlePage({ params }: { params: { slug: string }
               {article.title}
             </h1>
 
-            {/* Meta Bar */}
-            <div className="border-y border-[var(--border)] py-[14px] mb-[28px] flex gap-[20px] text-[13px] text-[var(--text-faint)]">
-              <div className="flex items-center gap-[6px]">
-                <span>⏱️</span> {article.readTime || '5 min read'}
+            {/* Author Block */}
+            <div
+              className="flex items-center gap-[14px] mb-[24px] pb-[20px]"
+              style={{ borderBottom: '1px solid var(--border)' }}
+            >
+              <div
+                className="w-[44px] h-[44px] rounded-full flex items-center justify-center text-[20px] flex-shrink-0"
+                style={{ background: `${CATEGORY_COLOURS[article.category] || '#3B3BF9'}20` }}
+              >
+                📝
               </div>
-              {article.wordCount && (
-                <div className="flex items-center gap-[6px]">
-                  <span>📝</span> {article.wordCount} words
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>SchemeAtlas Editorial Team</div>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                  Published: {article.publishedAt ? new Date(article.publishedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Recently'}
+                  {article.updatedAt && article.updatedAt !== article.publishedAt && (
+                    <span> · Updated: {new Date(article.updatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                  )}
                 </div>
-              )}
+              </div>
+              <div className="ml-auto">
+                <span style={{ fontSize: 12, color: 'var(--text-faint)', fontWeight: 600 }}>⏱ {article.readTime || '5 min read'}</span>
+              </div>
             </div>
 
             {/* Intro */}
@@ -229,26 +337,71 @@ export default async function ArticlePage({ params }: { params: { slug: string }
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-[12px]">
                   {article.relatedSchemes.map((rel: any, i: number) => {
                     const title = typeof rel === 'string' ? rel : rel.name || 'View Scheme';
-                    const sSlug = typeof rel === 'string' 
+                    const sSlug = typeof rel === 'string'
                       ? rel.toLowerCase().replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-')
                       : (rel.slug || title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-'));
-                    
                     const displayName = typeof rel === 'string'
                       ? rel.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
                       : title;
-
                     return (
                       <Link key={i} href={`/schemes/${sSlug}`} className="bg-white border border-[var(--border)] rounded-[var(--radius-sm)] p-[14px] hover:-translate-y-[2px] transition-transform shadow-sm flex flex-col justify-between">
-                        <div className="text-[13px] font-[600] text-[var(--text-primary)] mb-[8px] line-clamp-2">
-                          {displayName}
-                        </div>
+                        <div className="text-[13px] font-[600] text-[var(--text-primary)] mb-[8px] line-clamp-2">{displayName}</div>
                         <div className="text-[var(--indigo)] text-[12px] font-[700]">Check Details →</div>
                       </Link>
-                    )
+                    );
                   })}
                 </div>
               </div>
             )}
+
+            {/* ── WAS THIS HELPFUL? WIDGET ── */}
+            <div
+              className="mt-[48px] rounded-[var(--radius-md)] p-[24px] text-center"
+              style={{ background: 'var(--surface-gray)', border: '1px solid var(--border)' }}
+            >
+              <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 16 }}>Was this guide helpful?</p>
+              <div className="flex justify-center gap-[12px]">
+                <a
+                  href={`/articles/${params.slug}?feedback=yes`}
+                  className="flex items-center gap-[8px] px-[20px] py-[10px] rounded-[var(--radius-sm)] font-[700] text-[13px] transition-all"
+                  style={{ background: 'var(--india-green-light)', color: 'var(--india-green)', border: '1px solid var(--india-green)' }}
+                >
+                  👍 Yes, helpful
+                </a>
+                <a
+                  href={`/articles/${params.slug}?feedback=no`}
+                  className="flex items-center gap-[8px] px-[20px] py-[10px] rounded-[var(--radius-sm)] font-[700] text-[13px] transition-all"
+                  style={{ background: 'var(--surface-gray)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}
+                >
+                  👎 Needs improvement
+                </a>
+              </div>
+            </div>
+
+            {/* ── NEXT / PREVIOUS ARTICLE ── */}
+            {(prevArticle || nextArticle) && (
+              <div className="mt-[40px] grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
+                {prevArticle ? (
+                  <Link
+                    href={`/articles/${prevArticle.slug}`}
+                    className="rounded-[var(--radius-md)] p-[18px] border border-[var(--border)] bg-white hover:-translate-y-[1px] hover:shadow-[var(--shadow-sm)] transition-all block"
+                  >
+                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-faint)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '1px' }}>← Previous</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.4 }} className="line-clamp-2">{prevArticle.title}</div>
+                  </Link>
+                ) : <div />}
+                {nextArticle ? (
+                  <Link
+                    href={`/articles/${nextArticle.slug}`}
+                    className="rounded-[var(--radius-md)] p-[18px] border border-[var(--border)] bg-white hover:-translate-y-[1px] hover:shadow-[var(--shadow-sm)] transition-all block text-right"
+                  >
+                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-faint)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '1px' }}>Next →</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.4 }} className="line-clamp-2">{nextArticle.title}</div>
+                  </Link>
+                ) : <div />}
+              </div>
+            )}
+
           </article>
 
           {/* ── SIDEBAR (RIGHT) ── */}
@@ -323,6 +476,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
 
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

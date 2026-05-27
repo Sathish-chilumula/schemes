@@ -1,0 +1,45 @@
+# ============================================
+# SCHEMEATLAS — JOB 2: SCHEME CONTENT TRANSLATOR
+# Purpose : Translate English scheme articles to correct state language
+# AI      : OpenAI gpt-4o-mini ONLY (best translation quality)
+# Batch   : 20 schemes per run | Skips if nothing to translate
+# Matrix  : TS/AP→Telugu, KA→Kannada, TN→Tamil, KL→Malayalam,
+#           MH→Marathi, GJ→Gujarati, WB→Bengali, PB→Punjabi,
+#           UP/MP/RJ/BR/HR/DL→Hindi, Central→Hindi+Telugu
+# Runs    : Every 12 hours automatically
+# ============================================
+
+name: "Job 2: Scheme Content Translator (State Languages)"
+
+on:
+  schedule:
+    - cron: '0 */12 * * *'
+  workflow_dispatch:
+
+jobs:
+  translate-content:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install @supabase/supabase-js axios
+
+      - name: Translate to state languages
+        run: node scripts/translate-scheme-content.js
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL != '' && secrets.SUPABASE_URL || secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+      - name: Report status
+        if: always()
+        run: echo "✅ Job 2 (Translator) completed at $(date)"

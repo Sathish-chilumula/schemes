@@ -1,20 +1,34 @@
-name: Generate Articles from Google Trends
+# ============================================
+# SCHEMEATLAS — MONEY GUIDE WRITER
+# Purpose : Discover + write 5 finance/govt-loan articles per day
+# Covers  : India govt loans, USA benefits, UK grants, Europe schemes
+# AI      : Groq primary → OpenAI gpt-4o-mini fallback
+# Languages: English (primary). Hindi translation for India articles only.
+# Runs    : Once daily at 06:00 UTC
+# ============================================
+
+name: "Money Guide Writer (5/day — EN + Hindi)"
 
 on:
   schedule:
-    - cron: '30 0,8,16 * * *'   # Runs 3 times daily (00:30, 08:30, 16:30 UTC)
+    - cron: '0 6 * * *'   # Once daily at 06:00 UTC
   workflow_dispatch:
     inputs:
       force_topic:
         description: 'Force a specific topic (optional)'
         required: false
+      articles_count:
+        description: 'Number of articles to write (default: 5)'
+        required: false
+        default: '5'
 
 jobs:
-  generate:
+  write-money-guides:
     runs-on: ubuntu-latest
     permissions:
       contents: write
     timeout-minutes: 50
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -27,27 +41,39 @@ jobs:
 
       - run: npm ci
 
-      - name: Install script deps
+      - name: Install script dependencies
         run: npm install --no-save xml2js axios
 
-      - name: Generate articles
+      - name: Write money guide articles
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           NEWSDATA_API_KEY: ${{ secrets.NEWSDATA_API_KEY }}
+          GNEWS_API_KEY: ${{ secrets.GNEWS_API_KEY }}
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
           FORCE_TOPIC: ${{ github.event.inputs.force_topic }}
+          ARTICLES_IN: ${{ github.event.inputs.articles_count || '5' }}
+          ARTICLES_US: '0'
+          ENABLE_HINDI: 'true'
         run: npx tsx scripts/generate-articles.ts
 
-      - name: Commit if new articles exist
+      - name: Commit new articles
         run: |
           git config user.email "bot@schemeatlas.com"
-          git config user.name "SchemeAtlas Bot"
+          git config user.name "SchemeAtlas Money Guide Bot"
           git add content/articles/
-          git diff --cached --quiet || git commit -m "feat: auto-add articles from Google Trends [skip ci]"
+          git diff --cached --quiet || git commit -m "feat: money guides auto-added [skip ci]"
           git push
 
       - name: Trigger Cloudflare rebuild
+        if: always()
         run: |
-          curl -X POST "${{ secrets.CLOUDFLARE_DEPLOY_HOOK }}" --silent
+          if [ -n "$DEPLOY_HOOK" ]; then
+            curl -s -X POST "$DEPLOY_HOOK"
+            echo "✅ Cloudflare rebuild triggered"
+          else
+            echo "⚠️  CLOUDFLARE_DEPLOY_HOOK not set — skipping rebuild"
+          fi
+        env:
+          DEPLOY_HOOK: ${{ secrets.CLOUDFLARE_DEPLOY_HOOK }}

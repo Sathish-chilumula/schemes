@@ -1,25 +1,26 @@
 # ============================================
-# SCHEMEATLAS — UTILITY: MANUAL BULK SCHEME WRITER
-# Purpose : Manually process a large backlog of unwritten schemes at once
-# Use when: New country added, post-migration, large batch of new schemes
-# Trigger : MANUAL ONLY (GitHub Actions tab → Run workflow)
-# AI      : Groq primary → OpenAI gpt-4o-mini fallback
+# SCHEMEATLAS — JOB 1: SCHEME CONTENT WRITER
+# Purpose : Write English-only content for new unwritten schemes
+# AI      : Groq llama-3.3-70b (primary) → OpenAI gpt-4o-mini (fallback)
+# Batch   : 15 schemes per run | Skips if nothing new (saves API budget)
+# Runs    : Every 6 hours automatically
 # ============================================
 
-name: "Utility: Manual Bulk Scheme Writer"
+name: "Job 1: Scheme Content Writer (English)"
 
 on:
+  schedule:
+    - cron: '0 */6 * * *'
   workflow_dispatch:
     inputs:
-      batch_size:
-        description: 'Number of schemes to process (default: 50)'
+      force_slug:
+        description: 'Force a specific scheme slug (optional)'
         required: false
-        default: '50'
 
 jobs:
-  bulk-write:
+  write-english-content:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 30
 
     steps:
       - name: Checkout code
@@ -33,16 +34,15 @@ jobs:
       - name: Install dependencies
         run: npm install @supabase/supabase-js axios
 
-      - name: Run bulk English writer
+      - name: Write English scheme content
         run: node scripts/generate-scheme-content-en.js
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL != '' && secrets.SUPABASE_URL || secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          BATCH_SIZE: ${{ github.event.inputs.batch_size }}
-          BULK_MODE: 'true'
+          FORCE_SCHEME_SLUG: ${{ github.event.inputs.force_slug }}
 
-      - name: Report
+      - name: Report status
         if: always()
-        run: echo "✅ Bulk writer completed at $(date)"
+        run: echo "✅ Job 1 (English Writer) completed at $(date)"

@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
+import { Footer } from '@/components/Footer';
 import { supabaseAdmin } from '@/lib/supabase';
 import { COUNTRIES, CATEGORIES } from '@/lib/config';
 import { Metadata } from 'next';
@@ -117,7 +118,7 @@ export async function generateMetadata({
 
     const { data: scheme } = await supabase
       .from('schemes')
-      .select('name, content_en, state_name, country_code, slug, local_language, benefit_amount, canonical_slug')
+      .select('name, content_en, state_name, country_code, slug, local_language, benefit_amount, canonical_slug, category, image_url, ministry')
       .eq('slug', resolvedParams.slug)
       .single();
 
@@ -128,32 +129,41 @@ export async function generateMetadata({
 
     const location = (scheme.state_name || 'India').replace(/^null\s+/i, '');
     const currentYear = new Date().getFullYear();
-    // Keep title under 60 chars — 1553 pages were over limit
-    const nameForTitle = scheme.name.length > 44
-      ? scheme.name.substring(0, 41) + '…'
+    const currentMonth = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    // Keep title under 65 chars with site suffix
+    const nameForTitle = scheme.name.length > 38
+      ? scheme.name.substring(0, 35) + '…'
       : scheme.name;
-    const title = `${nameForTitle} — Eligibility & Apply ${currentYear}`;
+    const title = `${nameForTitle} — Eligibility, Benefits & Apply ${currentYear} | SchemeAtlas`;
     // Never surface "Not specified" / null into meta description
     const rawBenefit = scheme.benefit_amount || '';
     const isValidBenefit = rawBenefit.trim().length > 2 &&
       !rawBenefit.toLowerCase().includes('not specified') &&
       !rawBenefit.toLowerCase().includes('not applicable');
     const benefitText = isValidBenefit ? rawBenefit : 'financial assistance';
-    const description = `${scheme.name} provides ${benefitText} for eligible citizens in ${location}. Check eligibility and apply online.`;
+    // Eligibility group from category
+    const eligibilityGroup = scheme.category ? `${scheme.category.toLowerCase()} beneficiaries` : 'eligible citizens';
+    const description = `${scheme.name} provides ${benefitText} to ${eligibilityGroup} in ${location}. Check eligibility and apply online. Updated ${currentMonth}.`;
 
     const baseUrl = `https://schemeatlas.com/schemes/${resolvedParams.slug}`;
     // Canonical always points to the base English URL — never to ?lang= variants
     const canonicalUrl = baseUrl;
 
-    const languages: Record<string, string> = {
-      'x-default': baseUrl,
-      en: baseUrl,
-      hi: `${baseUrl}?lang=hi`,
+    // Category-specific OG image (1200x630)
+    const categoryOgImages: Record<string, string> = {
+      'Farmers': 'https://schemeatlas.com/og/category-farmers.jpg',
+      'Students': 'https://schemeatlas.com/og/category-students.jpg',
+      'Women': 'https://schemeatlas.com/og/category-women.jpg',
+      'Healthcare': 'https://schemeatlas.com/og/category-health.jpg',
+      'Business': 'https://schemeatlas.com/og/category-business.jpg',
+      'SC / ST': 'https://schemeatlas.com/og/category-scst.jpg',
+      'Housing': 'https://schemeatlas.com/og/category-housing.jpg',
     };
-    
-    if (scheme.local_language && scheme.local_language !== 'hi' && scheme.local_language !== 'en') {
-      languages[scheme.local_language] = `${baseUrl}?lang=${scheme.local_language}`;
-    }
+    const ogImage = scheme.image_url || categoryOgImages[scheme.category] || 'https://schemeatlas.com/og/default.jpg';
+
+    // NOTE: ?lang= hreflang alternates intentionally removed.
+    // robots.txt blocks /*?lang= so advertising them causes "Blocked by robots.txt" in GSC.
+    // The canonical English URL is the only version Google should index.
 
     return {
       title,
@@ -163,15 +173,19 @@ export async function generateMetadata({
         description,
         url: canonicalUrl,
         type: 'article',
+        images: [{ url: ogImage, width: 1200, height: 630, alt: scheme.name }],
       },
       twitter: {
         card: 'summary_large_image',
         title,
         description,
+        images: [ogImage],
       },
       alternates: {
+        // Only declare the canonical English URL.
+        // ?lang= variants are blocked by robots.txt, so we must NOT advertise
+        // them in hreflang — that conflict causes "Blocked by robots.txt" in GSC.
         canonical: canonicalUrl,
-        languages,
       },
     };
   } catch (error) {
@@ -273,6 +287,7 @@ export default async function SchemeDetailPage({
       },
       serviceType: "Government Benefit",
       url: `https://schemeatlas.com/schemes/${scheme.slug}`,
+      dateModified: scheme.last_updated || new Date().toISOString().split('T')[0],
     };
 
     const isCentral = !stateSlug || scheme.scheme_type === 'central';
@@ -305,6 +320,19 @@ export default async function SchemeDetailPage({
 
     const faqSchema = generateFAQSchema(scheme);
 
+    // ─── Category colour system ─────────────────────────────────────────
+    const CATEGORY_COLOURS: Record<string, string> = {
+      'Farmers': '#2D7A3A',
+      'Students': '#1B5FA8',
+      'Women': '#C2185B',
+      'Healthcare': '#C62828',
+      'Business': '#E65100',
+      'SC / ST': '#4527A0',
+      'Housing': '#06B6D4',
+    };
+    const catColor = CATEGORY_COLOURS[scheme.category] || '#FF6B00';
+    const lastVerifiedDate = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+
     return (
       <main className="min-h-screen bg-slate-50 font-sans">
         <Navbar />
@@ -325,6 +353,9 @@ export default async function SchemeDetailPage({
           />
         )}
 
+        {/* ── Category colour top banner ── */}
+        <div style={{ height: 6, background: catColor, width: '100%' }} />
+
         {/* SEO Breadcrumbs & Header */}
         <div className="bg-white border-b border-slate-200 py-10 shadow-sm">
           <div className="max-w-7xl mx-auto px-4">
@@ -343,23 +374,79 @@ export default async function SchemeDetailPage({
               ))}
             </nav>
 
-            <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 leading-tight mb-6">
+            <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 leading-tight mb-4">
               {scheme.name}
             </h1>
-            
+
+            {/* Ministry & portal badge */}
+            {(scheme.ministry || scheme.official_url) && (
+              <div className="flex flex-wrap items-center gap-3 mb-5">
+                {scheme.ministry && (
+                  <span style={{ fontSize: 12, fontWeight: 700, background: `${catColor}14`, color: catColor, border: `1px solid ${catColor}30`, padding: '4px 12px', borderRadius: 20 }}>
+                    🏛️ {scheme.ministry}
+                  </span>
+                )}
+                {scheme.official_url && (
+                  <a href={scheme.official_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, fontWeight: 700, background: '#E8F5E9', color: '#138808', border: '1px solid #138808', padding: '4px 12px', borderRadius: 20, textDecoration: 'none' }}>
+                    ✓ Official Portal ↗
+                  </a>
+                )}
+              </div>
+            )}
+
             <div className="flex flex-wrap items-center gap-4 text-slate-600 mb-8">
-              <div className="flex items-center bg-blue-50 px-4 py-2 rounded-xl border border-blue-100">
-                <span className="flex h-3 w-3 mr-3 items-center justify-center rounded-full bg-blue-100">
-                  <span className="h-2 w-2 animate-ping rounded-full bg-blue-600"></span>
+              <div className="flex items-center px-4 py-2 rounded-xl border" style={{ background: `${catColor}10`, borderColor: `${catColor}30` }}>
+                <span className="flex h-3 w-3 mr-3 items-center justify-center rounded-full" style={{ background: `${catColor}20` }}>
+                  <span className="h-2 w-2 animate-ping rounded-full" style={{ background: catColor }}></span>
                 </span>
-                <span className="text-blue-700 font-bold">Live Status: Active & Open</span>
+                <span className="font-bold" style={{ color: catColor }}>Live Status: Active &amp; Open</span>
               </div>
               <div className="flex items-center text-sm font-semibold text-slate-500 bg-slate-50 px-4 py-2 rounded-xl border border-slate-200">
-                <svg className="w-4 h-4 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-4 h-4 mr-2 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
                 </svg>
-                Last Updated: {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                Last verified: {lastVerifiedDate}
               </div>
+            </div>
+
+            {/* ── Quick Summary Box ── */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-[12px] mb-8">
+              {[
+                {
+                  label: 'Benefit Amount',
+                  value: scheme.benefit_amount || 'See Details',
+                  icon: '💰',
+                  color: '#138808',
+                  bg: '#E8F5E9',
+                },
+                {
+                  label: 'Who Can Apply',
+                  value: eligibilityList[0] || scheme.category || 'Eligible Citizens',
+                  icon: '👥',
+                  color: catColor,
+                  bg: `${catColor}12`,
+                },
+                {
+                  label: 'How to Apply',
+                  value: howToApplyList[0]?.substring(0, 60) || 'Official Portal',
+                  icon: '📋',
+                  color: '#1B5FA8',
+                  bg: '#EBF4FF',
+                },
+              ].map((item, i) => (
+                <div
+                  key={i}
+                  className="rounded-[12px] p-[14px_16px]"
+                  style={{ background: item.bg, border: `1px solid ${item.color}22` }}
+                >
+                  <div style={{ fontSize: 11, fontWeight: 700, color: item.color, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>
+                    {item.icon} {item.label}
+                  </div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#1A1A1A', lineHeight: 1.4 }} className="line-clamp-2">
+                    {item.value}
+                  </div>
+                </div>
+              ))}
             </div>
 
             <div className="w-full h-[300px] md:h-[450px] relative rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white mb-4 group">
@@ -516,6 +603,7 @@ export default async function SchemeDetailPage({
             </div>
           </div>
         </div>
+        <Footer />
       </main>
     );
   } catch (error) {

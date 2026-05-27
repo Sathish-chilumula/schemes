@@ -8,28 +8,33 @@ const GEMINI_KEY = process.env.GEMINI_API_KEY || ''
 const OPENAI_KEY = process.env.OPENAI_API_KEY || ''
 const PEXELS_API_KEY = process.env.PEXELS_API_KEY || ''
 const NEWSDATA_KEY = process.env.NEWSDATA_API_KEY || ''
+const GNEWS_KEY = process.env.GNEWS_API_KEY || ''
 const FORCE_TOPIC = process.env.FORCE_TOPIC || ''
-const ARTICLES_IN = parseInt(process.env.ARTICLES_IN || '4')
-const ARTICLES_US = parseInt(process.env.ARTICLES_US || '2')
+const ARTICLES_IN = parseInt(process.env.ARTICLES_IN || '5')   // 5 guides per day
+const ARTICLES_US = parseInt(process.env.ARTICLES_US || '0')   // US guides disabled by default
+const ENABLE_HINDI = process.env.ENABLE_HINDI === 'true'       // Hindi translation only
 const DIR = path.join(process.cwd(), 'content/articles')
 const INDEX_FILE = path.join(process.cwd(), 'content/articles-index.json')
 const MODEL = 'llama-3.3-70b-versatile'
 
-// Finance autocomplete seeds — angles, not specific articles.
-// Each seed generates 10 autocomplete suggestions = 80-120 real user search phrases
+// Government loans & financial products Indians don't know about
+// Real demand — massively underserved content with high-intent searchers
 const AUTOCOMPLETE_SEEDS_IN = [
-  'personal loan india 2026',
-  'home loan india 2026',
-  'health insurance india 2026',
-  'income tax saving india 2026',
-  'government scheme apply india 2026',
-  'mutual fund SIP india 2026',
-  'business loan india 2026',
-  'scholarship india 2026',
-  'PM scheme benefit apply 2026',
-  'gold loan india',
-  'term insurance india 2026',
-  'earn money online india legally',
+  'PM MUDRA loan apply online 2026',
+  'government business loan without collateral india 2026',
+  'PM SVANidhi street vendor loan 10000 apply 2026',
+  'Stand Up India loan SC ST women 2026',
+  'Kisan Credit Card KCC apply bank 2026',
+  'PM Vishwakarma scheme artisan loan 2026',
+  'CGTMSE collateral free loan MSME 2026',
+  'PMAY urban subsidy home loan EWS LIG apply 2026',
+  'Atal Pension Yojana register online bank 2026',
+  'PM Fasal Bima Yojana apply crop insurance 2026',
+  'Sukanya Samriddhi Yojana open account post office 2026',
+  'government scheme women self employment SHG india 2026',
+  'ayushman bharat health card apply 2026',
+  'MSME emergency credit loan government india 2026',
+  'state government scheme new launched 2026 india',
 ]
 
 const AUTOCOMPLETE_SEEDS_US = [
@@ -327,9 +332,9 @@ async function main() {
       const article = await writeArticle(item.articleTitle, item.category, item.slug, item.country)
       fs.writeFileSync(path.join(DIR, `${item.slug}.json`), JSON.stringify(article, null, 2))
       
-      // Translate if not US
-      if (item.country !== 'US') {
-        for (const lang of ['hi', 'te']) {
+      // Translate to Hindi only (if ENABLE_HINDI=true and not US article)
+      if (item.country !== 'US' && ENABLE_HINDI) {
+        for (const lang of ['hi']) {
           console.log(`   Translating to ${lang}...`)
           try {
             const translated = parseJSON(await translate(JSON.stringify(article), lang === 'hi' ? 'Hindi' : 'Telugu'))
