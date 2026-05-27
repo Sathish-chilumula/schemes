@@ -11,10 +11,11 @@ export function IndiaMap() {
   const [hoveredState, setHoveredState] = useState<string | null>(null);
 
   const handleLocationClick = (event: any) => {
-    const stateId = event.target.id;
+    const stateName = event.target.getAttribute('name');
     // Route to the state scheme page
-    if (stateId) {
-      router.push(`/in/${stateId}`);
+    if (stateName) {
+      const slug = stateName.toLowerCase().replace(/\s+/g, '-');
+      router.push(`/in/${slug}`);
     }
   };
 
