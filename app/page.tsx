@@ -110,7 +110,7 @@ export default async function HomePage() {
         .limit(3),
       supabase
         .from('schemes')
-        .select('id, name, slug, category, country_code, what_you_get, benefit_amount, scheme_type, views, target_group, image_url')
+        .select('id, name, slug, category, country_code, what_you_get, benefit_amount, scheme_type, views, target_group, image_url, discovered_at')
         .eq('is_published', true)
         .eq('country_code', 'IN')
         .order('discovered_at', { ascending: false })
