@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { InstallAppButton } from '@/components/InstallAppButton';
 
 export function Footer() {
   return (
@@ -94,6 +95,7 @@ export function Footer() {
               <li><Link href="/terms" className="text-slate-400 hover:text-white transition-colors">Terms of Service</Link></li>
               <li><Link href="/disclaimer" className="text-slate-400 hover:text-white transition-colors">Disclaimer</Link></li>
               <li><Link href="/sitemap.xml" className="text-slate-400 hover:text-white transition-colors">XML Sitemap</Link></li>
+              <li className="pt-2 mt-2 border-t border-white/10"><InstallAppButton /></li>
             </ul>
           </div>
 

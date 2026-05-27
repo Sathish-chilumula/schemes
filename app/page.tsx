@@ -113,8 +113,6 @@ export default async function HomePage() {
         .select('id, name, slug, category, country_code, what_you_get, benefit_amount, scheme_type, views, target_group, image_url')
         .eq('is_published', true)
         .eq('country_code', 'IN')
-        .not('ministry', 'is', null)
-        .not('official_url', 'is', null)
         .order('discovered_at', { ascending: false })
         .limit(3),
     ]);
@@ -397,7 +395,9 @@ export default async function HomePage() {
                       </div>
                     </div>
 
-                    <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8, lineHeight: 1.4 }} className="line-clamp-2">{scheme.name}</h3>
+                    <Link href={`/schemes/${scheme.slug}`} className="hover:underline text-[var(--saffron)] decoration-[var(--saffron)] underline-offset-2">
+                      <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8, lineHeight: 1.4 }} className="line-clamp-2 hover:text-[var(--saffron)] transition-colors">{scheme.name}</h3>
+                    </Link>
                     <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 16, flex: 1 }} className="line-clamp-2">{scheme.what_you_get}</p>
 
                     <div className="flex items-center justify-between mt-auto" style={{ borderTop: '1px solid var(--border)', paddingTop: 14 }}>
@@ -443,7 +443,9 @@ export default async function HomePage() {
                     <div className="flex items-center gap-[6px] text-[12px] font-[600] px-[12px] py-[4px] rounded-[20px] w-fit mb-[12px]" style={{ background: `${catColor}18`, color: catColor }}>
                       {scheme.category}
                     </div>
-                    <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 6, lineHeight: 1.4 }} className="line-clamp-2">{scheme.name}</h3>
+                    <Link href={`/schemes/${scheme.slug}`} className="hover:underline text-[var(--saffron)] decoration-[var(--saffron)] underline-offset-2">
+                      <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 6, lineHeight: 1.4 }} className="line-clamp-2 hover:text-[var(--saffron)] transition-colors">{scheme.name}</h3>
+                    </Link>
                     <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 16, flex: 1 }} className="line-clamp-2">{scheme.what_you_get}</p>
                     <div className="flex items-center justify-between mt-auto" style={{ borderTop: '1px solid var(--border)', paddingTop: 12 }}>
                       <span className="benefit-badge">{scheme.benefit_amount || 'View Details'}</span>

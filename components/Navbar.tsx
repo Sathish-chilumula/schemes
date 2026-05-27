@@ -182,8 +182,7 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
             {/* CTA — saffron pill */}
             <Link
               href="/in/check"
-              className="btn-saffron hidden sm:inline-block py-[9px] px-[20px] text-[13px]"
-              style={{ background: '#FF6B00', color: 'white' }}
+              className="hidden sm:flex items-center justify-center bg-[#FF6B00] hover:bg-[#E55C00] text-white font-[700] rounded-[var(--radius-sm)] py-[8px] px-[16px] text-[13px] transition-all shadow-[0_4px_12px_rgba(255,107,0,0.25)] hover:shadow-[0_6px_16px_rgba(255,107,0,0.35)] hover:-translate-y-[1px]"
             >
               Check Eligibility →
             </Link>
