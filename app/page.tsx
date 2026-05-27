@@ -88,112 +88,7 @@ const CATEGORY_CONFIG = [
   },
 ];
 
-// ─── India Map SVG — interactive hotspots ────────────────────────────────
-function IndiaMapSVG() {
-  const states = [
-    { id: 'jammu-kashmir', cx: 155, cy: 68, r: 18, label: 'J&K' },
-    { id: 'himachal-pradesh', cx: 175, cy: 100, r: 14, label: 'HP' },
-    { id: 'punjab', cx: 148, cy: 108, r: 14, label: 'PB' },
-    { id: 'uttarakhand', cx: 200, cy: 115, r: 14, label: 'UK' },
-    { id: 'haryana', cx: 163, cy: 128, r: 13, label: 'HR' },
-    { id: 'delhi', cx: 178, cy: 138, r: 11, label: 'DL' },
-    { id: 'rajasthan', cx: 140, cy: 175, r: 22, label: 'RJ' },
-    { id: 'uttar-pradesh', cx: 210, cy: 160, r: 22, label: 'UP' },
-    { id: 'bihar', cx: 250, cy: 165, r: 16, label: 'BR' },
-    { id: 'sikkim', cx: 285, cy: 135, r: 10, label: 'SK' },
-    { id: 'west-bengal', cx: 278, cy: 185, r: 16, label: 'WB' },
-    { id: 'gujarat', cx: 118, cy: 210, r: 20, label: 'GJ' },
-    { id: 'madhya-pradesh', cx: 185, cy: 210, r: 24, label: 'MP' },
-    { id: 'jharkhand', cx: 258, cy: 195, r: 14, label: 'JH' },
-    { id: 'odisha', cx: 258, cy: 225, r: 16, label: 'OR' },
-    { id: 'chhattisgarh', cx: 225, cy: 228, r: 16, label: 'CG' },
-    { id: 'maharashtra', cx: 162, cy: 255, r: 24, label: 'MH' },
-    { id: 'telangana', cx: 205, cy: 270, r: 16, label: 'TS' },
-    { id: 'andhra-pradesh', cx: 218, cy: 305, r: 18, label: 'AP' },
-    { id: 'karnataka', cx: 176, cy: 305, r: 20, label: 'KA' },
-    { id: 'goa', cx: 148, cy: 290, r: 9, label: 'GA' },
-    { id: 'kerala', cx: 173, cy: 348, r: 16, label: 'KL' },
-    { id: 'tamil-nadu', cx: 210, cy: 345, r: 18, label: 'TN' },
-    { id: 'assam', cx: 305, cy: 155, r: 16, label: 'AS' },
-    { id: 'arunachal-pradesh', cx: 330, cy: 130, r: 14, label: 'AR' },
-    { id: 'nagaland', cx: 332, cy: 162, r: 10, label: 'NL' },
-    { id: 'manipur', cx: 330, cy: 180, r: 10, label: 'MN' },
-    { id: 'mizoram', cx: 320, cy: 200, r: 10, label: 'MZ' },
-    { id: 'tripura', cx: 308, cy: 195, r: 10, label: 'TR' },
-    { id: 'meghalaya', cx: 305, cy: 170, r: 11, label: 'ML' },
-  ];
-
-  return (
-    <div className="relative w-full flex items-center justify-center" style={{ minHeight: '380px' }}>
-      {/* Background glow */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div style={{ width: 320, height: 320, background: 'radial-gradient(circle, rgba(255,107,0,0.08) 0%, transparent 70%)', borderRadius: '50%' }} />
-      </div>
-
-      <svg
-        viewBox="80 50 290 330"
-        style={{ width: '100%', maxWidth: 360, filter: 'drop-shadow(0 8px 24px rgba(255,107,0,0.12))' }}
-        aria-label="Interactive map of India — click a state to browse its schemes"
-      >
-        {/* Outline of India — simplified polygon */}
-        <path
-          d="M155,68 L178,60 L208,65 L235,72 L260,90 L280,110 L310,120 L335,125 L345,140 L330,155 L340,175 L330,200 L315,210 L308,198 L295,205 L275,218 L270,240 L255,260 L240,280 L225,300 L218,320 L212,345 L200,360 L185,368 L170,358 L160,345 L158,325 L148,310 L138,295 L145,285 L148,272 L140,255 L128,245 L118,228 L110,210 L105,195 L108,178 L115,160 L120,145 L130,135 L140,125 L148,110 L148,95 L155,80 Z"
-          fill="rgba(255,107,0,0.04)"
-          stroke="rgba(255,107,0,0.18)"
-          strokeWidth="1.5"
-          strokeLinejoin="round"
-        />
-
-        {/* State hotspots */}
-        {states.map((s) => (
-          <a key={s.id} href={`/in/${s.id}`} aria-label={`${s.label} schemes`}>
-            <g className="state-hotspot" style={{ cursor: 'pointer' }}>
-              <circle
-                cx={s.cx}
-                cy={s.cy}
-                r={s.r}
-                fill="rgba(255,107,0,0.12)"
-                stroke="rgba(255,107,0,0.35)"
-                strokeWidth="1"
-                style={{ transition: 'all 0.2s' }}
-              />
-              <circle
-                cx={s.cx}
-                cy={s.cy}
-                r={s.r - 4}
-                fill="rgba(255,107,0,0.20)"
-                className="inner-dot"
-              />
-              <text
-                x={s.cx}
-                y={s.cy + 1}
-                textAnchor="middle"
-                dominantBaseline="middle"
-                fontSize={s.r < 12 ? 7 : 8}
-                fontWeight="700"
-                fill="#CC4400"
-                style={{ pointerEvents: 'none', fontFamily: 'DM Sans, sans-serif' }}
-              >
-                {s.label}
-              </text>
-            </g>
-          </a>
-        ))}
-      </svg>
-
-      <style>{`
-        .state-hotspot:hover circle { fill: rgba(255,107,0,0.28); stroke: #FF6B00; stroke-width: 2; }
-        .state-hotspot:hover .inner-dot { fill: rgba(255,107,0,0.45); }
-        .state-hotspot:hover text { fill: #FF6B00; }
-      `}</style>
-
-      {/* Map caption */}
-      <div className="absolute bottom-0 left-0 right-0 text-center">
-        <span style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 600 }}>Click any state to browse its schemes</span>
-      </div>
-    </div>
-  );
-}
+import { IndiaMap } from '@/components/IndiaMap';
 
 export default async function HomePage() {
   let trendingSchemes: any[] = [];
@@ -338,7 +233,7 @@ export default async function HomePage() {
 
             {/* Right column — 40% */}
             <div className="lg:w-[40%] w-full flex justify-center">
-              <IndiaMapSVG />
+              <IndiaMap />
             </div>
           </div>
         </div>

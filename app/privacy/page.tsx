@@ -11,43 +11,108 @@ export default function PrivacyPolicy() {
     <div className="min-h-screen bg-slate-50">
       <Navbar />
       <div className="page-container py-16 text-slate-800 max-w-4xl mx-auto">
-        <h1 className="text-4xl font-extrabold mb-8 text-slate-900 border-b pb-4">Privacy Policy</h1>
+        <h1 className="text-4xl font-extrabold mb-8 text-slate-900 border-b pb-4">Privacy Policy for SchemeAtlas</h1>
         <div className="prose prose-slate max-w-none text-slate-600">
-          <p><strong>Last Updated:</strong> April 2026</p>
+          <p><strong>Last Updated:</strong> May 2026</p>
           
+          <p>
+            At SchemeAtlas, accessible from https://schemeatlas.com, one of our main priorities is the privacy of our visitors. This Privacy Policy document contains types of information that is collected and recorded by SchemeAtlas and how we use it.
+          </p>
+          <p>
+            If you have additional questions or require more information about our Privacy Policy, do not hesitate to contact us at <a href="mailto:contact@schemeatlas.com" className="text-brand-500 underline">contact@schemeatlas.com</a>.
+          </p>
+
           <h3>1. Information We Collect</h3>
           <p>
-            At SchemeAtlas, the privacy of our visitors is of extreme importance to us. We collect anonymous data regarding which schemes are viewed to improve our trending features. We also collect non-personally identifiable information voluntarily provided in our Eligibility Check wizard (such as basic income brackets, age range, and general location/state). 
-            <strong> We DO NOT collect sensitive personal data such as full names (unless volunteering via contact forms), social security numbers, or banking details.</strong>
+            The personal information that you are asked to provide, and the reasons why you are asked to provide it, will be made clear to you at the point we ask you to provide your personal information.
           </p>
           <p>
-            <strong>We never sell your data.</strong> Your personal information is never shared with, sold to, or rented to any third party for marketing purposes.
+            If you contact us directly, we may receive additional information about you such as your name, email address, phone number, the contents of the message and/or attachments you may send us, and any other information you may choose to provide.
           </p>
-
-          <h3>2. Log Files &amp; Cookies</h3>
           <p>
-            Like many other Web sites, we use log files and cookies for analytics purposes only. 
-            These simply log visitors to the site — a standard procedure for hosting companies and a part of hosting services' analytics. The information includes internet protocol (IP) addresses, browser type, Internet Service Provider (ISP), date/time stamp, and referring/exit pages.
+            When you use our Eligibility Check wizard, we collect non-personally identifiable information voluntarily provided (such as basic income brackets, age range, and general location/state). <strong>We DO NOT collect sensitive personal data such as social security numbers, Aadhaar numbers, or banking details.</strong>
           </p>
 
-          <h3>3. Google AdSense &amp; Third Party Advertising</h3>
+          <h3>2. Log Files</h3>
           <p>
-            Google, as a third party vendor, uses cookies to serve ads on SchemeAtlas. Google's use of the advertising DART cookie enables it to serve ads based on users' visit to our site and other sites on the Internet. Users may opt out of the use of the DART cookie by visiting the Google ad and content network privacy policy at <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer" className="text-brand-500 underline">policies.google.com/technologies/ads</a>.
+            SchemeAtlas follows a standard procedure of using log files. These files log visitors when they visit websites. All hosting companies do this and a part of hosting services' analytics. The information collected by log files include internet protocol (IP) addresses, browser type, Internet Service Provider (ISP), date and time stamp, referring/exit pages, and possibly the number of clicks. These are not linked to any information that is personally identifiable. The purpose of the information is for analyzing trends, administering the site, tracking users' movement on the website, and gathering demographic information.
           </p>
 
-          <h3>4. Local Storage (Bookmarks)</h3>
+          <h3>3. Cookies and Web Beacons</h3>
           <p>
-            Our "Saved Schemes" functionality relies entirely on your browser's local storage. This data never leaves your device and is not synchronized to our servers unless you explicitly sign up for a cloud account.
+            Like any other website, SchemeAtlas uses "cookies". These cookies are used to store information including visitors' preferences, and the pages on the website that the visitor accessed or visited. The information is used to optimize the users' experience by customizing our web page content based on visitors' browser type and/or other information.
           </p>
 
-          <h3>5. User Accounts</h3>
+          <h3>4. Google DoubleClick DART Cookie</h3>
           <p>
-            If you create an account on SchemeAtlas, we store your name, email/phone for login purposes only. This data is stored securely on Supabase (our database provider) and is never shared with third parties.
+            Google is one of a third-party vendor on our site. It also uses cookies, known as DART cookies, to serve ads to our site visitors based upon their visit to www.website.com and other sites on the internet. However, visitors may choose to decline the use of DART cookies by visiting the Google ad and content network Privacy Policy at the following URL – <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer" className="text-brand-500 underline">https://policies.google.com/technologies/ads</a>
           </p>
 
-          <h3>6. Contact</h3>
+          <h3>5. Our Advertising Partners</h3>
           <p>
-            If you have questions about this privacy policy, please contact us at: <a href="mailto:contact@schemeatlas.com" className="text-brand-500 underline">contact@schemeatlas.com</a>
+            Some of advertisers on our site may use cookies and web beacons. Our advertising partners are listed below. Each of our advertising partners has their own Privacy Policy for their policies on user data. For easier access, we hyperlinked to their Privacy Policies below.
+          </p>
+          <ul>
+            <li>
+              <p>Google</p>
+              <p><a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer" className="text-brand-500 underline">https://policies.google.com/technologies/ads</a></p>
+            </li>
+          </ul>
+
+          <h3>6. Advertising Partners Privacy Policies</h3>
+          <p>
+            You may consult this list to find the Privacy Policy for each of the advertising partners of SchemeAtlas.
+          </p>
+          <p>
+            Third-party ad servers or ad networks uses technologies like cookies, JavaScript, or Web Beacons that are used in their respective advertisements and links that appear on SchemeAtlas, which are sent directly to users' browser. They automatically receive your IP address when this occurs. These technologies are used to measure the effectiveness of their advertising campaigns and/or to personalize the advertising content that you see on websites that you visit.
+          </p>
+          <p>
+            Note that SchemeAtlas has no access to or control over these cookies that are used by third-party advertisers.
+          </p>
+
+          <h3>7. Third Party Privacy Policies</h3>
+          <p>
+            SchemeAtlas's Privacy Policy does not apply to other advertisers or websites. Thus, we are advising you to consult the respective Privacy Policies of these third-party ad servers for more detailed information. It may include their practices and instructions about how to opt-out of certain options.
+          </p>
+          <p>
+            You can choose to disable cookies through your individual browser options. To know more detailed information about cookie management with specific web browsers, it can be found at the browsers' respective websites.
+          </p>
+
+          <h3>8. CCPA Privacy Rights (Do Not Sell My Personal Information)</h3>
+          <p>
+            Under the CCPA, among other rights, California consumers have the right to:
+          </p>
+          <ul className="list-disc pl-5">
+            <li>Request that a business that collects a consumer's personal data disclose the categories and specific pieces of personal data that a business has collected about consumers.</li>
+            <li>Request that a business delete any personal data about the consumer that a business has collected.</li>
+            <li>Request that a business that sells a consumer's personal data, not sell the consumer's personal data.</li>
+          </ul>
+          <p>
+            If you make a request, we have one month to respond to you. If you would like to exercise any of these rights, please contact us. <strong>Note: We never sell your personal data.</strong>
+          </p>
+
+          <h3>9. GDPR Data Protection Rights</h3>
+          <p>
+            We would like to make sure you are fully aware of all of your data protection rights. Every user is entitled to the following:
+          </p>
+          <ul className="list-disc pl-5">
+            <li><strong>The right to access</strong> – You have the right to request copies of your personal data. We may charge you a small fee for this service.</li>
+            <li><strong>The right to rectification</strong> – You have the right to request that we correct any information you believe is inaccurate. You also have the right to request that we complete the information you believe is incomplete.</li>
+            <li><strong>The right to erasure</strong> – You have the right to request that we erase your personal data, under certain conditions.</li>
+            <li><strong>The right to restrict processing</strong> – You have the right to request that we restrict the processing of your personal data, under certain conditions.</li>
+            <li><strong>The right to object to processing</strong> – You have the right to object to our processing of your personal data, under certain conditions.</li>
+            <li><strong>The right to data portability</strong> – You have the right to request that we transfer the data that we have collected to another organization, or directly to you, under certain conditions.</li>
+          </ul>
+          <p>
+            If you make a request, we have one month to respond to you. If you would like to exercise any of these rights, please contact us.
+          </p>
+
+          <h3>10. Children's Information</h3>
+          <p>
+            Another part of our priority is adding protection for children while using the internet. We encourage parents and guardians to observe, participate in, and/or monitor and guide their online activity.
+          </p>
+          <p>
+            SchemeAtlas does not knowingly collect any Personal Identifiable Information from children under the age of 13. If you think that your child provided this kind of information on our website, we strongly encourage you to contact us immediately and we will do our best efforts to promptly remove such information from our records.
           </p>
         </div>
       </div>
