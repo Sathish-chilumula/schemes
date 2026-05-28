@@ -17,6 +17,7 @@ export default function Sidebar() {
 
   const navItems = [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+    { name: 'Schemes', href: '/admin/schemes', icon: FileText },
     { name: 'Articles', href: '/admin/articles', icon: FileText },
     { name: 'New Article', href: '/admin/articles/new', icon: Plus },
     { name: 'Categories', href: '/admin/categories', icon: Tags },

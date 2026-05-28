@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createAdminClient } from '@/lib/supabase-admin-client';
 import { Save, Send } from 'lucide-react';
+import TipTapEditor from '@/components/admin/TipTapEditor';
 
 type Category = { id: string; name: string };
 
@@ -120,12 +121,9 @@ export default function ArticleForm({ initialData, isEdit }: ArticleFormProps) {
             Content
             <span className="text-slate-400 font-normal">{wordCount} words</span>
           </label>
-          <textarea
-            required
-            value={formData.content}
-            onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-            className="w-full px-4 py-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 min-h-[400px] font-mono text-sm leading-relaxed"
-            placeholder="Write your markdown or HTML content here..."
+          <TipTapEditor 
+            content={formData.content} 
+            onChange={(html) => setFormData({ ...formData, content: html })} 
           />
         </div>
 

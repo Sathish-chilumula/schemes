@@ -15,9 +15,11 @@ const STATIC_ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS).catch(() => {
-        // Silently fail if some assets aren't available offline
-      });
+      return Promise.allSettled(
+        STATIC_ASSETS.map(url => 
+          cache.add(url).catch(err => console.warn(`[SW] Failed to cache ${url}:`, err))
+        )
+      );
     })
   );
   self.skipWaiting();

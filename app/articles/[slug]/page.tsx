@@ -5,27 +5,53 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { FAQAccordion } from '@/components/FAQAccordion';
 import { Navbar } from '@/components/Navbar';
+import { supabaseAdmin } from '@/lib/supabase';
 
-import articlesIndex from '@/content/articles-index.json';
-
-// Do NOT use runtime = 'edge' here because we need fs
-export const dynamicParams = false;
+// Do NOT use runtime = 'edge' here because we still use fs for language variants/fallback
+export const dynamicParams = true;
 
 export async function generateStaticParams() {
-  const articlesDir = path.join(process.cwd(), 'content/articles');
-  if (!fs.existsSync(articlesDir)) {
-    return [{ slug: 'placeholder-guide' }];
+  const supabase = supabaseAdmin({ next: { revalidate: 3600 } });
+  const { data } = await supabase.from('articles').select('slug').eq('status', 'published');
+  if (data && data.length > 0) {
+    return data.map(article => ({ slug: article.slug }));
   }
-  const files = fs.readdirSync(articlesDir).filter(f => f.endsWith('.json'));
-  if (files.length === 0) {
-    return [{ slug: 'placeholder-guide' }];
-  }
-  return files.map(file => ({
-    slug: file.replace('.json', '')
-  }));
+  return [{ slug: 'placeholder-guide' }];
 }
 
 async function getArticle(slug: string) {
+  // First, check Supabase
+  const supabase = supabaseAdmin({ next: { revalidate: 3600 } });
+  const { data: dbArticle, error } = await supabase
+    .from('articles')
+    .select('*, categories(name)')
+    .eq('slug', slug)
+    .eq('status', 'published')
+    .single();
+
+  if (dbArticle && !error) {
+    // Map DB article to frontend shape
+    return {
+      title: dbArticle.title,
+      slug: dbArticle.slug,
+      desc: dbArticle.excerpt,
+      metaDescription: dbArticle.meta_description || dbArticle.excerpt,
+      category: dbArticle.categories?.name || 'Guide',
+      publishedAt: dbArticle.published_at || dbArticle.created_at,
+      updatedAt: dbArticle.updated_at,
+      imageUrl: dbArticle.featured_image,
+      contentHtml: dbArticle.content,
+      // Metadata from JSONB column
+      faqs: dbArticle.meta?.faqs || [],
+      tableOfContents: dbArticle.meta?.tableOfContents || [],
+      relatedSchemes: dbArticle.meta?.relatedSchemes || [],
+      relatedArticles: dbArticle.meta?.relatedArticles || [],
+      keywords: dbArticle.meta?.keywords || [],
+      readTime: dbArticle.meta?.readTime || '5',
+    };
+  }
+
+  // Fallback to JSON for translated files (-hi, -te) or legacy local dev
   const filePath = path.join(process.cwd(), `content/articles/${slug}.json`);
   if (!fs.existsSync(filePath)) {
     return null;
@@ -146,15 +172,6 @@ export default async function ArticlePage({ params }: { params: { slug: string }
     'Guide': '📚',
   };
 
-  // ─── Next / Previous article navigation (same category) ───────────────
-  const allArticles = (articlesIndex as any[]).filter(
-    (a) => !/-(hi|te|ta|mr|gu|kn|ml|pa|or|yo|sw)$/.test(a.slug || '')
-  );
-  const sameCatArticles = allArticles.filter((a) => a.category === article.category);
-  const currentIdx = sameCatArticles.findIndex((a) => a.slug === params.slug);
-  const prevArticle = currentIdx > 0 ? sameCatArticles[currentIdx - 1] : null;
-  const nextArticle = currentIdx >= 0 && currentIdx < sameCatArticles.length - 1 ? sameCatArticles[currentIdx + 1] : null;
-
   return (
     <div className="bg-white min-h-screen">
       <Navbar />
@@ -174,9 +191,9 @@ export default async function ArticlePage({ params }: { params: { slug: string }
             const isActive = (lang.suffix === '' && !params.slug.endsWith('-hi') && !params.slug.endsWith('-te')) || 
                              (lang.suffix !== '' && params.slug.endsWith(lang.suffix));
             
-            // We check if the file exists to show the button
+            // We check if the file exists for language switcher fallback
             const filePath = path.join(process.cwd(), `content/articles/${targetSlug}.json`);
-            if (!fs.existsSync(filePath)) return null;
+            if (!fs.existsSync(filePath) && targetSlug !== params.slug) return null;
 
             return (
               <Link 
@@ -280,12 +297,12 @@ export default async function ArticlePage({ params }: { params: { slug: string }
                 </div>
               </div>
               <div className="ml-auto">
-                <span style={{ fontSize: 12, color: 'var(--text-faint)', fontWeight: 600 }}>⏱ {article.readTime || '5 min read'}</span>
+                <span style={{ fontSize: 12, color: 'var(--text-faint)', fontWeight: 600 }}>⏱ {article.readTime || '5'} min read</span>
               </div>
             </div>
 
-            {/* Intro */}
-            {article.intro && (
+            {/* Intro (Only if it's the old JSON format) */}
+            {article.intro && !article.contentHtml && (
               <p className="text-[16px] leading-[1.75] text-[var(--text-primary)] font-[500] mb-[32px]">
                 {typeof article.intro === 'string' ? article.intro : (article.intro as any)?.content || (article.intro as any)?.text || ''}
               </p>
@@ -308,18 +325,22 @@ export default async function ArticlePage({ params }: { params: { slug: string }
               </div>
             )}
 
-            {/* Sections */}
+            {/* Sections / HTML Content */}
             <div className="prose max-w-none mb-[48px]">
-              {article.sections?.map((section: any, i: number) => {
-                const heading = typeof section.heading === 'string' ? section.heading : String(section.heading || '');
-                const content = typeof section.content === 'string' ? section.content : String(section.content || '');
-                return (
-                  <div key={i} id={`section-${i}`}>
-                    <h2 className="text-[22px] font-[700] m-[40px_0_14px] pb-[10px] border-b-2 border-[var(--indigo-light)] text-[var(--text-primary)]" dangerouslySetInnerHTML={{ __html: heading }}></h2>
-                    <div className="text-[15px] leading-[1.85] text-[var(--text-primary)] space-y-4" dangerouslySetInnerHTML={{ __html: content }}></div>
-                  </div>
-                );
-              })}
+              {article.contentHtml ? (
+                <div className="text-[15px] leading-[1.85] text-[var(--text-primary)] space-y-4" dangerouslySetInnerHTML={{ __html: article.contentHtml }} />
+              ) : (
+                article.sections?.map((section: any, i: number) => {
+                  const heading = typeof section.heading === 'string' ? section.heading : String(section.heading || '');
+                  const content = typeof section.content === 'string' ? section.content : String(section.content || '');
+                  return (
+                    <div key={i} id={`section-${i}`}>
+                      <h2 className="text-[22px] font-[700] m-[40px_0_14px] pb-[10px] border-b-2 border-[var(--indigo-light)] text-[var(--text-primary)]" dangerouslySetInnerHTML={{ __html: heading }}></h2>
+                      <div className="text-[15px] leading-[1.85] text-[var(--text-primary)] space-y-4" dangerouslySetInnerHTML={{ __html: content }}></div>
+                    </div>
+                  );
+                })
+              )}
             </div>
 
             {/* FAQs */}
@@ -377,30 +398,6 @@ export default async function ArticlePage({ params }: { params: { slug: string }
                 </a>
               </div>
             </div>
-
-            {/* ── NEXT / PREVIOUS ARTICLE ── */}
-            {(prevArticle || nextArticle) && (
-              <div className="mt-[40px] grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
-                {prevArticle ? (
-                  <Link
-                    href={`/articles/${prevArticle.slug}`}
-                    className="rounded-[var(--radius-md)] p-[18px] border border-[var(--border)] bg-white hover:-translate-y-[1px] hover:shadow-[var(--shadow-sm)] transition-all block"
-                  >
-                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-faint)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '1px' }}>← Previous</div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.4 }} className="line-clamp-2">{prevArticle.title}</div>
-                  </Link>
-                ) : <div />}
-                {nextArticle ? (
-                  <Link
-                    href={`/articles/${nextArticle.slug}`}
-                    className="rounded-[var(--radius-md)] p-[18px] border border-[var(--border)] bg-white hover:-translate-y-[1px] hover:shadow-[var(--shadow-sm)] transition-all block text-right"
-                  >
-                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-faint)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '1px' }}>Next →</div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.4 }} className="line-clamp-2">{nextArticle.title}</div>
-                  </Link>
-                ) : <div />}
-              </div>
-            )}
 
           </article>
 

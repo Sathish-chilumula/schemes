@@ -316,36 +316,7 @@ export function HomeClient({
         </div>
       )}
 
-      {/* ── FOOTER ── */}
-      <footer className="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
-        <div className="page-container text-center">
-          <div className="flex items-center justify-center gap-2 mb-6">
-            <div className="w-6 h-6 bg-slate-800 rounded flex items-center justify-center">
-              <span className="text-white font-bold text-xs">C</span>
-            </div>
-            <span className="font-bold text-lg text-white">SchemeAtlas</span>
-          </div>
-          <p className="text-sm mb-6 max-w-md mx-auto">
-            Not affiliated with any government entity. Data is aggregated from official sources (PIB, MyGov) and analyzed by AI for educational purposes.
-          </p>
-          <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 px-4 text-sm font-medium mb-8">
-            <Link href="/" className="hover:text-white transition-colors">Home</Link>
-            <Link href="/schemes" className="hover:text-white transition-colors">Schemes</Link>
-            <Link href="/saved" className="hover:text-white transition-colors">Saved</Link>
-            <Link href="/in/check" className="hover:text-white transition-colors">Eligibility Checker</Link>
-          </div>
-          <div className="flex flex-wrap justify-center gap-4 text-xs font-semibold text-slate-500">
-            <Link href="/about" className="hover:text-slate-300 transition-colors">About Us</Link>
-            <Link href="/contact" className="hover:text-slate-300 transition-colors">Contact</Link>
-            <Link href="/privacy" className="hover:text-slate-300 transition-colors">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-slate-300 transition-colors">Terms of Service</Link>
-            <Link href="/disclaimer" className="hover:text-slate-300 transition-colors">Disclaimer</Link>
-          </div>
-          <div className="mt-8 text-xs text-slate-600">
-            &copy; {new Date().getFullYear()} SchemeAtlas Global Framework. All rights reserved.
-          </div>
-        </div>
-      </footer>
+
     </div>
   );
 }

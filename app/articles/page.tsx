@@ -1,8 +1,9 @@
 import { Metadata } from 'next';
+import { supabaseAdmin } from '@/lib/supabase';
+import ClientArticles from './ClientArticles';
+import { Navbar } from '@/components/Navbar';
 
 // IMPORTANT: Must use runtime = 'edge' — site is hosted on Cloudflare Pages.
-// fs/path are NOT available on edge runtime; articles are loaded from the
-// pre-built JSON index which is bundled at build time.
 export const runtime = 'edge';
 
 export async function generateMetadata({
@@ -11,7 +12,6 @@ export async function generateMetadata({
   searchParams: { [key: string]: string | string[] | undefined };
 }): Promise<Metadata> {
   // ?category= filtered views are NOT independently indexable pages.
-  // The canonical is always /articles (no query string).
   if (searchParams.category) {
     return {
       robots: { index: false, follow: true },
@@ -27,38 +27,51 @@ export async function generateMetadata({
   };
 }
 
-import ClientArticles from './ClientArticles';
-import { Navbar } from '@/components/Navbar';
-
-// Static import — bundled at build time, works on edge runtime.
-// This index is updated every time the GitHub automation pipeline runs and rebuilds.
-import articlesIndex from '@/content/articles-index.json';
-
 export default async function ArticlesPage({
   searchParams,
 }: {
   searchParams: { [key: string]: string | string[] | undefined };
 }) {
-  // Read active category on the SERVER — no useSearchParams() or Suspense needed.
-  // This ensures all article card links are in the initial SSR HTML, making them
-  // crawlable by Ahrefs, Googlebot, and all other search engine crawlers.
   const activeCategory = typeof searchParams.category === 'string'
     ? searchParams.category
     : 'All';
 
-  // Use the pre-built articles index (bundled at build time).
-  // Language variant files (-hi, -te, etc.) should NOT be in this index;
-  // they are only accessed via the language switcher on the base article page.
-  const articles: any[] = (articlesIndex as any[]).filter(
-    (a) => !/-(hi|te|ta|mr|gu|kn|ml|pa|or|yo|sw)$/.test(a.slug || '')
-  );
+  // Fetch published articles from Supabase, caching for 1 hour
+  const supabase = supabaseAdmin({ next: { revalidate: 3600 } });
+  const { data: dbArticles, error } = await supabase
+    .from('articles')
+    .select('*, categories(name)')
+    .eq('status', 'published')
+    .order('published_at', { ascending: false });
 
-  const displayArticles = articles.length > 0 ? articles : [
-    { category: "Earn Money", tagColor: "#059669", title: "15 Ways to Earn Money Online in India 2025", desc: "From PMKVY training to freelancing — practical earning paths for every Indian.", slug: "earn-money-online-india", views: "24.5K", readTime: "8 min read" },
-    { category: "Loans", tagColor: "#2563EB", title: "Best Personal Loans in India: Compare 20+ Banks", desc: "SBI, HDFC, ICICI compared — rates, eligibility and step-by-step apply guide.", slug: "best-personal-loans-india", views: "31.2K", readTime: "11 min read" },
-    { category: "Insurance", tagColor: "#7C3AED", title: "Health Insurance Tips Every Indian Family Needs", desc: "Mistakes to avoid, what to check before buying, and the best plans compared.", slug: "health-insurance-tips-india", views: "18.9K", readTime: "9 min read" },
-    { category: "Schemes", tagColor: "#D97706", title: "PM Schemes That Transfer Money Directly to You", desc: "DBT subsidies and grants — a complete list of what you're eligible to claim.", slug: "pm-schemes-direct-benefit", views: "42.1K", readTime: "7 min read" }
-  ];
+  let displayArticles: any[] = [];
+
+  const CATEGORY_COLOURS: Record<string, string> = {
+    'Loans': '#1B5FA8',
+    'Insurance': '#4527A0',
+    'Earn Money': '#2D7A3A',
+    'Schemes': '#FF6B00',
+    'Investment': '#E65100',
+    'Tax': '#C62828',
+    'Guide': '#3B3BF9',
+  };
+
+  if (dbArticles && !error && dbArticles.length > 0) {
+    displayArticles = dbArticles.map(a => ({
+      category: a.categories?.name || 'Guide',
+      tagColor: CATEGORY_COLOURS[a.categories?.name || 'Guide'] || '#3B3BF9',
+      title: a.title,
+      desc: a.excerpt || a.meta_description || '',
+      slug: a.slug,
+      views: "12.4K", // Mocked as before
+      readTime: (a.meta?.readTime || "5") + " min read",
+    }));
+  } else {
+    // Fallback if DB is empty
+    displayArticles = [
+      { category: "Earn Money", tagColor: "#2D7A3A", title: "15 Ways to Earn Money Online in India 2025", desc: "From PMKVY training to freelancing — practical earning paths for every Indian.", slug: "how-to-earn-money-online-legally-in-india-2026", views: "24.5K", readTime: "8 min read" },
+    ];
+  }
 
   return (
     <div className="min-h-screen bg-[var(--surface-gray)]">
@@ -78,7 +91,7 @@ export default async function ArticlesPage({
       </section>
 
       <ClientArticles articles={displayArticles} activeCategory={activeCategory} />
-
     </div>
   );
 }
+
