@@ -9,7 +9,7 @@ import {
   List, ListOrdered, Quote, Code, Image as ImageIcon, Link as LinkIcon 
 } from 'lucide-react';
 import { useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createAdminClient } from '@/lib/supabase-admin-client';
 
 interface TipTapEditorProps {
   content: string;
@@ -18,7 +18,7 @@ interface TipTapEditorProps {
 
 export default function TipTapEditor({ content, onChange }: TipTapEditorProps) {
   const [isUploading, setIsUploading] = useState(false);
-  const supabase = createClientComponentClient();
+  const supabase = createAdminClient();
 
   const editor = useEditor({
     extensions: [
