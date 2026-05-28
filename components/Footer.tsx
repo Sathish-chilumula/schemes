@@ -105,12 +105,9 @@ export function Footer() {
         <div className="mt-[56px] pt-[24px] border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-[12px] text-[12px] text-slate-500">
           <p>© 2026 SchemeAtlas. Not affiliated with any government entity.</p>
           <p className="font-[600] text-slate-400">Made in India 🇮🇳</p>
-          <div className="flex items-center gap-[16px]">
-            <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
-            <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
-          </div>
         </div>
       </div>
     </footer>
+
   );
 }

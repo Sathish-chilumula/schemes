@@ -1,0 +1,43 @@
+{
+  "name": "SchemeAtlas — Government Schemes India",
+  "short_name": "SchemeAtlas",
+  "description": "Find every government scheme you qualify for. 1,815+ central and state schemes for India. AI-powered eligibility checker.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0F172A",
+  "theme_color": "#FF6B00",
+  "orientation": "portrait-primary",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["government", "finance", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Check Eligibility",
+      "short_name": "Eligibility",
+      "description": "Check which schemes you qualify for",
+      "url": "/in/check",
+      "icons": [{ "src": "/icon.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Browse Schemes",
+      "short_name": "Schemes",
+      "description": "Browse all government schemes",
+      "url": "/schemes",
+      "icons": [{ "src": "/icon.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": []
+}

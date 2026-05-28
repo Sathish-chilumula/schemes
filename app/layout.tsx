@@ -38,6 +38,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
+        {/* PWA manifest — required for install prompt */}
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#FF6B00" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="SchemeAtlas" />
       </head>
       <body className="bg-slate-50 text-slate-900 antialiased">
         {/* Google Analytics - afterInteractive */}
@@ -77,6 +83,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <Footer />
         <ChatWidget />
+        {/* Service Worker registration — enables PWA install */}
+        <Script id="sw-register" strategy="afterInteractive">
+          {`
+            if ('serviceWorker' in navigator) {
+              window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                  .then(function(reg) { console.log('SW registered:', reg.scope); })
+                  .catch(function(err) { console.log('SW registration failed:', err); });
+              });
+            }
+          `}
+        </Script>
       </body>
     </html>
   );

@@ -300,7 +300,7 @@ export default async function SchemeDetailPage({
         ]
       : [
           { name: 'Home', item: 'https://schemeatlas.com' },
-          { name: 'India', item: 'https://schemeatlas.com/in/india' },
+          { name: 'All Schemes', item: 'https://schemeatlas.com/schemes' },
           { name: rawState, item: `https://schemeatlas.com/in/${stateSlug}` },
           { name: scheme.category || 'General', item: `https://schemeatlas.com/in/${stateSlug}?category=${categorySlug}` },
           { name: scheme.name, item: `https://schemeatlas.com/schemes/${scheme.slug}` }

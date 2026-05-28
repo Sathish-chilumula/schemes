@@ -141,7 +141,7 @@ export default async function StatePage({ params }: { params: { state: string } 
 
   const breadcrumbs = [
     { name: 'Home', item: 'https://schemeatlas.com' },
-    { name: 'India', item: 'https://schemeatlas.com/in/india' },
+    { name: 'All Schemes', item: 'https://schemeatlas.com/schemes' },
     { name: stateInfo.name, item: `https://schemeatlas.com/in/${normalizedSlug}` }
   ];
 
