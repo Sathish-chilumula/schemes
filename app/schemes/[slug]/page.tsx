@@ -526,16 +526,6 @@ export default async function SchemeDetailPage({
                       target="_blank" 
                       rel="noopener noreferrer" 
                       className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-bold text-lg text-center hover:bg-blue-700 hover:scale-[1.02] transform transition-all shadow-lg hover:shadow-blue-200/50 flex-1"
-                      onClick={() => {
-                        if (typeof window !== 'undefined' && (window as any).gtag) {
-                          (window as any).gtag('event', 'apply_click', {
-                            scheme_name: scheme.name,
-                            scheme_slug: scheme.slug,
-                            scheme_category: scheme.category,
-                            destination_url: url,
-                          });
-                        }
-                      }}
                     >
                       Apply on Official Site ↗
                     </a>
@@ -545,16 +535,6 @@ export default async function SchemeDetailPage({
                   <Link 
                     href={`/${scheme.country_code.toLowerCase()}/check`} 
                     className="bg-slate-900 text-white px-8 py-4 rounded-2xl font-bold text-lg text-center hover:bg-black transition-all flex-1"
-                    onClick={() => {
-                      if (typeof window !== 'undefined' && (window as any).gtag) {
-                        (window as any).gtag('event', 'eligibility_check', {
-                          scheme_name: scheme.name,
-                          scheme_slug: scheme.slug,
-                          scheme_category: scheme.category,
-                          country_code: scheme.country_code,
-                        });
-                      }
-                    }}
                   >
                     Check If I Qualify →
                   </Link>
