@@ -62,31 +62,32 @@ async function callLLM(prompt: string, system: string) {
 async function main() {
   console.log('🚀 Thin Content Rewrite Job (English)');
   
-  // 1. Get stats
-  const { count: pendingCount } = await supabase
+  // 1. Get stats by fetching and filtering in JS (since word_count_en column does not exist)
+  const { data: allSchemes, error: countError } = await supabase
     .from('schemes')
-    .select('*', { count: 'exact', head: true })
-    .eq('is_published', true)
-    .lt('word_count_en', 300);
+    .select('id, name, slug, content_en, country_code, category, what_you_get, benefit_amount, eligibility, how_to_apply, documents, official_url')
+    .eq('is_published', true);
 
+  if (countError) {
+    console.error('❌ Fetch error:', countError.message);
+    process.exit(1);
+  }
+
+  const thinSchemes = allSchemes.filter(s => {
+    const words = (s.content_en || '').split(/\s+/).length;
+    return words < 300;
+  });
+
+  const pendingCount = thinSchemes.length;
   console.log(`📊 Pending thin articles: ${pendingCount}`);
+  
   if (pendingCount === 0) {
     console.log('✅ All English articles are > 300 words. Nothing to do!');
     process.exit(0);
   }
 
   // 2. Fetch up to 20 thin articles
-  const { data: schemes, error } = await supabase
-    .from('schemes')
-    .select('*')
-    .eq('is_published', true)
-    .lt('word_count_en', 300)
-    .order('created_at', { ascending: true })
-    .limit(20);
-
-  if (error) { console.error('❌ Fetch error:', error.message); process.exit(1); }
-  if (!schemes || schemes.length === 0) return;
-
+  const schemes = thinSchemes.slice(0, 20);
   console.log(`📋 Processing ${schemes.length} schemes this run.\n`);
 
   let successCount = 0;

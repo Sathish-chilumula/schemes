@@ -165,6 +165,9 @@ export async function generateMetadata({
     // robots.txt blocks /*?lang= so advertising them causes "Blocked by robots.txt" in GSC.
     // The canonical English URL is the only version Google should index.
 
+    // Identify thin content for SEO protection
+    const isThin = (scheme.content_en || '').split(/\s+/).length < 300;
+
     return {
       title,
       description,
@@ -186,6 +189,10 @@ export async function generateMetadata({
         // ?lang= variants are blocked by robots.txt, so we must NOT advertise
         // them in hreflang — that conflict causes "Blocked by robots.txt" in GSC.
         canonical: canonicalUrl,
+      },
+      robots: {
+        index: !isThin,
+        follow: true,
       },
     };
   } catch (error) {
@@ -331,7 +338,8 @@ export default async function SchemeDetailPage({
       'Housing': '#06B6D4',
     };
     const catColor = CATEGORY_COLOURS[scheme.category] || '#FF6B00';
-    const lastVerifiedDate = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+    const parsedDate = new Date(scheme.last_updated || scheme.created_at || new Date());
+    const lastVerifiedDate = parsedDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
 
     return (
       <main className="min-h-screen bg-slate-50 font-sans">
@@ -581,16 +589,28 @@ export default async function SchemeDetailPage({
                   </ul>
                 </div>
 
-                <div className="bg-gradient-to-br from-rose-50 to-pink-50 p-8 rounded-3xl border border-rose-100 shadow-sm group hover:shadow-md transition-shadow">
-                  <h3 className="text-xl font-bold text-rose-800 mb-5 flex items-center">
-                    <svg className="w-6 h-6 mr-3 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                    Who Should NOT Apply?
+                <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-bl-full -mr-4 -mt-4 opacity-50"></div>
+                  <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <span className="text-2xl">✍️</span> Editorial Note
                   </h3>
-                  <p className="text-rose-900 font-medium leading-relaxed opacity-80">
-                    Individuals with an annual family income exceeding the threshold for these specific benefits.
-                  </p>
+                  <div className="space-y-3 text-sm text-slate-600 font-medium relative z-10">
+                    <p>
+                      <strong>Researched by:</strong> SchemeAtlas Editorial Team
+                    </p>
+                    <p>
+                      <strong>Source:</strong> {scheme.ministry || 'Official Government Portal'}
+                    </p>
+                    <p>
+                      <strong>Accuracy:</strong> Checked monthly for updates and deadlines.
+                    </p>
+                    <p>
+                      <strong>Last Updated:</strong> {lastVerifiedDate}
+                    </p>
+                    <Link href="/editorial-policy" className="inline-block mt-2 text-blue-600 hover:text-blue-800 font-bold transition-colors">
+                      Read our Editorial Policy →
+                    </Link>
+                  </div>
                 </div>
 
                 {relatedSchemes && relatedSchemes.length > 0 && (
