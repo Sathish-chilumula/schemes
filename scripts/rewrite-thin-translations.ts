@@ -137,7 +137,7 @@ async function main() {
 
   const thinTranslationSchemes = allSchemes.filter(s => {
     const enWords = (s.content_en || '').split(/\s+/).length;
-    if (enWords < 600) return false; // English must be good first
+    if (enWords < 300) return false; // English must be good first
 
     const reqLangs = getRequiredLanguages(s);
     if (reqLangs.length === 0) return false;
@@ -146,12 +146,12 @@ async function main() {
       const isHi = lang === 'hi';
       const currentContent = isHi ? s.content_hi : s.content_local;
       const wordCount = (currentContent || '').split(/\s+/).length;
-      return wordCount < 600;
+      return wordCount < 300;
     });
   });
 
   if (thinTranslationSchemes.length === 0) {
-    console.log('✅ All translations are > 600 words. Nothing to do!');
+    console.log('✅ All translations are > 300 words. Nothing to do!');
     process.exit(0);
   }
 
@@ -175,7 +175,7 @@ async function main() {
       const wordCount = (currentContent || '').split(/\s+/).length;
       const langName = LANGUAGE_NAMES[lang];
 
-      if (wordCount < 600) {
+      if (wordCount < 300) {
         console.log(`   ⏳ Translating to ${langName} (current word count: ${wordCount})...`);
         
         const systemPrompt = `You are a professional translator for ${langName}. Translate the provided JSON content accurately while maintaining the JSON structure.

@@ -98,7 +98,7 @@ async function main() {
     // Broken format detection: not JSON and no markdown headers
     const isBroken = content.length > 0 && !content.startsWith('{') && !content.includes('**');
     
-    return words < 600 || isBroken;
+    return words < 300 || isBroken;
   });
 
   const pendingCount = thinSchemes.length;
