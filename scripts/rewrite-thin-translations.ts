@@ -94,21 +94,48 @@ function getRequiredLanguages(scheme: any) {
 async function main() {
   console.log('🚀 Thin Content Rewrite Job (Translations)');
   
-  // Get all published schemes that have good english but thin translations
-  const { data: schemes, error } = await supabase
-    .from('schemes')
-    .select('*')
-    .eq('is_published', true)
-    .gte('word_count_en', 300)
-    .or('word_count_hi.lt.300,word_count_local.lt.300')
-    .order('created_at', { ascending: true })
-    .limit(15);
+  // Get all published schemes via pagination and filter thin translations in JS
+  let allSchemes: any[] = [];
+  let hasMore = true;
+  let page = 0;
+  const PAGE_SIZE = 1000;
 
-  if (error) { console.error('❌ Fetch error:', error.message); process.exit(1); }
-  if (!schemes || schemes.length === 0) {
+  while (hasMore) {
+    const { data: batch, error: countError } = await supabase
+      .from('schemes')
+      .select('*')
+      .eq('is_published', true)
+      .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+
+    if (countError) {
+      console.error('❌ Fetch error:', countError.message);
+      process.exit(1);
+    }
+    
+    if (batch && batch.length > 0) {
+      allSchemes = allSchemes.concat(batch);
+      page++;
+    } else {
+      hasMore = false;
+    }
+  }
+
+  const thinTranslationSchemes = allSchemes.filter(s => {
+    const enWords = (s.content_en || '').split(/\s+/).length;
+    if (enWords < 300) return false; // English must be good first
+
+    const hiWords = (s.content_hi || '').split(/\s+/).length;
+    const localWords = (s.content_local || '').split(/\s+/).length;
+    
+    return hiWords < 300 || localWords < 300;
+  });
+
+  if (thinTranslationSchemes.length === 0) {
     console.log('✅ All translations are > 300 words. Nothing to do!');
     process.exit(0);
   }
+
+  const schemes = thinTranslationSchemes.slice(0, 15);
 
   console.log(`📋 Processing ${schemes.length} schemes this run.\n`);
 
