@@ -139,14 +139,19 @@ async function main() {
     const enWords = (s.content_en || '').split(/\s+/).length;
     if (enWords < 600) return false; // English must be good first
 
-    const hiWords = (s.content_hi || '').split(/\s+/).length;
-    const localWords = (s.content_local || '').split(/\s+/).length;
-    
-    return hiWords < 600 || localWords < 600;
+    const reqLangs = getRequiredLanguages(s);
+    if (reqLangs.length === 0) return false;
+
+    return reqLangs.some(lang => {
+      const isHi = lang === 'hi';
+      const currentContent = isHi ? s.content_hi : s.content_local;
+      const wordCount = (currentContent || '').split(/\s+/).length;
+      return wordCount < 600;
+    });
   });
 
   if (thinTranslationSchemes.length === 0) {
-    console.log('✅ All translations are > 300 words. Nothing to do!');
+    console.log('✅ All translations are > 600 words. Nothing to do!');
     process.exit(0);
   }
 
