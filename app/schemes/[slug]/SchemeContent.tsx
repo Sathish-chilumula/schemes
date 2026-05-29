@@ -154,7 +154,7 @@ function legacyParseQAContent(content: string) {
     let currentA = '';
     let foundFirstQ = false;
     for (const line of lines) {
-      const isQuestion = line.startsWith('Q:') || line.match(/^\d+\.\s+What|Who|How|When|Is /);
+      const isQuestion = line.startsWith('Q:') || line.match(/^\d+\.\s+(What|Who|How|When|Is )/);
       if (isQuestion) {
         foundFirstQ = true;
         if (currentQ && currentA) qa.push({ question: currentQ, answer: currentA });
