@@ -92,8 +92,13 @@ async function main() {
   }
 
   const thinSchemes = allSchemes.filter(s => {
-    const words = (s.content_en || '').split(/\s+/).length;
-    return words < 600;
+    const content = (s.content_en || '').trim();
+    const words = content.split(/\s+/).length;
+    
+    // Broken format detection: not JSON and no markdown headers
+    const isBroken = content.length > 0 && !content.startsWith('{') && !content.includes('**');
+    
+    return words < 600 || isBroken;
   });
 
   const pendingCount = thinSchemes.length;
@@ -193,7 +198,7 @@ async function main() {
     details: { pending_after: pendingCount! - successCount }
   });
 
-  console.log(`🏁 Run complete! Success: ${successCount} | Failed: ${failCount}`);
+  console.log(`\n🏁 Run complete! Success: ${successCount} | Failed: ${failCount} | Remaining: ${Math.max(0, thinSchemes.length - successCount)}`);
 }
 
 main().catch(console.error);
