@@ -169,10 +169,11 @@ Rules:
         try {
           const result = await callLLM(userPrompt, systemPrompt);
           const cleaned = result.replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim();
-          JSON.parse(cleaned); // Ensure it parses
+          const sanitized = cleaned.replace(/[\u0000-\u001F\u007F-\u009F]/g, "");
+          JSON.parse(sanitized); // Ensure it parses
           
-          if (isHi) newHi = cleaned;
-          else newLocal = cleaned;
+          if (isHi) newHi = sanitized;
+          else newLocal = sanitized;
           
           updated = true;
           console.log(`   ✅ Successfully translated to ${langName}.`);

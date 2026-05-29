@@ -53,6 +53,11 @@ async function callLLM(prompt: string, system: string) {
       if (content.length > 200) return content;
     } catch (err: any) {
       console.error(`     ⚠️ OpenAI failed: ${err.message}`);
+      return '';
+    }
+  }
+}
+
 function sanitizeJson(str: string): string {
   return str.replace(/[\u0000-\u001F\u007F-\u009F]/g, "").trim();
 }
