@@ -73,6 +73,8 @@ const LANGUAGE_NAMES: Record<string, string> = {
   'sw': 'Swahili', 'yo': 'Yoruba', 'ha': 'Hausa', 'es': 'Spanish',
 };
 
+const SOUTH_INDIAN_STATES = ['AP', 'TS', 'KA', 'TN', 'KL'];
+
 function getRequiredLanguages(scheme: any) {
   const req = new Set<string>();
   const isTripleTranslate = scheme.is_central === true || scheme.state_code === 'IN';
@@ -80,9 +82,19 @@ function getRequiredLanguages(scheme: any) {
   if (scheme.country_code === 'IN') {
     if (isTripleTranslate) {
       req.add('hi');
-      req.add('te');
+      req.add('te'); // Central schemes get Hindi + Telugu
     } else {
-      req.add(STATE_LANGUAGE_MAP[scheme.state_code] || 'hi');
+      if (SOUTH_INDIAN_STATES.includes(scheme.state_code)) {
+        // South India: English (default) + Local Language only
+        req.add(STATE_LANGUAGE_MAP[scheme.state_code] || 'te');
+      } else {
+        // Other States: English (default) + Hindi + Local Language
+        req.add('hi');
+        const local = STATE_LANGUAGE_MAP[scheme.state_code];
+        if (local && local !== 'hi') {
+          req.add(local);
+        }
+      }
     }
   } else if (scheme.country_code === 'US') req.add('es');
   else if (scheme.country_code === 'NG') req.add('yo');
@@ -151,18 +163,23 @@ async function main() {
 
     for (const lang of langs) {
       const isHi = lang === 'hi';
-      const wordCount = isHi ? scheme.word_count_hi : scheme.word_count_local;
+      const currentContent = isHi ? scheme.content_hi : scheme.content_local;
+      const wordCount = (currentContent || '').split(/\s+/).length;
       const langName = LANGUAGE_NAMES[lang];
 
-      if (wordCount < 300) {
+      if (wordCount < 600) {
         console.log(`   ⏳ Translating to ${langName} (current word count: ${wordCount})...`);
         
         const systemPrompt = `You are a professional translator for ${langName}. Translate the provided JSON content accurately while maintaining the JSON structure.
-Rules:
-- Do not change slugs or URLs.
+
+CRITICAL LENGTH REQUIREMENT: The translated content MUST be extremely detailed and long (between 600 and 1200 words). Expand on concepts naturally in ${langName} to ensure the content is highly comprehensive.
+
+REQUIREMENTS:
+- Return ONLY valid JSON format matching the exact structure provided. No markdown \`\`\`json.
+- Do NOT translate the JSON keys (keep them exactly as they are). Only translate the values.
+- Do NOT change slugs or URLs.
 - Only translate user-facing text (title, intro, headings, content, faqs).
-- VERY IMPORTANT: Use a highly conversational, everyday spoken style in ${langName}. Do not use overly formal vocabulary.
-- Return ONLY valid JSON matching the exact structure provided. No markdown \`\`\`json.`;
+- Maintain a helpful, highly conversational, everyday spoken tone in ${langName}. Do not use overly formal vocabulary. Use relevant emojis.`;
 
         const userPrompt = scheme.content_en;
 
