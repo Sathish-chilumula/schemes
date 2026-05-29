@@ -122,12 +122,12 @@ async function main() {
 
   const thinTranslationSchemes = allSchemes.filter(s => {
     const enWords = (s.content_en || '').split(/\s+/).length;
-    if (enWords < 300) return false; // English must be good first
+    if (enWords < 600) return false; // English must be good first
 
     const hiWords = (s.content_hi || '').split(/\s+/).length;
     const localWords = (s.content_local || '').split(/\s+/).length;
     
-    return hiWords < 300 || localWords < 300;
+    return hiWords < 600 || localWords < 600;
   });
 
   if (thinTranslationSchemes.length === 0) {

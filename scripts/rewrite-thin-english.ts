@@ -93,7 +93,7 @@ async function main() {
 
   const thinSchemes = allSchemes.filter(s => {
     const words = (s.content_en || '').split(/\s+/).length;
-    return words < 300;
+    return words < 600;
   });
 
   const pendingCount = thinSchemes.length;
