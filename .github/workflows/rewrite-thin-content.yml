@@ -1,0 +1,32 @@
+name: "Rewrite Thin Content (English)"
+
+on:
+  schedule:
+    - cron: '0 1 * * *'   # Every day at 01:00 UTC
+  workflow_dispatch:
+
+jobs:
+  rewrite-english:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install @supabase/supabase-js openai
+
+      - name: Rewrite thin english content
+        run: npx tsx scripts/rewrite-thin-english.ts
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL != '' && secrets.SUPABASE_URL || secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+      - name: Report
+        if: always()
+        run: echo "✅ Rewrite english job done at $(date)"

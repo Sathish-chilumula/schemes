@@ -1,0 +1,29 @@
+name: "Loan Discovery Agent (Global)"
+
+on:
+  schedule:
+    - cron: '0 4,12,20 * * *'  # Runs every 8 hours
+  workflow_dispatch:
+
+jobs:
+  run-discovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      
+      - name: Install dependencies
+        run: npm install @supabase/supabase-js axios
+
+      - name: Run Global Loan Finder Agent
+        run: node agents/findLoans-global.js
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL != '' && secrets.SUPABASE_URL || secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GNEWS_API_KEY: ${{ secrets.GNEWS_API_KEY }}

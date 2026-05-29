@@ -1,0 +1,29 @@
+name: "Loan Content Writer (Global)"
+
+on:
+  schedule:
+    - cron: '30 5,13,21 * * *'  # Runs 1h30m after global discovery
+  workflow_dispatch:
+
+jobs:
+  run-writer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      
+      - name: Install dependencies
+        run: npm install @supabase/supabase-js axios
+
+      - name: Generate Global Loan Content (EN)
+        run: node scripts/generate-loan-content-global.js
+        env:
+          BATCH_SIZE: 10
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL != '' && secrets.SUPABASE_URL || secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

@@ -1,0 +1,188 @@
+import { createClient } from '@supabase/supabase-js';
+import OpenAI from 'openai';
+
+const SUPABASE_URL = process.env.SUPABASE_URL || '';
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || '';
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
+const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
+
+if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY || (!OPENAI_API_KEY && !GROQ_API_KEY)) {
+  console.error("❌ Missing required environment variables.");
+  process.exit(1);
+}
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+
+const groqClient = GROQ_API_KEY ? new OpenAI({
+  apiKey: GROQ_API_KEY,
+  baseURL: 'https://api.groq.com/openai/v1'
+}) : null;
+
+const openaiClient = OPENAI_API_KEY ? new OpenAI({
+  apiKey: OPENAI_API_KEY
+}) : null;
+
+async function callLLM(prompt: string, system: string) {
+  // 1. Try Groq First
+  if (groqClient) {
+    try {
+      const response = await groqClient.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
+        messages: [{ role: 'system', content: system }, { role: 'user', content: prompt }],
+        max_tokens: 2500,
+        temperature: 0.35,
+      });
+      const content = response.choices?.[0]?.message?.content || '';
+      if (content.length > 200) return content;
+    } catch (err: any) {
+      console.warn(`     ⚠️ Groq failed or rate limited: ${err.message}. Falling back to OpenAI...`);
+    }
+  }
+
+  // 2. Try OpenAI Fallback
+  if (openaiClient) {
+    try {
+      const response = await openaiClient.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'system', content: system }, { role: 'user', content: prompt }],
+        max_tokens: 2500,
+        temperature: 0.35,
+      });
+      const content = response.choices?.[0]?.message?.content || '';
+      if (content.length > 200) return content;
+    } catch (err: any) {
+      console.error(`     ⚠️ OpenAI failed: ${err.message}`);
+    }
+  }
+
+  throw new Error('All AI models failed or rate limits exceeded');
+}
+
+// Maps state codes to languages (copied from generate-content.js)
+const STATE_LANGUAGE_MAP: Record<string, string> = {
+  'TS': 'te', 'AP': 'te', 'KA': 'kn', 'TN': 'ta', 'KL': 'ml',
+  'MH': 'mr', 'WB': 'bn', 'GJ': 'gu', 'PB': 'pa', 'OD': 'or', 'OR': 'or',
+  'AS': 'as', 'RJ': 'hi', 'UP': 'hi', 'MP': 'hi', 'CG': 'hi', 'JH': 'hi',
+  'BR': 'hi', 'HP': 'hi', 'UK': 'hi', 'HR': 'hi', 'DL': 'hi',
+};
+
+const LANGUAGE_NAMES: Record<string, string> = {
+  'te': 'Telugu', 'kn': 'Kannada', 'ta': 'Tamil', 'ml': 'Malayalam',
+  'mr': 'Marathi', 'bn': 'Bengali', 'gu': 'Gujarati', 'pa': 'Punjabi',
+  'or': 'Odia', 'as': 'Assamese', 'hi': 'Hindi',
+  'sw': 'Swahili', 'yo': 'Yoruba', 'ha': 'Hausa', 'es': 'Spanish',
+};
+
+function getRequiredLanguages(scheme: any) {
+  const req = new Set<string>();
+  const isTripleTranslate = scheme.is_central === true || scheme.state_code === 'IN';
+  
+  if (scheme.country_code === 'IN') {
+    if (isTripleTranslate) {
+      req.add('hi');
+      req.add('te');
+    } else {
+      req.add(STATE_LANGUAGE_MAP[scheme.state_code] || 'hi');
+    }
+  } else if (scheme.country_code === 'US') req.add('es');
+  else if (scheme.country_code === 'NG') req.add('yo');
+  else if (scheme.country_code === 'KE') req.add('sw');
+  
+  return Array.from(req).filter(l => l !== 'en');
+}
+
+async function main() {
+  console.log('🚀 Thin Content Rewrite Job (Translations)');
+  
+  // Get all published schemes that have good english but thin translations
+  const { data: schemes, error } = await supabase
+    .from('schemes')
+    .select('*')
+    .eq('is_published', true)
+    .gte('word_count_en', 300)
+    .or('word_count_hi.lt.300,word_count_local.lt.300')
+    .order('created_at', { ascending: true })
+    .limit(15);
+
+  if (error) { console.error('❌ Fetch error:', error.message); process.exit(1); }
+  if (!schemes || schemes.length === 0) {
+    console.log('✅ All translations are > 300 words. Nothing to do!');
+    process.exit(0);
+  }
+
+  console.log(`📋 Processing ${schemes.length} schemes this run.\n`);
+
+  let successCount = 0;
+  let failCount = 0;
+
+  for (const scheme of schemes) {
+    console.log(`📝 Translating: ${scheme.name}`);
+    const langs = getRequiredLanguages(scheme);
+    let updated = false;
+    let newHi = scheme.content_hi;
+    let newLocal = scheme.content_local;
+
+    for (const lang of langs) {
+      const isHi = lang === 'hi';
+      const wordCount = isHi ? scheme.word_count_hi : scheme.word_count_local;
+      const langName = LANGUAGE_NAMES[lang];
+
+      if (wordCount < 300) {
+        console.log(`   ⏳ Translating to ${langName} (current word count: ${wordCount})...`);
+        
+        const systemPrompt = `You are a professional translator for ${langName}. Translate the provided JSON content accurately while maintaining the JSON structure.
+Rules:
+- Do not change slugs or URLs.
+- Only translate user-facing text (title, intro, headings, content, faqs).
+- VERY IMPORTANT: Use a highly conversational, everyday spoken style in ${langName}. Do not use overly formal vocabulary.
+- Return ONLY valid JSON matching the exact structure provided. No markdown \`\`\`json.`;
+
+        const userPrompt = scheme.content_en;
+
+        try {
+          const result = await callLLM(userPrompt, systemPrompt);
+          const cleaned = result.replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim();
+          JSON.parse(cleaned); // Ensure it parses
+          
+          if (isHi) newHi = cleaned;
+          else newLocal = cleaned;
+          
+          updated = true;
+          console.log(`   ✅ Successfully translated to ${langName}.`);
+        } catch (err: any) {
+          console.error(`   ❌ Failed to translate ${langName}:`, err.message);
+        }
+      }
+    }
+
+    if (updated) {
+      const { error: upErr } = await supabase
+        .from('schemes')
+        .update({
+          content_hi: newHi,
+          content_local: newLocal,
+          local_language: langs.find(l => l !== 'hi') || scheme.local_language,
+          is_translated: true,
+          last_updated: new Date().toISOString()
+        })
+        .eq('id', scheme.id);
+        
+      if (upErr) failCount++;
+      else successCount++;
+    } else {
+      failCount++;
+    }
+  }
+
+  // Log to pipeline_logs
+  await supabase.from('pipeline_logs').insert({
+    job_name: 'rewrite-thin-translations',
+    items_processed: schemes.length,
+    items_succeeded: successCount,
+    items_failed: failCount
+  });
+
+  console.log(`🏁 Run complete! Success: ${successCount} | Failed: ${failCount}`);
+}
+
+main().catch(console.error);

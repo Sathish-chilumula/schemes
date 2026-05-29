@@ -12,7 +12,7 @@
 
 const { createClient } = require('@supabase/supabase-js');
 const axios = require('axios');
-const { getSystemPrompt, SCHEME_STRUCTURES } = require('../lib/content-prompts');
+const { getSystemPrompt, LOAN_STRUCTURES } = require('../lib/content-prompts');
 
 const BATCH_SIZE = parseInt(process.env.BATCH_SIZE || '10', 10);
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -28,13 +28,13 @@ function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 // ─── Build content prompt per country ───────────────────────────────────────
 function buildPrompt(scheme) {
   const cc = (scheme.country_code || 'US').toUpperCase();
-  const structure = SCHEME_STRUCTURES[Math.floor(Math.random() * SCHEME_STRUCTURES.length)];
-  const systemPrompt = getSystemPrompt('scheme', structure, cc);
+  const structure = LOAN_STRUCTURES[Math.floor(Math.random() * LOAN_STRUCTURES.length)];
+  const systemPrompt = getSystemPrompt('loan', structure, cc);
 
   const countryNames = { US: 'United States', GB: 'United Kingdom', CA: 'Canada', AU: 'Australia', EU: 'European Union' };
   const countryName = countryNames[cc] || cc;
 
-  const userPrompt = `Write a detailed 1,500-word guide for the following global government scheme.
+  const userPrompt = `Write a detailed 1,500-word article for the following global financial product.
 Scheme: ${scheme.name}
 Country: ${countryName} (${cc})
 Category: ${scheme.category || 'General'}
@@ -69,7 +69,7 @@ async function run() {
     .from('schemes')
     .select('*')
     .neq('country_code', 'IN')
-    .neq('type', 'loan')
+    .eq('type', 'loan')
     .eq('is_seo_optimized', false)
     .order('discovered_at', { ascending: false })
     .limit(BATCH_SIZE);

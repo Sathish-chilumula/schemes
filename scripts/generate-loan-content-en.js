@@ -11,7 +11,7 @@
 
 const { createClient } = require('@supabase/supabase-js');
 const axios = require('axios');
-const { getSystemPrompt, SCHEME_STRUCTURES } = require('../lib/content-prompts');
+const { getSystemPrompt, LOAN_STRUCTURES } = require('../lib/content-prompts');
 
 const BATCH_SIZE = parseInt(process.env.BATCH_SIZE || '15', 10);
 const BULK_MODE = process.env.BULK_MODE === 'true';
@@ -80,11 +80,11 @@ async function callLLM(prompt, maxTokens = 3500) {
 
 // ─── Build the English content prompt ────────────────────────────────────────
 function buildPrompt(scheme) {
-  const structure = SCHEME_STRUCTURES[Math.floor(Math.random() * SCHEME_STRUCTURES.length)];
-  const systemPrompt = getSystemPrompt('scheme', structure, scheme.country_code || 'IN');
+  const structure = LOAN_STRUCTURES[Math.floor(Math.random() * LOAN_STRUCTURES.length)];
+  const systemPrompt = getSystemPrompt('loan', structure, scheme.country_code || 'IN');
 
-  const userPrompt = `Write a detailed 1,500-word guide for the scheme below.
-Scheme: ${scheme.name}
+  const userPrompt = `Write a detailed 1,500-word article for the following financial product.
+Name: ${scheme.name}
 State: ${scheme.state_name || 'Central Government of India'}
 Category: ${scheme.category || 'General'}
 Benefit Info: ${scheme.what_you_get || 'N/A'}
@@ -122,8 +122,8 @@ async function run() {
   console.log(`⏰ ${new Date().toISOString()}`);
   console.log(`📦 Batch size: ${BULK_MODE ? 'BULK MODE (50)' : BATCH_SIZE}`);
 
-  // Build query
-  let query = supabase.from('schemes').select('*').neq('type', 'loan');
+  // Build query for loans
+  let query = supabase.from('schemes').select('*').eq('type', 'loan').eq('country_code', 'IN');
 
   if (FORCE_SLUG) {
     console.log(`🎯 Force mode: ${FORCE_SLUG}`);
@@ -161,6 +161,8 @@ async function run() {
 
     try {
       const { systemPrompt, userPrompt, structure } = buildPrompt(scheme);
+      
+      // Need to adjust callLLM to accept system message. Wait, callLLM currently only accepts user prompt!
       const raw = await callLLM(systemPrompt + "\n\n" + userPrompt, 3500);
 
       if (!raw) {

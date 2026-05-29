@@ -22,34 +22,25 @@ if (!GROQ_KEY && !OPENAI_KEY) { console.error('❌ At least one AI API key requi
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-// ─── Country-specific GNews queries ─────────────────────────────────────────
 const GLOBAL_GNEWS_QUERIES = [
   // USA
-  { countryCode: 'US', gnewsCountry: 'us', q: 'government benefit program apply 2026 federal state' },
-  { countryCode: 'US', gnewsCountry: 'us', q: 'SNAP Medicaid Section 8 SSDI SSI eligibility 2026' },
-  { countryCode: 'US', gnewsCountry: 'us', q: 'SBA loan FAFSA Pell Grant government program 2026' },
-  { countryCode: 'US', gnewsCountry: 'us', q: 'state government assistance program low income 2026' },
-  { countryCode: 'US', gnewsCountry: 'us', q: 'veterans benefits disability housing assistance 2026' },
+  { countryCode: 'US', gnewsCountry: 'us', q: 'SBA loan government financial assistance business USA' },
+  { countryCode: 'US', gnewsCountry: 'us', q: 'federal student loan forgiveness government mortgage USA' },
 
   // UK
-  { countryCode: 'GB', gnewsCountry: 'gb', q: 'UK government benefit scheme grant 2026 apply' },
-  { countryCode: 'GB', gnewsCountry: 'gb', q: 'Universal Credit PIP DLA ESA Housing Benefit 2026' },
-  { countryCode: 'GB', gnewsCountry: 'gb', q: 'GOV.UK benefit entitlement DWP 2026 update' },
-  { countryCode: 'GB', gnewsCountry: 'gb', q: 'Innovate UK start up loan business grant 2026' },
+  { countryCode: 'GB', gnewsCountry: 'gb', q: 'UK government start up loan business finance' },
+  { countryCode: 'GB', gnewsCountry: 'gb', q: 'Help to Buy mortgage guarantee government scheme UK' },
 
   // Canada
-  { countryCode: 'CA', gnewsCountry: 'ca', q: 'Canada government benefit program apply 2026' },
-  { countryCode: 'CA', gnewsCountry: 'ca', q: 'CPP OAS EI CCB Canada child benefit 2026' },
-  { countryCode: 'CA', gnewsCountry: 'ca', q: 'provincial benefit assistance Ontario BC Quebec 2026' },
+  { countryCode: 'CA', gnewsCountry: 'ca', q: 'Canada Small Business Financing Program CSBFP loan' },
+  { countryCode: 'CA', gnewsCountry: 'ca', q: 'student loan government subsidy Canada provincial' },
 
   // Australia
-  { countryCode: 'AU', gnewsCountry: 'au', q: 'Australia government benefit payment apply 2026' },
-  { countryCode: 'AU', gnewsCountry: 'au', q: 'Centrelink JobSeeker Age Pension NDIS 2026' },
-  { countryCode: 'AU', gnewsCountry: 'au', q: 'Family Tax Benefit First Home Owner Grant 2026' },
+  { countryCode: 'AU', gnewsCountry: 'au', q: 'Australian government business loan subsidy finance' },
+  { countryCode: 'AU', gnewsCountry: 'au', q: 'First Home Guarantee loan scheme Australia' },
 
   // EU
-  { countryCode: 'EU', gnewsCountry: 'ie', q: 'Horizon Europe grant funding 2026 apply' },
-  { countryCode: 'EU', gnewsCountry: 'ie', q: 'Erasmus EIC Accelerator EU fund 2026' },
+  { countryCode: 'EU', gnewsCountry: 'ie', q: 'EU business loan guarantee scheme finance' },
 ];
 
 // ─── AI: Extract scheme data from a news article ────────────────────────────
@@ -64,10 +55,10 @@ Country: ${countryCode} | Currency: ${currency}
 Article Title: ${article.title}
 Article Summary: ${article.summary}
 
-If this article describes a specific government benefit, grant, or scheme, extract:
+If this article describes a specific government financial product, loan, business subsidy, or mortgage scheme, extract:
 - name: Full official scheme name
-- category: one of [cash, food, housing, health, education, disability, elderly, employment, family, business, agriculture, research, climate]
-- what_you_get: What beneficiaries receive (use ${currency} amounts, not ₹)
+- category: "loans"
+- what_you_get: What borrowers/beneficiaries receive (use ${currency} amounts, not ₹)
 - benefit_amount: Specific amount e.g. "${currency}500/month" or "Up to ${currency}10,000"
 - eligibility: JSON object with age_min, age_max, income_max, citizenship fields
 - how_to_apply: JSON object with steps array and portal_url
@@ -75,7 +66,7 @@ If this article describes a specific government benefit, grant, or scheme, extra
 - jurisdiction_level: "federal" | "state" | "national" | "eu-wide" | "provincial"
 - is_active: true
 
-If this is NOT about a specific named government scheme, or if it is a financial product/loan/mortgage with repayment, return {"skip": true}.
+If this is NOT about a specific named government financial/loan scheme, or if it is a general welfare scheme/cash transfer without repayment, return {"skip": true}.
 
 Return ONLY valid JSON, no markdown:`;
 
@@ -126,7 +117,7 @@ async function saveScheme(schemeData, countryCode, sourceUrl) {
     name: schemeData.name,
     slug,
     country_code: countryCode,
-    category: schemeData.category || 'cash',
+    category: 'loans',
     what_you_get: schemeData.what_you_get || '',
     benefit_amount: schemeData.benefit_amount || '',
     eligibility: schemeData.eligibility || {},
@@ -139,6 +130,7 @@ async function saveScheme(schemeData, countryCode, sourceUrl) {
     is_translated: false,
     discovered_at: new Date().toISOString(),
     source_url: sourceUrl || '',
+    type: 'loan',
     // Ensure currency never mixes
     currency_code: { US: 'USD', GB: 'GBP', CA: 'CAD', AU: 'AUD', EU: 'EUR' }[countryCode] || 'USD',
   });
