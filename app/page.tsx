@@ -149,29 +149,33 @@ export default async function HomePage() {
     'Schemes': '#FF6B00',
   };
 
-  const testimonials = [
+  const TRUST_STATS = [
     {
-      quote: 'A farmer from Maharashtra discovered PM-Kisan through SchemeAtlas and enrolled in under 10 minutes — without visiting any government office.',
-      location: 'Maharashtra',
-      category: 'Farmers',
-      saved: '₹6,000/year',
       icon: '🌾',
+      title: 'PM-Kisan Samman Nidhi',
+      highlight: '₹6,000/year',
+      desc: 'Direct income support for small and marginal farmers across India. Over 11 crore beneficiaries enrolled as of 2026.',
+      category: 'Farmers',
+      color: '#2D7A3A',
     },
     {
-      quote: 'A student from Bihar used SchemeAtlas to find a state scholarship she didn\'t know she qualified for, covering her full college fees.',
-      location: 'Bihar',
-      category: 'Students',
-      saved: '₹40,000',
+      icon: '🏥',
+      title: 'Ayushman Bharat — PMJAY',
+      highlight: '₹5 lakh/year',
+      desc: 'Free health insurance cover for hospitalisation. Available to 50 crore people in India belonging to lower income households.',
+      category: 'Healthcare',
+      color: '#C62828',
+    },
+    {
       icon: '🎓',
-    },
-    {
-      quote: 'A woman entrepreneur from Rajasthan applied for a MSME loan scheme through SchemeAtlas and got approved in 3 weeks.',
-      location: 'Rajasthan',
-      category: 'Business',
-      saved: '₹2L loan',
-      icon: '💼',
+      title: 'National Scholarship Portal',
+      highlight: 'Up to ₹50,000/year',
+      desc: 'Central government scholarships for students from SC, ST, OBC, and minority communities. Applications open annually.',
+      category: 'Students',
+      color: '#1B5FA8',
     },
   ];
+
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--warm-bg)' }}>
@@ -508,39 +512,49 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── TESTIMONIALS ─────────────────────────────────────────────── */}
+      {/* ── SCHEME HIGHLIGHTS (replaces testimonials) ────────────────── */}
       <section className="bg-white py-[72px] px-[24px]">
         <div className="max-w-[1200px] mx-auto">
           <div className="text-center mb-[40px]">
-            <p className="section-label mx-auto">Real Outcomes</p>
-            <h2 className="section-title">Citizens Who Found Their Benefits</h2>
+            <p className="section-label mx-auto">💰 What's Available to You</p>
+            <h2 className="section-title">India's Biggest Benefit Schemes</h2>
+            <p style={{ color: 'var(--text-muted)', marginTop: 8, fontSize: 15 }}>
+              These are some of the highest-value schemes currently active. Check if you qualify.
+            </p>
           </div>
           <div className="grid md:grid-cols-3 gap-[20px]">
-            {testimonials.map((t, i) => (
+            {TRUST_STATS.map((item) => (
               <div
-                key={i}
-                className="rounded-[var(--radius-md)] p-[24px] cat-border-card"
-                style={{
-                  background: 'var(--surface-gray)',
-                  border: `1px solid var(--border)`,
-                  borderLeftColor: CATEGORY_COLOURS[t.category] || 'var(--saffron)',
-                  borderLeftWidth: 3,
-                }}
+                key={item.title}
+                className="rounded-[var(--radius-md)] p-[24px] border bg-white shadow-sm hover:-translate-y-[2px] transition-all"
+                style={{ borderLeftColor: item.color, borderLeftWidth: 3, borderTop: `1px solid ${item.color}22`, borderRight: `1px solid ${item.color}22`, borderBottom: `1px solid ${item.color}22` }}
               >
-                <div style={{ fontSize: 28, marginBottom: 14 }}>{t.icon}</div>
-                <p style={{ fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.75, marginBottom: 16, fontStyle: 'italic' }}>
-                  "{t.quote}"
-                </p>
-                <div className="flex items-center justify-between">
-                  <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>📍 {t.location}</span>
-                  <span className="benefit-badge">{t.saved}</span>
+                <div style={{ fontSize: 32, marginBottom: 12 }}>{item.icon}</div>
+                <div
+                  className="text-xs font-bold px-2 py-1 rounded-full inline-block mb-3"
+                  style={{ background: `${item.color}15`, color: item.color }}
+                >
+                  {item.category}
                 </div>
+                <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 6 }}>{item.title}</h3>
+                <div
+                  className="text-xl font-extrabold mb-3"
+                  style={{ color: item.color }}
+                >
+                  {item.highlight}
+                </div>
+                <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.7 }}>{item.desc}</p>
               </div>
             ))}
           </div>
-          <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-faint)', marginTop: 20 }}>
-            * Anonymised composite outcomes based on real scheme benefits.
-          </p>
+          <div className="text-center mt-8">
+            <Link
+              href="/schemes"
+              className="inline-flex items-center gap-2 bg-slate-900 text-white px-7 py-3 rounded-xl font-bold text-sm hover:bg-black transition-all"
+            >
+              Browse All 1,815+ Schemes →
+            </Link>
+          </div>
         </div>
       </section>
 

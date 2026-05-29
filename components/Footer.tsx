@@ -91,6 +91,7 @@ export function Footer() {
             <ul className="flex flex-col gap-[9px] text-[13px]">
               <li><Link href="/about" className="text-slate-400 hover:text-white transition-colors">About Us</Link></li>
               <li><Link href="/contact" className="text-slate-400 hover:text-white transition-colors">Contact</Link></li>
+              <li><Link href="/editorial-policy" className="text-slate-400 hover:text-white transition-colors">Editorial Policy</Link></li>
               <li><Link href="/privacy" className="text-slate-400 hover:text-white transition-colors">Privacy Policy</Link></li>
               <li><Link href="/terms" className="text-slate-400 hover:text-white transition-colors">Terms of Service</Link></li>
               <li><Link href="/disclaimer" className="text-slate-400 hover:text-white transition-colors">Disclaimer</Link></li>
@@ -103,7 +104,7 @@ export function Footer() {
 
         {/* Bottom Bar */}
         <div className="mt-[56px] pt-[24px] border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-[12px] text-[12px] text-slate-500">
-          <p>© 2026 SchemeAtlas. Not affiliated with any government entity.</p>
+          <p>© 2026 SchemeAtlas, Hyderabad, India. Not affiliated with any government entity.</p>
           <p className="font-[600] text-slate-400">Made in India 🇮🇳</p>
         </div>
       </div>
