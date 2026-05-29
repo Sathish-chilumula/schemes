@@ -8,6 +8,39 @@ const nextConfig = {
       { protocol: 'https', hostname: 'images.pexels.com' },
     ],
   },
+  async redirects() {
+    return [
+      // ── Redirect old Civic News & Jobs pipeline URLs → /schemes ──
+      // These were created by the now-deleted civic-news-pipeline and are
+      // indexed by Google. 301 passes SEO equity and stops 404 errors.
+      {
+        source: '/jobs',
+        destination: '/schemes',
+        permanent: true,
+      },
+      {
+        source: '/jobs/:slug',
+        destination: '/schemes',
+        permanent: true,
+      },
+      {
+        source: '/news',
+        destination: '/schemes',
+        permanent: true,
+      },
+      {
+        source: '/news/:slug',
+        destination: '/schemes',
+        permanent: true,
+      },
+      // Catch any budget/alert category articles that may have been indexed
+      {
+        source: '/articles/:slug',
+        destination: '/schemes',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
