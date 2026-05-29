@@ -74,7 +74,7 @@ async function main() {
   while (hasMore) {
     const { data: batch, error: countError } = await supabase
       .from('schemes')
-      .select('id, name, slug, content_en, country_code, category, what_you_get, benefit_amount, eligibility, how_to_apply, documents, official_url, type')
+      .select('id, name, slug, content_en, country_code, category, what_you_get, benefit_amount, eligibility, how_to_apply, documents, official_url, scheme_type')
       .eq('is_published', true)
       .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
 
@@ -114,7 +114,7 @@ async function main() {
   for (const scheme of schemes) {
     console.log(`📝 Rewriting: ${scheme.name} (${scheme.slug})`);
     
-    const isLoan = scheme.type === 'loan' || (scheme.category || '').toLowerCase() === 'loans';
+    const isLoan = scheme.scheme_type === 'loan' || (scheme.category || '').toLowerCase() === 'loans';
     const typeStr = isLoan ? 'loan' : 'scheme';
 
     let jsonResponse = '';
