@@ -10,7 +10,8 @@ import { slugify } from '@/lib/seo';
 import { ViewCounter } from '@/components/ViewCounter';
 import { RelatedArticlesBlock } from '@/components/RelatedArticlesBlock';
 import React from 'react';
-export const runtime = 'edge';
+import Image from 'next/image';
+export const revalidate = 3600;
 const COUNTRY_NAMES: Record<string, string> = {
   'IN': 'India',
   'GB': 'United Kingdom', 
@@ -450,10 +451,13 @@ export default async function SchemeDetailPage({
 
             <div className="w-full h-[300px] md:h-[450px] relative rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white mb-4 group">
               {scheme.image_url ? (
-                 <img 
+                 <Image 
                    src={scheme.image_url} 
                    alt={scheme.name}
-                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                   fill
+                   priority
+                   sizes="(max-width: 768px) 100vw, 1200px"
+                   className="object-cover group-hover:scale-105 transition-transform duration-700"
                  />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-12 text-center">

@@ -6,9 +6,11 @@ import Link from 'next/link';
 import { FAQAccordion } from '@/components/FAQAccordion';
 import { Navbar } from '@/components/Navbar';
 import { supabaseAdmin } from '@/lib/supabase';
+import Image from 'next/image';
 
 // Do NOT use runtime = 'edge' here because we still use fs for language variants/fallback
 export const dynamicParams = true;
+export const revalidate = 3600;
 
 export async function generateStaticParams() {
   const supabase = supabaseAdmin({ next: { revalidate: 3600 } });
@@ -230,10 +232,13 @@ export default async function ArticlePage({ params }: { params: { slug: string }
             {/* Hero Image — with category gradient fallback */}
             {article.imageUrl ? (
               <div className="relative w-full aspect-video rounded-[var(--radius-md)] overflow-hidden mb-[24px] border border-[var(--border)]">
-                <img
+                <Image
                   src={article.imageUrl}
                   alt={article.title}
-                  className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                  fill
+                  priority
+                  sizes="(max-width: 768px) 100vw, 1200px"
+                  className="object-cover transition-transform duration-500 hover:scale-105"
                 />
               </div>
             ) : (
