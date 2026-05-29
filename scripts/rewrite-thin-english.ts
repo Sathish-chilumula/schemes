@@ -53,24 +53,37 @@ async function callLLM(prompt: string, system: string) {
       if (content.length > 200) return content;
     } catch (err: any) {
       console.error(`     ⚠️ OpenAI failed: ${err.message}`);
-    }
-  }
-
-  throw new Error('All AI models failed or rate limits exceeded');
+function sanitizeJson(str: string): string {
+  return str.replace(/[\u0000-\u001F\u007F-\u009F]/g, "").trim();
 }
 
 async function main() {
   console.log('🚀 Thin Content Rewrite Job (English)');
   
-  // 1. Get stats by fetching and filtering in JS (since word_count_en column does not exist)
-  const { data: allSchemes, error: countError } = await supabase
-    .from('schemes')
-    .select('id, name, slug, content_en, country_code, category, what_you_get, benefit_amount, eligibility, how_to_apply, documents, official_url')
-    .eq('is_published', true);
+  // 1. Get stats by fetching all published schemes via pagination
+  let allSchemes: any[] = [];
+  let hasMore = true;
+  let page = 0;
+  const PAGE_SIZE = 1000;
 
-  if (countError) {
-    console.error('❌ Fetch error:', countError.message);
-    process.exit(1);
+  while (hasMore) {
+    const { data: batch, error: countError } = await supabase
+      .from('schemes')
+      .select('id, name, slug, content_en, country_code, category, what_you_get, benefit_amount, eligibility, how_to_apply, documents, official_url, type')
+      .eq('is_published', true)
+      .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+
+    if (countError) {
+      console.error('❌ Fetch error:', countError.message);
+      process.exit(1);
+    }
+    
+    if (batch && batch.length > 0) {
+      allSchemes = allSchemes.concat(batch);
+      page++;
+    } else {
+      hasMore = false;
+    }
   }
 
   const thinSchemes = allSchemes.filter(s => {
@@ -96,38 +109,69 @@ async function main() {
   for (const scheme of schemes) {
     console.log(`📝 Rewriting: ${scheme.name} (${scheme.slug})`);
     
-    // Choose dynamic structure
     const isLoan = scheme.type === 'loan' || (scheme.category || '').toLowerCase() === 'loans';
     const typeStr = isLoan ? 'loan' : 'scheme';
-    const structureList = isLoan ? LOAN_STRUCTURES : SCHEME_STRUCTURES;
-    const structure = structureList[Math.floor(Math.random() * structureList.length)];
-    
-    const systemPrompt = getSystemPrompt(typeStr, structure, scheme.country_code || 'IN');
-    
-    const userPrompt = `Rewrite the following short article into a comprehensive, SEO-optimized 1000+ word article.
-Existing content details:
-Name: ${scheme.name}
-Benefit: ${scheme.benefit_amount || 'Unknown'}
-Eligibility: ${scheme.eligibility ? JSON.stringify(scheme.eligibility) : 'Unknown'}
-Category: ${scheme.category}
-Original Text: ${scheme.content_en || 'None'}`;
+
+    let jsonResponse = '';
+    let success = false;
+
+    // 1. Try Groq First
+    if (groqClient) {
+      try {
+        const response = await groqClient.chat.completions.create({
+          model: 'llama-3.3-70b-versatile',
+          messages: [
+            { role: 'system', content: getSystemPrompt(typeStr, 'detailed', scheme.country_code || 'IN') },
+            { role: 'user', content: `Rewrite the content for: ${scheme.name}\n\nContext:\nWhat you get: ${scheme.what_you_get}\nBenefits: ${scheme.benefit_amount}\nEligibility: ${JSON.stringify(scheme.eligibility)}\nHow to apply: ${JSON.stringify(scheme.how_to_apply)}\nDocuments: ${JSON.stringify(scheme.documents)}\nURL: ${scheme.official_url}\nCategory: ${scheme.category}` }
+          ],
+          temperature: 0.7,
+          response_format: { type: 'json_object' }
+        });
+        jsonResponse = response.choices[0]?.message?.content || '';
+        success = true;
+      } catch (err: any) {
+        console.log(`     ⚠️ Groq failed or rate limited: ${err.message}. Falling back to OpenAI...`);
+      }
+    }
+
+    // 2. Try OpenAI Fallback
+    if (!success && openaiClient) {
+      try {
+        const response = await openaiClient.chat.completions.create({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: getSystemPrompt(typeStr, 'detailed', scheme.country_code || 'IN') },
+            { role: 'user', content: `Rewrite the content for: ${scheme.name}\n\nContext:\nWhat you get: ${scheme.what_you_get}\nBenefits: ${scheme.benefit_amount}\nEligibility: ${JSON.stringify(scheme.eligibility)}\nHow to apply: ${JSON.stringify(scheme.how_to_apply)}\nDocuments: ${JSON.stringify(scheme.documents)}\nURL: ${scheme.official_url}\nCategory: ${scheme.category}` }
+          ],
+          temperature: 0.7,
+          response_format: { type: 'json_object' }
+        });
+        jsonResponse = response.choices[0]?.message?.content || '';
+        success = true;
+      } catch (err: any) {
+        console.log(`     ❌ OpenAI fallback failed: ${err.message}`);
+      }
+    }
+
+    if (!success || !jsonResponse) {
+      failCount++;
+      continue;
+    }
 
     try {
-      const result = await callLLM(userPrompt, systemPrompt);
-      const cleaned = result.replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim();
-      const parsed = JSON.parse(cleaned);
+      const cleanedJson = sanitizeJson(jsonResponse);
+      const parsed = JSON.parse(cleanedJson);
       
-      // Update the content but NEVER touch the slug
-      const { error: upErr } = await supabase
+      const { error: updateError } = await supabase
         .from('schemes')
         .update({
-          content_en: JSON.stringify(parsed),
-          rewritten_at: new Date().toISOString()
+          content_en: typeof parsed.content === 'string' ? parsed.content : JSON.stringify(parsed),
+          updated_at: new Date().toISOString()
         })
         .eq('id', scheme.id);
         
-      if (upErr) throw upErr;
-      console.log(`   ✅ Successfully rewritten using ${structure} format.`);
+      if (updateError) throw updateError;
+      console.log(`   ✅ Successfully rewritten.`);
       successCount++;
     } catch (err: any) {
       console.error(`   ❌ Failed:`, err.message);
