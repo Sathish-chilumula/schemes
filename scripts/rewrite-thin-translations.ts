@@ -79,18 +79,21 @@ function getRequiredLanguages(scheme: any) {
   const req = new Set<string>();
   const isTripleTranslate = scheme.is_central === true || scheme.state_code === 'IN';
   
+  // Extract state code (e.g., 'IN-AP' -> 'AP')
+  const sCode = (scheme.state_code || '').replace('IN-', '');
+  
   if (scheme.country_code === 'IN') {
     if (isTripleTranslate) {
       req.add('hi');
       req.add('te'); // Central schemes get Hindi + Telugu
     } else {
-      if (SOUTH_INDIAN_STATES.includes(scheme.state_code)) {
+      if (SOUTH_INDIAN_STATES.includes(sCode)) {
         // South India: English (default) + Local Language only
-        req.add(STATE_LANGUAGE_MAP[scheme.state_code] || 'te');
+        req.add(STATE_LANGUAGE_MAP[sCode] || 'te');
       } else {
         // Other States: English (default) + Hindi + Local Language
         req.add('hi');
-        const local = STATE_LANGUAGE_MAP[scheme.state_code];
+        const local = STATE_LANGUAGE_MAP[sCode];
         if (local && local !== 'hi') {
           req.add(local);
         }
@@ -227,7 +230,7 @@ REQUIREMENTS:
     items_failed: failCount
   });
 
-  console.log(`🏁 Run complete! Success: ${successCount} | Failed: ${failCount}`);
+  console.log(`\n🏁 Run complete! Success: ${successCount} | Failed: ${failCount} | Remaining: ${Math.max(0, thinTranslationSchemes.length - successCount)}`);
 }
 
 main().catch(console.error);
