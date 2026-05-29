@@ -11,7 +11,7 @@ import { ViewCounter } from '@/components/ViewCounter';
 import { RelatedArticlesBlock } from '@/components/RelatedArticlesBlock';
 import React from 'react';
 import Image from 'next/image';
-export const revalidate = 3600;
+export const runtime = 'edge';
 const COUNTRY_NAMES: Record<string, string> = {
   'IN': 'India',
   'GB': 'United Kingdom', 

@@ -10,7 +10,6 @@ import Image from 'next/image';
 
 // Do NOT use runtime = 'edge' here because we still use fs for language variants/fallback
 export const dynamicParams = true;
-export const revalidate = 3600;
 
 export async function generateStaticParams() {
   const supabase = supabaseAdmin({ next: { revalidate: 3600 } });
