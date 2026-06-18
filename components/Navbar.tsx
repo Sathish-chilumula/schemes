@@ -33,7 +33,7 @@ export function Navbar({ variant = 'light' }: NavbarProps) {
     <>
       {/* Announcement Bar — slim single line */}
       <div className="bg-[var(--navy)] py-[5px] text-[12px] text-[#94A3B8] text-center leading-none">
-        <span>🇮🇳 1815+ Active Central &amp; State Schemes · Updated Daily &nbsp;·&nbsp;</span>
+        <span>🇮🇳 Thousands of Active Central &amp; State Schemes · Updated Daily &nbsp;·&nbsp;</span>
         <Link href="/articles" className="text-[var(--amber)] font-[700] hover:underline">
           ✦ New: Loans &amp; Insurance Guides →
         </Link>
