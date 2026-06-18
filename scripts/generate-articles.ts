@@ -137,7 +137,7 @@ async function openai(user: string, system: string): Promise<string> {
   const r = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${OPENAI_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: 'gpt-4o-mini', messages: [{ role: 'system', content: system }, { role: 'user', content: user }] })
+    body: JSON.stringify({ model: 'gpt-4o-mini', response_format: { type: 'json_object' }, messages: [{ role: 'system', content: system }, { role: 'user', content: user }] })
   })
   if (!r.ok) throw new Error(`OpenAI ${r.status}: ${await r.text()}`)
   return (await r.json()).choices[0].message.content.trim()

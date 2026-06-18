@@ -22,7 +22,7 @@ async function cleanupDuplicates() {
   console.log('Fetching schemes...');
   const { data: schemes, error } = await supabase
     .from('schemes')
-    .select('id, name, slug, views, created_at, state_code, country_code')
+    .select('id, name, slug, views, discovered_at, state_code, country_code')
     .order('views', { ascending: false });
 
   if (error) {
@@ -45,10 +45,10 @@ async function cleanupDuplicates() {
   for (const key in groups) {
     const group = groups[key];
     if (group.length > 1) {
-      // Sort by views (highest first) then by created_at (oldest first)
+      // Sort by views (highest first) then by discovered_at (oldest first)
       const sorted = [...group].sort((a, b) => {
         if (b.views !== a.views) return b.views - a.views;
-        return new Date(a.created_at) - new Date(b.created_at);
+        return new Date(a.discovered_at) - new Date(b.discovered_at);
       });
 
       const original = sorted[0];

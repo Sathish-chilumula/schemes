@@ -29,7 +29,7 @@ async function callLLM(prompt: string, system: string) {
       const response = await groqClient.chat.completions.create({
         model: 'llama-3.3-70b-versatile',
         messages: [{ role: 'system', content: system }, { role: 'user', content: prompt }],
-        max_tokens: 2500,
+        max_tokens: 8000,
         temperature: 0.35,
       });
       const content = response.choices?.[0]?.message?.content || '';
@@ -45,7 +45,7 @@ async function callLLM(prompt: string, system: string) {
       const response = await openaiClient.chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [{ role: 'system', content: system }, { role: 'user', content: prompt }],
-        max_tokens: 2500,
+        max_tokens: 8000,
         temperature: 0.35,
       });
       const content = response.choices?.[0]?.message?.content || '';

@@ -12,7 +12,7 @@ export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: `SchemeAtlas — Find Every Government Scheme You Qualify For | India ${new Date().getFullYear()}`,
-  description: 'Discover 1,815+ central and state government schemes across India. AI-powered eligibility checker. Updated daily. Find schemes for farmers, women, students, SC/ST and more.',
+  description: 'Discover thousands of central and state government schemes across India. AI-powered eligibility checker. Updated daily. Find schemes for farmers, women, students, SC/ST and more.',
   alternates: {
     canonical: 'https://schemeatlas.com',
   },
@@ -200,7 +200,7 @@ export default async function HomePage() {
                 className="inline-flex items-center gap-[8px] rounded-[20px] px-[14px] py-[6px] text-[12px] font-[700] mb-[24px]"
                 style={{ background: 'rgba(255,107,0,0.10)', border: '1px solid rgba(255,107,0,0.25)', color: '#CC4400' }}
               >
-                🇮🇳 India's #1 Government Schemes Platform · 1,815+ Active Schemes
+                🇮🇳 India's #1 Government Schemes Platform · Thousands of Active Schemes
               </div>
 
               <h1
@@ -215,7 +215,7 @@ export default async function HomePage() {
                 className="mb-[36px] leading-[1.7]"
                 style={{ fontSize: 17, color: 'var(--text-muted)', maxWidth: 520 }}
               >
-                1,815+ active central &amp; state schemes. AI-powered eligibility check in 2 minutes.
+                Thousands of active central &amp; state schemes. AI-powered eligibility check in 2 minutes.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-[12px] mb-[40px]">
@@ -223,7 +223,7 @@ export default async function HomePage() {
                   Check My Eligibility Free →
                 </Link>
                 <Link href="/schemes" className="btn-outline text-[14px]">
-                  Browse All 1,815 Schemes
+                  Browse All Schemes
                 </Link>
               </div>
 
@@ -245,7 +245,7 @@ export default async function HomePage() {
       <section style={{ background: '#1a1a1a' }} className="py-[20px] px-[24px]">
         <div className="max-w-[1200px] mx-auto flex justify-center items-center gap-[48px] flex-wrap">
           {[
-            { number: '1,815+', label: 'Active Schemes' },
+            { number: 'Thousands', label: 'Active Schemes' },
             { number: '28', label: 'States Covered' },
             { number: '5,500+', label: 'Citizens Helped' },
             { number: 'Daily', label: 'Updated' },
@@ -373,7 +373,7 @@ export default async function HomePage() {
                 <p className="section-label">🔥 Trending Right Now</p>
                 <h2 className="section-title">Most Viewed Schemes</h2>
               </div>
-              <Link href="/schemes" className="btn-outline whitespace-nowrap">View All 1,815 →</Link>
+              <Link href="/schemes" className="btn-outline whitespace-nowrap">View All Schemes →</Link>
             </div>
             <div className="grid md:grid-cols-3 gap-6">
               {trendingSchemes.map((scheme, i) => {
@@ -497,7 +497,7 @@ export default async function HomePage() {
           <div className="grid md:grid-cols-3 gap-[24px] relative">
             {[
               { icon: '📝', title: '1. Tell us about you', desc: 'Enter your age, caste category, state, and income. No personal info required.' },
-              { icon: '🤖', title: '2. AI Matching', desc: 'Our AI engine scans 1,815+ state and central schemes in 30 seconds.' },
+              { icon: '🤖', title: '2. AI Matching', desc: 'Our AI engine scans thousands of state and central schemes in 30 seconds.' },
               { icon: '🎯', title: '3. Claim Benefits', desc: 'Get exact links to official portals along with required document lists.' },
             ].map((step, i) => (
               <div key={i} className="bg-white rounded-[var(--radius-lg)] border border-[var(--border)] p-[32px] relative overflow-hidden hover:-translate-y-[2px] transition-transform shadow-sm card-animate" style={{ animationDelay: `${i * 0.1}s` }}>
@@ -552,7 +552,7 @@ export default async function HomePage() {
               href="/schemes"
               className="inline-flex items-center gap-2 bg-slate-900 text-white px-7 py-3 rounded-xl font-bold text-sm hover:bg-black transition-all"
             >
-              Browse All 1,815+ Schemes →
+              Browse All Schemes →
             </Link>
           </div>
         </div>

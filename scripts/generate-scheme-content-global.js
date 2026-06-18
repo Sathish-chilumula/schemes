@@ -69,7 +69,7 @@ async function run() {
     .from('schemes')
     .select('*')
     .neq('country_code', 'IN')
-    .neq('type', 'loan')
+    .neq('scheme_type', 'loan')
     .eq('is_seo_optimized', false)
     .order('discovered_at', { ascending: false })
     .limit(BATCH_SIZE);

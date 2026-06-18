@@ -188,7 +188,7 @@ async function run() {
         }
         await delay(800);
       }
-      await delay(400); // GNews rate limit
+      await delay(2000); // GNews rate limit
     } catch (err) {
       console.warn(`  ⚠️  GNews failed: ${err.message}`);
     }

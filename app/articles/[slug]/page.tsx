@@ -468,7 +468,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
 
             {/* Card 3 — Browse Schemes */}
             <div className="bg-white border border-[var(--border)] p-[20px] rounded-[var(--radius-md)] shadow-sm text-center">
-              <h3 className="font-[600] text-[15px] mb-[16px] text-[var(--text-primary)]">Browse 1,815+ Government Schemes</h3>
+              <h3 className="font-[600] text-[15px] mb-[16px] text-[var(--text-primary)]">Browse Government Schemes</h3>
               <Link href="/schemes" className="btn-outline w-full justify-center">
                 View All Schemes
               </Link>

@@ -166,7 +166,7 @@ export async function generateMetadata({
     // The canonical English URL is the only version Google should index.
 
     // Identify thin content for SEO protection
-    const isThin = (scheme.content_en || '').split(/\s+/).length < 300;
+    const isThin = !scheme.content_en || scheme.content_en.trim().length < 1500;
 
     return {
       title,

@@ -29,7 +29,9 @@ function tryParseStructured(content: string | null): StructuredContent | null {
   if (!content) return null;
   try {
     const parsed = JSON.parse(content);
-    if (parsed && Array.isArray(parsed.sections) && Array.isArray(parsed.faqs) && parsed.intro) {
+    if (parsed && Array.isArray(parsed.sections) && parsed.intro) {
+      if (!Array.isArray(parsed.faqs)) parsed.faqs = [];
+      if (!Array.isArray(parsed.tableOfContents)) parsed.tableOfContents = [];
       return parsed as StructuredContent;
     }
     return null;
@@ -41,9 +43,15 @@ function tryParseStructured(content: string | null): StructuredContent | null {
 // ─── Inline FAQ Accordion ────────────────────────────────────────────────
 function FAQAccordion({ faqs }: { faqs: { q: string; a: string }[] }) {
   const [open, setOpen] = useState<number | null>(null);
+  
+  const cleanFaqs = faqs.map(faq => ({
+    q: faq.q?.replace(/^(Q:\s*)+/i, '').trim() || '',
+    a: faq.a?.replace(/^(A:\s*)+/i, '').trim() || ''
+  }));
+
   return (
     <div className="space-y-3">
-      {faqs.map((faq, i) => (
+      {cleanFaqs.map((faq, i) => (
         <div key={i} className="border border-slate-200 rounded-2xl overflow-hidden">
           <button
             onClick={() => setOpen(open === i ? null : i)}

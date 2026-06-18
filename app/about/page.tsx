@@ -35,7 +35,7 @@ const TEAM = [
 const MILESTONES = [
   { year: 'March 2026', event: 'SchemeAtlas launched with 800+ verified Indian government schemes' },
   { year: 'April 2026', event: 'Expanded to cover all 28 Indian states and 8 Union Territories' },
-  { year: 'May 2026', event: 'Reached 1,815+ schemes and added multilingual content (Hindi, Telugu)' },
+  { year: 'May 2026', event: 'Scaled our database of schemes and added multilingual content (Hindi, Telugu)' },
   { year: 'May 2026', event: '8,000+ citizens visited the platform in the first month of public availability' },
 ];
 
@@ -106,7 +106,7 @@ export default function About() {
               {
                 icon: '📋',
                 title: 'Scheme Discovery',
-                desc: '1,815+ central and state government schemes, verified against official portals. Every scheme has eligibility criteria, benefit amounts, and application steps.',
+                desc: 'Thousands of central and state government schemes, verified against official portals. Every scheme has eligibility criteria, benefit amounts, and application steps.',
                 color: '#FF6B00',
               },
               {

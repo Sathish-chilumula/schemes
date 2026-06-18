@@ -109,8 +109,8 @@ async function main() {
     process.exit(0);
   }
 
-  // 2. Fetch up to 20 thin articles
-  const schemes = thinSchemes.slice(0, 20);
+  // 2. Fetch up to 50 thin articles
+  const schemes = thinSchemes.slice(0, 50);
   console.log(`📋 Processing ${schemes.length} schemes this run.\n`);
 
   let successCount = 0;

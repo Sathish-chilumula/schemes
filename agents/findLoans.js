@@ -461,7 +461,7 @@ async function fetchGNews() {
         });
       }
       if (articles.length > 0) console.log(`  ✅ GNews [IN] "${q.q.substring(0, 40)}" → ${articles.length} articles`);
-      await new Promise(r => setTimeout(r, 350));
+      await new Promise(r => setTimeout(r, 2000));
     } catch (err) { console.warn(`  ⚠️  GNews IN failed: ${err.message}`); }
   }
 
@@ -480,7 +480,7 @@ async function fetchGNews() {
         });
       }
       if (articles.length > 0) console.log(`  ✅ GNews [${q.countryCode}] "${q.q.substring(0, 40)}" → ${articles.length} articles`);
-      await new Promise(r => setTimeout(r, 350));
+      await new Promise(r => setTimeout(r, 2000));
     } catch (err) { console.warn(`  ⚠️  GNews global failed: ${err.message}`); }
   }
 

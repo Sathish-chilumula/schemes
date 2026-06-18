@@ -123,7 +123,7 @@ async function run() {
   console.log(`📦 Batch size: ${BULK_MODE ? 'BULK MODE (50)' : BATCH_SIZE}`);
 
   // Build query for loans
-  let query = supabase.from('schemes').select('*').eq('type', 'loan').eq('country_code', 'IN');
+  let query = supabase.from('schemes').select('*').eq('scheme_type', 'loan').eq('country_code', 'IN');
 
   if (FORCE_SLUG) {
     console.log(`🎯 Force mode: ${FORCE_SLUG}`);
