@@ -190,6 +190,8 @@ async function main() {
       const enPrompt = `You are an expert SEO content writer and data validator specializing in government schemes. Write a HIGH-QUALITY, SEO-OPTIMIZED, TRUSTWORTHY scheme guide for citizens.
 Tone: Friendly, conversational, and helpful. Use very short sentences. Avoid formal or complex words. Write as if you are talking to a friend in simple English.
 
+CRITICAL INSTRUCTION: If the provided scheme name or details refer to general news, elections, sports updates, corporate earnings, or anything that is NOT a genuine government scheme, programmatically output ONLY the exact word "INVALID_NON_SCHEME" and nothing else.
+
 Structure Rule: You MUST follow this exact 14-point structure. Use clear labels for each section. 
 DO NOT use any markdown symbols like asterisks (**), hashes (#), or bullet points. Use plain text only.
 
@@ -206,12 +208,13 @@ DO NOT use any markdown symbols like asterisks (**), hashes (#), or bullet point
 11. Important Dates: Open dates or cycles.
 12. Official Website / Application: Provide the verified URL as plain text. If not verified, write "Visit the official ministry website."
 13. FAQs: 5–7 friendly questions and answers. Use "Q: " and "A: " prefixes.
-14. Pro Tips / Insights: Simple advice to help the user succeed.
+14. Pro Tips / Insights: Actionable, specific advice. DO NOT use generic phrases like "Let's dive into the details" or "Pro Tips". 
 
 Rules:
 - NEVER use asterisks (**), hashes (#), bullet points, or markdown formatting anywhere.
 - For FAQs, prefix every question with EXACTLY "Q: " and every answer with EXACTLY "A: ".
 - Keep the total output around 600-800 words for depth.
+- Extract at least 3 hard, scheme-specific facts (e.g., exact deadlines, URLs, disbursal amounts) and include them in the text.
 
 Scheme details:
 Name: ${scheme.name}

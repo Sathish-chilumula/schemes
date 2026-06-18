@@ -21,7 +21,7 @@ const TEAM = [
     role: 'Scheme Verification & Updates',
     bio: 'Our research team manually verifies each scheme against official government portals — including myscheme.gov.in, PIB press releases, and individual state government websites — before publishing.',
     icon: '🔍',
-    location: 'Hyderabad & Remote',
+    location: 'Hyderabad (Global Distributed Team)',
   },
   {
     name: 'Advisory Panel',

@@ -31,7 +31,7 @@ export default function Contact() {
             </li>
             <li className="flex items-center gap-3">
               <span className="text-brand-500 text-xl flex-shrink-0">📍</span>
-              <span><strong>Headquarters:</strong> Global Distributed Team</span>
+              <span><strong>Headquarters:</strong> Hyderabad, India (with a Global Distributed Team)</span>
             </li>
           </ul>
         </div>
