@@ -63,7 +63,7 @@ async function getArticle(slug: string) {
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const article = await getArticle(params.slug);
-  if (!article) return {};
+  if (!article) return { title: 'Article Not Found', robots: { index: false } };
 
   const title = `${article.title} | SchemeAtlas Money Guides`;
   const description = article.metaDescription || article.desc || `Read the complete guide: ${article.title}`;
@@ -104,6 +104,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       description,
       images: [ogImage],
     },
+    robots: { index: true, follow: true },
   };
 }
 

@@ -83,6 +83,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .from('schemes')
         .select('slug, updated_at')
         .eq('is_published', true)
+        .eq('quality_status', 'active')
         .order('views', { ascending: false })
         .range(offset, offset + PAGE_SIZE - 1);
 

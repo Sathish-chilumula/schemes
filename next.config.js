@@ -34,11 +34,7 @@ const nextConfig = {
         permanent: true,
       },
       // Catch any budget/alert category articles that may have been indexed
-      {
-        source: '/articles/:slug',
-        destination: '/schemes',
-        permanent: true,
-      },
+      // The /articles/:slug redirect was removed because it was breaking the articles routing.
     ];
   },
 };

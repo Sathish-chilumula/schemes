@@ -118,11 +118,26 @@ export async function generateMetadata({
 
     const { data: scheme } = await supabase
       .from('schemes')
-      .select('name, content_en, state_name, country_code, slug, local_language, benefit_amount, canonical_slug, category, image_url, ministry')
+      .select('name, content_en, state_name, country_code, slug, local_language, benefit_amount, canonical_slug, category, image_url, ministry, quality_status')
       .eq('slug', resolvedParams.slug)
       .single();
 
-    if (!scheme) return { title: 'Scheme Not Found' };
+    if (!scheme) return { title: 'Scheme Not Found', robots: { index: false, follow: false } };
+
+    if (scheme.quality_status === 'noindex') {
+      return {
+        title: scheme.name,
+        robots: { index: false, follow: false }
+      };
+    }
+
+    if (scheme.quality_status === 'canonical_redirect' && scheme.canonical_slug) {
+      return {
+        title: scheme.name,
+        alternates: { canonical: `https://schemeatlas.com/schemes/${scheme.canonical_slug}` },
+        robots: { index: false, follow: true }
+      };
+    }
 
     const rawDesc = scheme.content_en || '';
     const cleanDesc = cleanMarkdown(rawDesc).substring(0, 160);
@@ -185,13 +200,15 @@ export async function generateMetadata({
         images: [ogImage],
       },
       alternates: {
-        // Only declare the canonical English URL.
-        // ?lang= variants are blocked by robots.txt, so we must NOT advertise
-        // them in hreflang — that conflict causes "Blocked by robots.txt" in GSC.
         canonical: canonicalUrl,
+        languages: {
+          'en': canonicalUrl,
+          'hi': `${canonicalUrl}?lang=hi`,
+          'te': `${canonicalUrl}?lang=te`,
+        }
       },
       robots: {
-        index: !isThin,
+        index: true,
         follow: true,
       },
     };
