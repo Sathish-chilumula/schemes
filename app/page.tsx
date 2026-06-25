@@ -140,6 +140,13 @@ export default async function HomePage() {
     .filter((a) => !/-(hi|te|ta|mr|gu|kn|ml|pa|or|yo|sw)$/.test(a.slug || ''))
     .slice(0, 3);
 
+  const getBenefitText = (text: string | null) => {
+    if (!text) return 'View Details';
+    const lower = text.toLowerCase();
+    if (lower.includes('not specified') || lower.includes('not applicable')) return 'View Details';
+    return text;
+  };
+
   const CATEGORY_ARTICLE_COLORS: Record<string, string> = {
     'Loans': '#1B5FA8',
     'Insurance': '#4527A0',
@@ -407,7 +414,7 @@ export default async function HomePage() {
                     <div className="flex items-center justify-between mt-auto" style={{ borderTop: '1px solid var(--border)', paddingTop: 14 }}>
                       <div>
                         <div style={{ fontSize: 11, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>Benefit</div>
-                        <span className="benefit-badge">{scheme.benefit_amount || 'View Details'}</span>
+                        <span className="benefit-badge">{getBenefitText(scheme.benefit_amount)}</span>
                       </div>
                       <Link
                         href={`/schemes/${scheme.slug}`}
@@ -452,7 +459,7 @@ export default async function HomePage() {
                     </Link>
                     <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 16, flex: 1 }} className="line-clamp-2">{scheme.what_you_get}</p>
                     <div className="flex items-center justify-between mt-auto" style={{ borderTop: '1px solid var(--border)', paddingTop: 12 }}>
-                      <span className="benefit-badge">{scheme.benefit_amount || 'View Details'}</span>
+                      <span className="benefit-badge">{getBenefitText(scheme.benefit_amount)}</span>
                       <Link href={`/schemes/${scheme.slug}`} className="btn-saffron" style={{ padding: '7px 12px', fontSize: 12 }}>View →</Link>
                     </div>
                   </div>

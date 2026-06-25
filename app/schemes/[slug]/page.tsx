@@ -569,22 +569,24 @@ export default async function SchemeDetailPage({
 
             <div className="lg:w-1/3 space-y-8">
               <div className="sticky top-24 space-y-8">
-                <div className="bg-gradient-to-br from-emerald-50 to-green-50 p-8 rounded-3xl border border-emerald-100 shadow-sm group hover:shadow-md transition-shadow">
-                  <h3 className="text-xl font-bold text-emerald-800 mb-5 flex items-center">
-                    <svg className="w-6 h-6 mr-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Who Should Apply?
-                  </h3>
-                  <ul className="space-y-4">
-                    <li className="flex items-start">
-                      <span className="text-emerald-500 mr-2 font-bold select-none text-xl leading-none">✓</span>
-                      <span className="text-emerald-900 font-medium leading-relaxed italic">
-                        "Residents of {rawState || country?.name || 'India'} looking for {scheme.category || 'government'} support."
-                      </span>
-                    </li>
-                  </ul>
-                </div>
+                {eligibilityList.length > 0 && (
+                  <div className="bg-gradient-to-br from-emerald-50 to-green-50 p-8 rounded-3xl border border-emerald-100 shadow-sm group hover:shadow-md transition-shadow">
+                    <h3 className="text-xl font-bold text-emerald-800 mb-5 flex items-center">
+                      <svg className="w-6 h-6 mr-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Who Should Apply?
+                    </h3>
+                    <ul className="space-y-4">
+                      <li className="flex items-start">
+                        <span className="text-emerald-500 mr-2 font-bold select-none text-xl leading-none">✓</span>
+                        <span className="text-emerald-900 font-medium leading-relaxed italic">
+                          "{eligibilityList[0]}"
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
+                )}
 
                 <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-bl-full -mr-4 -mt-4 opacity-50"></div>

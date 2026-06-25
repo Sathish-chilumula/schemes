@@ -337,7 +337,11 @@ export default async function ArticlePage({ params }: { params: { slug: string }
               ) : (
                 article.sections?.map((section: any, i: number) => {
                   const heading = typeof section.heading === 'string' ? section.heading : String(section.heading || '');
-                  const content = typeof section.content === 'string' ? section.content : String(section.content || '');
+                  // If content is an object/array (like FAQs), skip it to prevent [object Object] render
+                  if (typeof section.content !== 'string') {
+                    return null;
+                  }
+                  const content = section.content;
                   return (
                     <div key={i} id={`section-${i}`}>
                       <h2 className="text-[22px] font-[700] m-[40px_0_14px] pb-[10px] border-b-2 border-[var(--indigo-light)] text-[var(--text-primary)]" dangerouslySetInnerHTML={{ __html: heading }}></h2>
