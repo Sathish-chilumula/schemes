@@ -164,17 +164,7 @@ export async function generateMetadata({
     // Canonical always points to the base English URL — never to ?lang= variants
     const canonicalUrl = baseUrl;
 
-    // Category-specific OG image (1200x630)
-    const categoryOgImages: Record<string, string> = {
-      'Farmers': 'https://schemeatlas.com/og/category-farmers.jpg',
-      'Students': 'https://schemeatlas.com/og/category-students.jpg',
-      'Women': 'https://schemeatlas.com/og/category-women.jpg',
-      'Healthcare': 'https://schemeatlas.com/og/category-health.jpg',
-      'Business': 'https://schemeatlas.com/og/category-business.jpg',
-      'SC / ST': 'https://schemeatlas.com/og/category-scst.jpg',
-      'Housing': 'https://schemeatlas.com/og/category-housing.jpg',
-    };
-    const ogImage = scheme.image_url || categoryOgImages[scheme.category] || 'https://schemeatlas.com/og/default.jpg';
+    const ogImage = scheme.image_url || 'https://schemeatlas.com/icon.png';
 
     // NOTE: ?lang= hreflang alternates intentionally removed.
     // robots.txt blocks /*?lang= so advertising them causes "Blocked by robots.txt" in GSC.
@@ -200,12 +190,7 @@ export async function generateMetadata({
         images: [ogImage],
       },
       alternates: {
-        canonical: canonicalUrl,
-        languages: {
-          'en': canonicalUrl,
-          'hi': `${canonicalUrl}?lang=hi`,
-          'te': `${canonicalUrl}?lang=te`,
-        }
+        canonical: canonicalUrl
       },
       robots: {
         index: true,

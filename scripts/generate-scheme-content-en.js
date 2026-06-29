@@ -109,10 +109,13 @@ function parseContent(raw) {
     if (!parsed.sections || !Array.isArray(parsed.sections) || !parsed.faqs || !parsed.intro) {
       throw new Error('Missing required fields: sections, faqs, intro');
     }
+    if (parsed.sections.some(s => s.heading && s.heading.match(/(Title|Summary|What is the Scheme|Pro Tips):/i))) {
+      throw new Error('AI template labels found in JSON headings');
+    }
     return JSON.stringify(parsed);
   } catch (e) {
-    console.warn(`  ⚠️  JSON parse failed: ${e.message}. Storing raw as fallback.`);
-    return raw.length > 200 ? raw : null;
+    console.warn(`  ⚠️  JSON parse or quality check failed: ${e.message}. Returning null to fail and retry later.`);
+    return null;
   }
 }
 

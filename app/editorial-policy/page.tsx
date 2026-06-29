@@ -18,7 +18,7 @@ const SOURCES = [
 ];
 
 export default function EditorialPolicy() {
-  const lastUpdated = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+  const lastUpdated = '29 June 2026';
 
   return (
     <div className="min-h-screen bg-slate-50">

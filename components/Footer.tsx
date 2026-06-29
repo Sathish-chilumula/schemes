@@ -25,21 +25,21 @@ export function Footer() {
 
             {/* Language buttons */}
             <div className="flex flex-wrap gap-[6px] mb-[18px]">
-              <button className="text-[11px] bg-white/8 hover:bg-white/15 border border-white/10 text-slate-300 hover:text-white rounded-[6px] px-[8px] py-[4px] transition-colors" style={{ background: 'rgba(255,255,255,0.06)' }}>
+              <Link href="?lang=hi" className="text-[11px] bg-white/8 hover:bg-white/15 border border-white/10 text-slate-300 hover:text-white rounded-[6px] px-[8px] py-[4px] transition-colors" style={{ background: 'rgba(255,255,255,0.06)' }}>
                 🇮🇳 हिंदी
-              </button>
-              <button className="text-[11px] bg-white/8 hover:bg-white/15 border border-white/10 text-slate-300 hover:text-white rounded-[6px] px-[8px] py-[4px] transition-colors" style={{ background: 'rgba(255,255,255,0.06)' }}>
+              </Link>
+              <Link href="?lang=te" className="text-[11px] bg-white/8 hover:bg-white/15 border border-white/10 text-slate-300 hover:text-white rounded-[6px] px-[8px] py-[4px] transition-colors" style={{ background: 'rgba(255,255,255,0.06)' }}>
                 తెలుగు
-              </button>
-              <button className="text-[11px] bg-white/8 hover:bg-white/15 border border-white/10 text-slate-300 hover:text-white rounded-[6px] px-[8px] py-[4px] transition-colors" style={{ background: 'rgba(255,255,255,0.06)' }}>
+              </Link>
+              <Link href="?lang=ta" className="text-[11px] bg-white/8 hover:bg-white/15 border border-white/10 text-slate-300 hover:text-white rounded-[6px] px-[8px] py-[4px] transition-colors" style={{ background: 'rgba(255,255,255,0.06)' }}>
                 தமிழ்
-              </button>
-              <button className="text-[11px] bg-white/8 hover:bg-white/15 border border-white/10 text-slate-300 hover:text-white rounded-[6px] px-[8px] py-[4px] transition-colors" style={{ background: 'rgba(255,255,255,0.06)' }}>
+              </Link>
+              <Link href="?lang=bn" className="text-[11px] bg-white/8 hover:bg-white/15 border border-white/10 text-slate-300 hover:text-white rounded-[6px] px-[8px] py-[4px] transition-colors" style={{ background: 'rgba(255,255,255,0.06)' }}>
                 বাংলা
-              </button>
-              <button className="text-[11px] bg-white/8 hover:bg-white/15 border border-white/10 text-slate-300 hover:text-white rounded-[6px] px-[8px] py-[4px] transition-colors" style={{ background: 'rgba(255,255,255,0.06)' }}>
+              </Link>
+              <Link href="?lang=pa" className="text-[11px] bg-white/8 hover:bg-white/15 border border-white/10 text-slate-300 hover:text-white rounded-[6px] px-[8px] py-[4px] transition-colors" style={{ background: 'rgba(255,255,255,0.06)' }}>
                 ਪੰਜਾਬੀ
-              </button>
+              </Link>
             </div>
 
             {/* Country switcher */}
