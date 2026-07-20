@@ -159,14 +159,30 @@ export async function generateMetadata({
       ? scheme.name.substring(0, 35) + '…'
       : scheme.name;
     const title = `${nameForTitle} — Eligibility, Benefits & Apply ${currentYear} | SchemeAtlas`;
-    // Never surface "Not specified" / null into meta description
+    // Never surface placeholder / broken benefit text into meta description.
+    // Any of these patterns means the DB value is a template artifact, not real content.
     const rawBenefit = scheme.benefit_amount || '';
-    const isValidBenefit = rawBenefit.trim().length > 2 &&
-      !rawBenefit.toLowerCase().includes('not specified') &&
-      !rawBenefit.toLowerCase().includes('not applicable');
+    const benefitPlaceholderPatterns = [
+      'not specified', 'not applicable', 'varies', 'based on eligibility',
+      'as per', 'contact', 'check official', 'applicable', 'to be announced',
+      'tba', 'n/a', 'na', 'nil', 'benefits vary', 'variable', 'differ',
+    ];
+    const isValidBenefit =
+      rawBenefit.trim().length > 2 &&
+      !benefitPlaceholderPatterns.some(p => rawBenefit.toLowerCase().includes(p));
     const benefitText = isValidBenefit ? rawBenefit : 'financial assistance';
-    // Eligibility group from category
-    const eligibilityGroup = scheme.category ? `${scheme.category.toLowerCase()} beneficiaries` : 'eligible citizens';
+    // Eligibility group — use natural phrasing per category, avoid "healthcare beneficiaries" etc.
+    const CATEGORY_AUDIENCE: Record<string, string> = {
+      'Farmers': 'farmers and agricultural families',
+      'Students': 'students and scholars',
+      'Women': 'women and girls',
+      'Healthcare': 'low-income families',
+      'Housing': 'homeless and low-income families',
+      'Business': 'entrepreneurs and MSMEs',
+      'SC / ST': 'SC/ST communities',
+      'Senior Citizens': 'senior citizens',
+    };
+    const eligibilityGroup = CATEGORY_AUDIENCE[scheme.category] || 'eligible citizens';
     const description = `${scheme.name} provides ${benefitText} to ${eligibilityGroup} in ${location}. Check eligibility and apply online. Updated ${currentMonth}.`;
 
     const baseUrl = `https://schemeatlas.com/schemes/${resolvedParams.slug}`;
