@@ -9,8 +9,24 @@ export function parseSchemeContent(raw: string): Section[] {
     'documents required', 'required documents', 'selection',
     'approval process', 'how to apply', 'important dates',
     'official website', 'application', 'pro tips', 'insights', 'faqs',
-    'frequently asked questions', 'शीर्षक', 'सारांश', 'శీర్షిక', 'సారాంశం'
+    'frequently asked questions',
+    'pro tips / insights', 'official website / application',
+    'what is the scheme?', 'key benefits?',
+    // Hindi labels
+    'शीर्षक', 'सारांश', 'मुख्य लाभ', 'पात्रता मानदंड', 'आवेदन कैसे करें',
+    'आवश्यक दस्तावेज़', 'आधिकारिक वेबसाइट', 'अक्सर पूछे जाने वाले प्रश्न',
+    // Telugu labels
+    'శీర్షిక', 'సారాంశం', 'ముఖ్య ప్రయోజనాలు', 'అర్హత ప్రమాణాలు',
+    'దరఖాస్తు ఎలా చేయాలి', 'అవసరమైన పత్రాలు', 'అధికారిక వెబ్‌సైట్',
   ];
+
+  // Headings that should be HIDDEN entirely (not rendered as section titles)
+  const HIDDEN_HEADINGS = new Set([
+    'title', 'summary', 'శీర్షిక', 'शीर्षक',
+    'pro tips', 'insights', 'pro tips / insights',
+    'official website', 'application', 'official website / application',
+    'faqs', 'frequently asked questions',
+  ]);
 
   const lines = raw.split(/\n+/);
   const sections: Section[] = [];
@@ -44,11 +60,15 @@ export function parseSchemeContent(raw: string): Section[] {
   }
   if (current.body.trim()) sections.push({ ...current });
 
-  // Filter out: empty sections, "title" heading, "official website" with no real body
+  // Filter out: empty sections, hidden headings, "official website" with no real body
   return sections.filter(s => {
     if (s.body.trim().length < 15) return false;
-    const h = s.heading.toLowerCase();
-    if (h === 'title' || h === 'शीर्षक' || h === 'శీర్షిక') return false;
+    const h = s.heading.toLowerCase().trim();
+    if (HIDDEN_HEADINGS.has(h)) return false;
+    // Also hide any heading that ends with '?' and matches a label
+    const hNoQ = h.replace(/\?$/, '').trim();
+    if (HIDDEN_HEADINGS.has(hNoQ)) return false;
     return true;
   });
 }
+

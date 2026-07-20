@@ -118,7 +118,8 @@ export async function generateMetadata({
 
     const { data: scheme } = await supabase
       .from('schemes')
-      .select('name, content_en, state_name, country_code, slug, local_language, benefit_amount, canonical_slug, category, image_url, ministry, quality_status')
+      .select('name, content_en, state_name, country_code, slug, local_language, benefit_amount, canonical_slug, category, image_url, ministry, quality_status, scheme_type')
+
       .eq('slug', resolvedParams.slug)
       .single();
 
@@ -142,7 +143,15 @@ export async function generateMetadata({
     const rawDesc = scheme.content_en || '';
     const cleanDesc = cleanMarkdown(rawDesc).substring(0, 160);
 
-    const location = (scheme.state_name || 'India').replace(/^null\s+/i, '');
+    // For central/national schemes, always use "India" — never a specific state.
+    // A scheme is central if: state_name is absent/null-prefixed, or scheme_type is 'central'.
+    const rawStateName = (scheme.state_name || '').replace(/^null\s*/i, '').trim();
+    const isCentralScheme =
+      !rawStateName ||
+      rawStateName.toLowerCase() === 'null' ||
+      scheme.scheme_type === 'central' ||
+      (scheme.country_code === 'IN' && rawStateName === 'IN');
+    const location = isCentralScheme ? 'India' : rawStateName;
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
     // Keep title under 65 chars with site suffix
@@ -232,8 +241,8 @@ export default async function SchemeDetailPage({
       redirect(`/schemes/${scheme.canonical_slug}`);
     }
 
-    const rawState = (scheme.state_name || '').replace(/^null\s+/i, '');
-    const stateSlug = rawState ? slugify(rawState) : null;
+    const rawState = (scheme.state_name || '').replace(/^null\s*/i, '').trim();
+    const stateSlug = rawState && rawState.toLowerCase() !== 'null' ? slugify(rawState) : null;
     const categorySlug = scheme.category ? slugify(scheme.category) : 'general';
 
     const { data: related } = await supabase

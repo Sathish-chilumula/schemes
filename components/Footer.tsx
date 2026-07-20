@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { InstallAppButton } from '@/components/InstallAppButton';
 
 export function Footer() {
   return (
@@ -23,24 +22,11 @@ export function Footer() {
               India&apos;s most comprehensive government schemes platform. Plus expert guides on loans, insurance and earning opportunities.
             </p>
 
-            {/* Language buttons */}
-            <div className="flex flex-wrap gap-[6px] mb-[18px]">
-              <Link href="?lang=hi" className="text-[11px] bg-white/8 hover:bg-white/15 border border-white/10 text-slate-300 hover:text-white rounded-[6px] px-[8px] py-[4px] transition-colors" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                🇮🇳 हिंदी
-              </Link>
-              <Link href="?lang=te" className="text-[11px] bg-white/8 hover:bg-white/15 border border-white/10 text-slate-300 hover:text-white rounded-[6px] px-[8px] py-[4px] transition-colors" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                తెలుగు
-              </Link>
-              <Link href="?lang=ta" className="text-[11px] bg-white/8 hover:bg-white/15 border border-white/10 text-slate-300 hover:text-white rounded-[6px] px-[8px] py-[4px] transition-colors" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                தமிழ்
-              </Link>
-              <Link href="?lang=bn" className="text-[11px] bg-white/8 hover:bg-white/15 border border-white/10 text-slate-300 hover:text-white rounded-[6px] px-[8px] py-[4px] transition-colors" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                বাংলা
-              </Link>
-              <Link href="?lang=pa" className="text-[11px] bg-white/8 hover:bg-white/15 border border-white/10 text-slate-300 hover:text-white rounded-[6px] px-[8px] py-[4px] transition-colors" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                ਪੰਜਾਬੀ
-              </Link>
-            </div>
+            {/* Language availability note */}
+            <p className="text-[12px] text-slate-500 mb-[18px] leading-relaxed">
+              🌐 Available in English, हिंदी, తెలుగు, தமிழ், বাংলা &amp; more.
+            </p>
+
 
             {/* Country switcher */}
             <div className="flex flex-col gap-[6px]">
@@ -96,7 +82,7 @@ export function Footer() {
               <li><Link href="/terms" className="text-slate-400 hover:text-white transition-colors">Terms of Service</Link></li>
               <li><Link href="/disclaimer" className="text-slate-400 hover:text-white transition-colors">Disclaimer</Link></li>
               <li><Link href="/sitemap.xml" className="text-slate-400 hover:text-white transition-colors">XML Sitemap</Link></li>
-              <li className="pt-2 mt-2 border-t border-white/10"><InstallAppButton /></li>
+              <li className="pt-2 mt-2 border-t border-white/10"><span className="text-[13px] text-slate-500">📱 App <span className="text-[10px] bg-slate-700 text-slate-400 rounded-[4px] px-[5px] py-[1px] ml-1">Coming Soon</span></span></li>
             </ul>
           </div>
 
