@@ -522,16 +522,12 @@ export default async function SchemeDetailPage({
             <div className="lg:w-2/3">
               <SchemeContent 
                 contentEn={scheme.content_en}
-                contentHi={scheme.content_hi}
-                contentLocal={scheme.content_local}
-                localLanguage={scheme.local_language}
                 fallbackWhatYouGet={scheme.what_you_get}
                 fallbackBenefitAmount={scheme.benefit_amount}
                 eligibilityList={eligibilityList}
                 howToApplyList={howToApplyList}
                 documents={documents}
                 schemeName={scheme.name}
-                initialLang={lang}
               />
 
               <div className="flex flex-col sm:flex-row gap-4 mt-12 bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">

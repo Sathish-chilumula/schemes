@@ -1,21 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { LANG_LABELS } from '@/lib/config';
+import { useState } from 'react';
 import { parseSchemeContent } from '@/lib/parse-scheme-content';
 
 interface SchemeContentProps {
   contentEn: string | null;
-  contentHi: string | null;
-  contentLocal: string | null;
-  localLanguage: string | null;
   fallbackWhatYouGet?: string | null;
   fallbackBenefitAmount?: string | null;
   eligibilityList?: string[];
   howToApplyList?: string[];
   documents?: string[];
   schemeName?: string;
-  initialLang?: string;
 }
 
 interface StructuredContent {
@@ -33,6 +28,14 @@ function tryParseStructured(content: string | null): StructuredContent | null {
     if (parsed && Array.isArray(parsed.sections) && parsed.intro) {
       if (!Array.isArray(parsed.faqs)) parsed.faqs = [];
       if (!Array.isArray(parsed.tableOfContents)) parsed.tableOfContents = [];
+      
+      // Filter out duplicate FAQ sections to prevent double-rendering
+      parsed.sections = parsed.sections.filter((s: any) => {
+        if (!s.heading) return true;
+        const h = s.heading.toLowerCase();
+        return !h.includes('faq') && !h.includes('frequently asked questions');
+      });
+      
       return parsed as StructuredContent;
     }
     return null;
@@ -45,14 +48,39 @@ function tryParseStructured(content: string | null): StructuredContent | null {
 function FAQAccordion({ faqs }: { faqs: { q: string; a: string }[] }) {
   const [open, setOpen] = useState<number | null>(null);
   
-  const cleanFaqs = faqs.map(faq => ({
-    q: faq.q?.replace(/^(Q:\s*)+/i, '').trim() || '',
-    a: faq.a?.replace(/^(A:\s*)+/i, '').trim() || ''
-  }));
+  let parsedFaqs: { q: string; a: string }[] = [];
+  
+  faqs.forEach(faq => {
+    if (faq.a && faq.a.includes('Q:')) {
+      // Handle malformed mashed strings
+      const fullText = (faq.q + '\n' + faq.a).split('\n');
+      let currQ = '';
+      let currA = '';
+      fullText.forEach(line => {
+        if (line.trim().startsWith('Q:')) {
+          if (currQ && currA) parsedFaqs.push({ q: currQ.replace(/^Q:\s*/i, '').trim(), a: currA.replace(/^A:\s*/i, '').trim() });
+          currQ = line;
+          currA = '';
+        } else if (line.trim().startsWith('A:')) {
+          currA = line;
+        } else if (currA) {
+          currA += '\n' + line;
+        } else if (currQ) {
+          currQ += ' ' + line;
+        }
+      });
+      if (currQ && currA) parsedFaqs.push({ q: currQ.replace(/^Q:\s*/i, '').trim(), a: currA.replace(/^A:\s*/i, '').trim() });
+    } else {
+      parsedFaqs.push({
+        q: faq.q?.replace(/^(Q:\s*)+/i, '').trim() || '',
+        a: faq.a?.replace(/^(A:\s*)+/i, '').trim() || ''
+      });
+    }
+  });
 
   return (
     <div className="space-y-3">
-      {cleanFaqs.map((faq, i) => (
+      {parsedFaqs.map((faq, i) => (
         <div key={i} className="border border-slate-200 rounded-2xl overflow-hidden">
           <button
             onClick={() => setOpen(open === i ? null : i)}
@@ -62,7 +90,7 @@ function FAQAccordion({ faqs }: { faqs: { q: string; a: string }[] }) {
             <span className={`text-2xl text-brand-500 transition-transform duration-200 flex-shrink-0 ${open === i ? 'rotate-45' : ''}`}>+</span>
           </button>
           {open === i && (
-            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 text-slate-700 leading-relaxed">
+            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 text-slate-700 leading-relaxed whitespace-pre-wrap">
               {faq.a}
             </div>
           )}
@@ -73,7 +101,7 @@ function FAQAccordion({ faqs }: { faqs: { q: string; a: string }[] }) {
 }
 
 // ─── Structured (Money Guide) Renderer ──────────────────────────────────
-function StructuredRenderer({ content, lang }: { content: StructuredContent; lang: string }) {
+function StructuredRenderer({ content }: { content: StructuredContent }) {
   return (
     <div>
       {/* Intro */}
@@ -137,91 +165,16 @@ function StructuredRenderer({ content, lang }: { content: StructuredContent; lan
   );
 }
 
-// ─── Legacy Plain-Text Renderer ─────────────────────────────────────────
-function legacyParseQAContent(content: string) {
-  if (!content) return { overview: '', qa: [] };
-
-  let overview = '';
-  const qa: { question: string; answer: string }[] = [];
-
-  const numberedPattern = /^(\d+)\.\s+([^:]+):/m;
-  if (numberedPattern.test(content)) {
-    const parts = content.split(/^(\d+)\.\s+([^:]+):/m).filter(p => p.trim());
-    for (let i = 0; i < parts.length; i += 3) {
-      if (i + 2 < parts.length) {
-        const heading = parts[i + 1].trim();
-        const body = parts[i + 2].trim();
-        qa.push({ question: heading, answer: body });
-      }
-    }
-    return { overview: '', qa };
-  }
-
-  if (content.includes('Q:') && content.includes('A:')) {
-    const lines = content.split('\n');
-    let currentQ = '';
-    let currentA = '';
-    let foundFirstQ = false;
-    for (const line of lines) {
-      const isQuestion = line.startsWith('Q:') || line.match(/^\d+\.\s+(What|Who|How|When|Is )/);
-      if (isQuestion) {
-        foundFirstQ = true;
-        if (currentQ && currentA) qa.push({ question: currentQ, answer: currentA });
-        currentQ = line.replace(/^Q:\s*/, '').replace(/^\d+\.\s*/, '');
-        currentA = '';
-      } else if (line.startsWith('A:')) {
-        currentA = line.replace(/^A:\s*/, '');
-      } else if (!foundFirstQ) {
-        if (line.trim()) overview += (overview ? '\n' : '') + line.trim();
-      } else if (currentA && line.trim()) {
-        currentA += ' ' + line.trim();
-      }
-    }
-    if (currentQ && currentA) qa.push({ question: currentQ, answer: currentA });
-    return { overview, qa };
-  }
-
-  const sections = content.split(/##\s+/).filter(s => s.trim().length > 10);
-  if (sections.length > 0) {
-    const parsedSections = sections.map(section => {
-      const lines = section.split('\n').filter(l => l.trim());
-      if (lines.length === 0) return null;
-      const heading = lines[0].replace(/📌|💰|👥|🚫|📄|📝|⚠️|💡|❓|🌟/g, '').trim();
-      const body = lines.slice(1).join('\n').replace(/\*\*/g, '').replace(/[-•]\s/g, '').trim();
-      if (!body && heading.length > 50) return { question: 'Overview', answer: heading };
-      const question = heading.includes('?') ? heading : `What is the ${heading.toLowerCase()} for this scheme?`;
-      return { question, answer: body || heading };
-    }).filter(Boolean) as { question: string; answer: string }[];
-    return { overview: '', qa: parsedSections };
-  }
-
-  return { overview: content, qa: [] };
-}
-
 // ─── Main Component ──────────────────────────────────────────────────────
 export function SchemeContent({
   contentEn,
-  contentHi,
-  contentLocal,
-  localLanguage,
   fallbackWhatYouGet,
   fallbackBenefitAmount,
   eligibilityList = [],
   howToApplyList = [],
   documents = [],
-  schemeName = 'this scheme',
-  initialLang = 'en'
+  schemeName = 'this scheme'
 }: SchemeContentProps) {
-  // Read initial lang from server prop for SSR
-  const [lang, setLang] = useState(initialLang);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const urlLang = params.get('lang');
-      if (urlLang && urlLang !== lang) setLang(urlLang);
-    }
-  }, [lang]);
 
   const formatTextAsParagraphs = (text: string, baseClassName: string) => {
     if (!text) return null;
@@ -230,62 +183,13 @@ export function SchemeContent({
     ));
   };
 
-  const availableLangs: { code: string; label: string }[] = [];
-  if (contentEn) availableLangs.push({ code: 'en', label: 'English' });
-  if (contentHi) availableLangs.push({ code: 'hi', label: 'हिंदी' });
-  if (contentLocal && localLanguage && localLanguage !== 'hi') {
-    availableLangs.push({ code: localLanguage, label: LANG_LABELS[localLanguage] || localLanguage });
-  }
+  const structured = tryParseStructured(contentEn);
 
   return (
     <div className="mb-8 scheme-seo-article">
 
-      {/* Language switcher + WhatsApp share */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        {availableLangs.length > 1 ? (
-          <div className="flex gap-1 bg-slate-100 p-1 rounded-xl w-fit">
-            {availableLangs.map(l => {
-              // Build the href for this language variant:
-              // - English → remove ?lang param (canonical URL)
-              // - Others  → ?lang=hi / ?lang=te / etc.
-              // The href is ALWAYS rendered in SSR HTML so Ahrefs/Googlebot
-              // can discover and index ?lang=hi pages as real inbound links.
-              const langHref = l.code === 'en'
-                ? `?`
-                : `?lang=${l.code}`;
-
-              return (
-                <a
-                  key={l.code}
-                  href={langHref}
-                  onClick={(e) => {
-                    // Progressive enhancement: prevent full page reload.
-                    // JS handles the content switch inline; href stays crawlable.
-                    e.preventDefault();
-                    setLang(l.code);
-                    if (typeof window !== 'undefined') {
-                      const url = new URL(window.location.href);
-                      if (l.code === 'en') {
-                        url.searchParams.delete('lang');
-                      } else {
-                        url.searchParams.set('lang', l.code);
-                      }
-                      window.history.replaceState({}, '', url);
-                    }
-                  }}
-                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 no-underline ${
-                    lang === l.code
-                      ? 'bg-white text-brand-600 shadow-sm'
-                      : 'text-slate-500 hover:text-slate-700'
-                  }`}
-                >
-                  {l.label}
-                </a>
-              );
-            })}
-          </div>
-        ) : <div />}
-
+      {/* WhatsApp share */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-end gap-4 mb-6">
         <button
           onClick={() => {
             const url = encodeURIComponent(window.location.href);
@@ -299,74 +203,65 @@ export function SchemeContent({
         </button>
       </div>
 
-      {/* Content per language */}
-      {availableLangs.map(l => {
-        if (lang !== l.code) return null;
-        
-        const contentForLang = l.code === 'en' ? contentEn : l.code === 'hi' ? contentHi : contentLocal;
-        const structured = tryParseStructured(contentForLang);
-
-        return (
-          <div key={l.code} className="block">
-            {structured ? (
-              /* ── NEW: Money Guide premium renderer ── */
-              <StructuredRenderer content={structured} lang={l.code} />
-            ) : (
-              /* ── LEGACY: plain-text Q&A renderer (backward compat) ── */
-              (() => {
-                const sections = contentForLang ? parseSchemeContent(contentForLang) : [];
-                return (
-                  <article className="scheme-body prose prose-slate max-w-none">
-                    {sections.length > 0 ? (
-                      sections.map((section, i) => (
-                        <section key={i} className="mb-8 bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-100">
-                          {section.heading && !['summary', 'q'].includes(section.heading.toLowerCase()) && (
-                            <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-4">{section.heading}</h2>
-                          )}
-                          {section.heading === 'Q' ? (
-                            <details className="border border-slate-200 rounded-2xl p-4 bg-slate-50 group">
-                              <summary className="font-semibold text-slate-800 cursor-pointer list-none flex justify-between items-center">
-                                <span>{section.body.split('A.')[0] || section.body.split(/Answer:?/i)[0]}</span>
-                                <span className="text-xl text-brand-500 group-open:rotate-45 transition-transform">+</span>
-                              </summary>
-                              <div className="mt-4 pt-4 border-t border-slate-200 text-slate-700 leading-relaxed">
-                                {section.body.split('A.')[1] || section.body.split(/Answer:?/i)[1] || ''}
-                              </div>
-                            </details>
-                          ) : (
-                            <div className="text-slate-700 leading-relaxed text-lg whitespace-pre-wrap">
-                              {formatTextAsParagraphs(section.body, 'mb-4')}
-                            </div>
-                          )}
-                        </section>
-                      ))
-                    ) : (
-                      <>
-                        {fallbackWhatYouGet ? formatTextAsParagraphs(fallbackWhatYouGet, 'text-slate-700 mb-4') : null}
-                        {eligibilityList.length > 0 && (
-                          <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-100 mt-6">
-                            <h2 className="flex items-center gap-2 border-b border-slate-100 pb-2 text-xl font-bold mb-4">
-                              <span className="text-2xl">👤</span> Eligibility Criteria
-                            </h2>
-                            <ul className="space-y-3 !pl-0">
-                              {eligibilityList.map((item, i) => (
-                                <li key={i} className="flex items-start gap-3 text-slate-700 list-none text-lg">
-                                  <span className="mt-1 w-6 h-6 rounded-full bg-brand-50 text-brand-500 flex items-center justify-center flex-shrink-0 text-sm font-bold">✓</span>
-                                  {String(item)}
-                                </li>
-                              ))}
-                            </ul>
+      {/* Content */}
+      <div className="block">
+        {structured ? (
+          /* ── Money Guide premium renderer ── */
+          <StructuredRenderer content={structured} />
+        ) : (
+          /* ── LEGACY: plain-text Q&A renderer (backward compat) ── */
+          (() => {
+            const sections = contentEn ? parseSchemeContent(contentEn) : [];
+            return (
+              <article className="scheme-body prose prose-slate max-w-none">
+                {sections.length > 0 ? (
+                  sections.map((section, i) => (
+                    <section key={i} className="mb-8 bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-100">
+                      {section.heading && !['summary', 'q'].includes(section.heading.toLowerCase()) && (
+                        <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-4">{section.heading}</h2>
+                      )}
+                      {section.heading === 'Q' ? (
+                        <details className="border border-slate-200 rounded-2xl p-4 bg-slate-50 group">
+                          <summary className="font-semibold text-slate-800 cursor-pointer list-none flex justify-between items-center">
+                            <span>{section.body.split('A.')[0] || section.body.split(/Answer:?/i)[0]}</span>
+                            <span className="text-xl text-brand-500 group-open:rotate-45 transition-transform">+</span>
+                          </summary>
+                          <div className="mt-4 pt-4 border-t border-slate-200 text-slate-700 leading-relaxed">
+                            {section.body.split('A.')[1] || section.body.split(/Answer:?/i)[1] || ''}
                           </div>
-                        )}
-                      </>
+                        </details>
+                      ) : (
+                        <div className="text-slate-700 leading-relaxed text-lg whitespace-pre-wrap">
+                          {formatTextAsParagraphs(section.body, 'mb-4')}
+                        </div>
+                      )}
+                    </section>
+                  ))
+                ) : (
+                  <>
+                    {fallbackWhatYouGet ? formatTextAsParagraphs(fallbackWhatYouGet, 'text-slate-700 mb-4') : null}
+                    {eligibilityList.length > 0 && (
+                      <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-100 mt-6">
+                        <h2 className="flex items-center gap-2 border-b border-slate-100 pb-2 text-xl font-bold mb-4">
+                          <span className="text-2xl">👤</span> Eligibility Criteria
+                        </h2>
+                        <ul className="space-y-3 !pl-0">
+                          {eligibilityList.map((item, i) => (
+                            <li key={i} className="flex items-start gap-3 text-slate-700 list-none text-lg">
+                              <span className="mt-1 w-6 h-6 rounded-full bg-brand-50 text-brand-500 flex items-center justify-center flex-shrink-0 text-sm font-bold">✓</span>
+                              {String(item)}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     )}
-                  </article>
-                );
-              })()
-            )}
-          </div>
-        );
-      })}
+                  </>
+                )}
+              </article>
+            );
+          })()
+        )}
+      </div>
     </div>
   );
 }
