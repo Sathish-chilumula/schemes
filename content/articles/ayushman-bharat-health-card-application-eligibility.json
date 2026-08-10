@@ -1,116 +1,132 @@
 {
   "slug": "ayushman-bharat-health-card-application-eligibility",
-  "title": "Ayushman Bharat Health Card: Your Golden Ticket to Affordable Healthcare in India! 🏥💰",
-  "metaTitle": "Ayushman Bharat Health Card: Eligibility, Application Process, and Benefits Explained for Indians",
-  "metaDescription": "Unlock comprehensive health coverage with the Ayushman Bharat Health Card. Learn about eligibility criteria, how to apply, and the amazing benefits for Indian citizens. Your guide to affordable healthcare!",
+  "title": "Ayushman Bharat Health Card: Your Golden Ticket to Affordable Healthcare in India! 🇮🇳💰",
+  "metaTitle": "Ayushman Bharat Health Card: Eligibility, Application, Benefits & How to Get Yours in India",
+  "metaDescription": "Unlock comprehensive health coverage with the Ayushman Bharat Health Card (PM-JAY). Discover eligibility criteria, easy application steps, and the incredible benefits for Indian citizens. Get your golden ticket to cashless treatment today! 🤑✅",
   "category": "Health Insurance",
-  "publishedAt": "2026-08-02",
-  "updatedAt": "2026-08-02",
+  "publishedAt": "2026-08-10",
+  "updatedAt": "2026-08-10",
   "readTime": 10,
-  "wordCount": 1500,
+  "wordCount": 1550,
   "tableOfContents": [
     {
-      "title": "What is the Ayushman Bharat Health Card? 🤔",
-      "url": "#what-is-the-ayushman-bharat-health-card"
+      "title": "What is the Ayushman Bharat Health Card? Your Health's New Best Friend! 🤝",
+      "link": "#what-is-ayushman-bharat-health-card"
     },
     {
-      "title": "Who is Eligible for the Ayushman Bharat Health Card? 🎯",
-      "url": "#who-is-eligible-for-the-ayushman-bharat-health-card"
+      "title": "Who is Eligible for the Ayushman Bharat Health Card? Let's Find Out! 🤔",
+      "link": "#eligibility-criteria"
     },
     {
-      "title": "How to Apply for Your Ayushman Bharat Health Card: A Step-by-Step Guide 📝",
-      "url": "#how-to-apply-for-your-ayushman-bharat-health-card"
+      "title": "How to Apply for Your Ayushman Bharat Health Card: A Step-by-Step Guide! 🚶‍♀️🚶‍♂️",
+      "link": "#application-process"
     },
     {
-      "title": "Key Benefits of the Ayushman Bharat Health Card: Your Health, Secured! ✅",
-      "url": "#key-benefits-of-the-ayushman-bharat-health-card"
+      "title": "The Amazing Benefits of the Ayushman Bharat Health Card: More Than Just a Card! ✨",
+      "link": "#benefits-of-ayushman-bharat-health-card"
     },
     {
-      "title": "Frequently Asked Questions (FAQs) About the Ayushman Bharat Health Card ❓",
-      "url": "#frequently-asked-questions-faqs"
+      "title": "What Medical Treatments are Covered? Your Health Concerns Addressed! 🩺",
+      "link": "#covered-treatments"
     },
     {
-      "title": "Related Government Schemes & Articles 🤝",
-      "url": "#related-government-schemes-articles"
+      "title": "Finding an Empanelled Hospital: Where Can You Get Treated? 🏥",
+      "link": "#empanelled-hospitals"
+    },
+    {
+      "title": "Frequently Asked Questions (FAQs): Clearing All Your Doubts! ❓",
+      "link": "#faqs"
     }
   ],
-  "intro": "Hey there, fellow Indians! 👋 Are you worried about rising healthcare costs? Do you wish there was a way to access quality medical treatment without breaking the bank? Well, guess what? Your wish has been granted! The Indian government, with its visionary Ayushman Bharat Pradhan Mantri Jan Arogya Yojana (AB PM-JAY), has introduced the Ayushman Bharat Health Card (also known as the AB PM-JAY card). This isn't just another piece of plastic; it's your golden ticket to a healthier, more secure future. 🌟 Think of it as your personal health shield, offering financial protection and access to a vast network of healthcare providers. In this comprehensive guide, we'll dive deep into everything you need to know about this game-changing initiative – from who can get it, how to apply, and the incredible benefits it brings. So, grab a cup of chai ☕, get comfortable, and let's explore how the Ayushman Bharat Health Card can transform your healthcare journey! 🚀",
+  "intro": "Hey there, incredible Indians! 👋 Are you tired of worrying about hefty medical bills? Do you dream of a future where quality healthcare is accessible to everyone, regardless of their financial situation? Well, get ready to cheer because the Indian government has brought you a revolutionary solution: the **Ayushman Bharat Health Card**, also known as the Pradhan Mantri Jan Arogya Yojana (PM-JAY) card! 🇮🇳💰 This isn't just another piece of plastic; it's your golden ticket to a healthier, more secure future, offering comprehensive health coverage and cashless treatment at empanelled hospitals across the nation. Let's dive deep and understand how this game-changer can benefit you and your family! 🚀",
   "sections": [
     {
-      "heading": "What is the Ayushman Bharat Health Card? 🤔",
-      "content": "The Ayushman Bharat Health Card is an integral part of the Ayushman Bharat Pradhan Mantri Jan Arogya Yojana (AB PM-JAY), India's flagship national health protection scheme. Launched by the Government of India, its primary aim is to provide financial protection to vulnerable families against catastrophic health expenditures. The card acts as a proof of eligibility for beneficiaries to avail of cashless and paperless healthcare services at empaneled public and private hospitals across the country. 🏥 It's designed to be a universal health card, meaning it can be used by anyone eligible under the scheme, regardless of their location within India. The card contains a unique identification number that links beneficiaries to their health records, making healthcare more accessible and efficient. Imagine having a single card that unlocks a world of medical benefits – that's the power of the Ayushman Bharat Health Card! 💡"
+      "heading": "What is the Ayushman Bharat Health Card? Your Health's New Best Friend! 🤝",
+      "content": "Imagine a world where a sudden illness doesn't cripple your finances. That's precisely the vision behind the Ayushman Bharat Health Card. Launched as part of the Ayushman Bharat Mission, this card is your key to the Pradhan Mantri Jan Arogya Yojana (PM-JAY), India's flagship national health insurance scheme. Its primary goal is to provide financial protection to vulnerable families against catastrophic health expenditures. With this card, eligible beneficiaries can avail themselves of cashless and paperless treatment at public and private hospitals empanelled under the scheme. Think of it as your personal health shield, ready to protect you when you need it most. 🛡️ It's a significant step towards achieving Universal Health Coverage (UHC) in India, ensuring that no one is left behind when it comes to their well-being. The scheme aims to cover over 50 crore individuals, making it one of the largest government-funded healthcare programs globally. 📈"
     },
     {
-      "heading": "Who is Eligible for the Ayushman Bharat Health Card? 🎯",
-      "content": "This is the million-dollar question, right? The good news is that the Ayushman Bharat scheme is designed to be inclusive, focusing on the socio-economic and caste census (SECC) data of 2011. This means the eligibility is primarily based on your family's economic status and social group. \n\n**Broadly, the following categories of families are eligible:**\n\n*   **Rural Households:** Families living in rural areas who are in specific deprivation categories as per the SECC 2011 data. This includes families with no adult male member between 16-59 years, female-headed households with no adult male member, disabled members and no able-bodied adult male, Scheduled Castes/Scheduled Tribes households, landless households with no regular wage earner, and households with no dwelling or living in kachcha houses. 🏡\n*   **Urban Households:** Families living in urban areas who are classified under specific occupational categories. These include ragpickers, beggars, domestic workers, construction workers, plumbers, painters, electricians, mechanics, security guards, coolies, rickshaw pullers, street vendors, and other manual laborers. 👷‍♀️\n\n**Key things to remember about eligibility:**\n\n*   **No Age Limit:** There is no age restriction for beneficiaries. Anyone in an eligible family can avail of the benefits. 👶👵\n*   **Family Floater Basis:** The benefits are provided on a family floater basis, meaning the entire sum insured can be used by any member of the family. 👨‍👩‍👧‍👦\n*   **No Pre-medical Check-up:** Unlike many private health insurance policies, there is no requirement for a pre-medical check-up to be eligible. ✅\n*   **Portability:** The card is portable, meaning you can avail of services in any empaneled hospital across India, not just in your home state. ✈️\n\n**How to Check Your Eligibility:**\n\nThe easiest way to check if you are eligible is by visiting the official AB PM-JAY website (pmjay.gov.in) or by contacting the national helpline number 14555. You can also visit your nearest Common Service Centre (CSC) for assistance. Don't miss out on this opportunity to secure your family's health! 💪"
+      "heading": "Who is Eligible for the Ayushman Bharat Health Card? Let's Find Out! 🤔",
+      "content": "This is the million-dollar question, right? The good news is that the Ayushman Bharat Health Card is designed to benefit the most vulnerable sections of our society. Eligibility is primarily based on the Socio-Economic Caste Census (SECC) data of 2011. This means the government has identified families based on their socio-economic status to ensure the benefits reach those who truly need them. \n\n**Here's a general breakdown of who might be eligible:**\n\n*   **Rural Areas:** Families engaged in daily wage labor, manual scavenging, begging, homeless individuals, construction workers, sanitation workers, domestic workers, artisans, and those living in kutcha houses or without basic amenities. \n*   **Urban Areas:** Ragpickers, domestic helpers, construction workers, sanitation workers, security guards, plumbers, electricians, mechanics, drivers, and those working in small shops or as helpers. \n\n**Key Indicators for Eligibility (These are indicative and can vary slightly by state):**\n\n*   **Household Size:** Families with no adult male member between 16-59 years. \n*   **Land Ownership:** Families with no land or dependent on daily wage labor. \n*   **Housing:** Families living in houses with no solid walls or roofs (kutcha houses). \n*   **Vulnerable Groups:** Elderly individuals (above 60 years) with no regular income, persons with disabilities, landless laborers, and manual scavengers. \n*   **Income:** Families with a monthly income below a certain threshold (this can vary by state). \n\n**How to Check Your Eligibility:**\n\n1.  **Visit the Official PM-JAY Website:** The easiest way is to head to the official Ayushman Bharat website (pmjay.gov.in) and use the 'Am I Eligible?' tool. You'll need to enter your mobile number and then select your state to proceed. \n2.  **Use the Helpline Number:** You can also call the toll-free Ayushman Bharat helpline number: **14555** or **1800-111-565**. \n3.  **Visit a Common Service Centre (CSC):** These centers are spread across the country and can assist you in checking your eligibility and even applying for the card. \n\nRemember, the SECC 2011 data is the primary source, but some states might have their own additional criteria or have conducted their own surveys. So, always check the official sources for the most accurate information for your specific state. ✅"
     },
     {
-      "heading": "How to Apply for Your Ayushman Bharat Health Card: A Step-by-Step Guide 📝",
-      "content": "Getting your Ayushman Bharat Health Card is a straightforward process, designed to be accessible to everyone. Here’s how you can apply:\n\n**1. Check Your Eligibility First:** As we discussed, the first step is to confirm your eligibility. You can do this online via the official AB PM-JAY portal (pmjay.gov.in) or by calling the toll-free helpline number 14555. You can also visit a Common Service Centre (CSC) in your locality. \n\n**2. Visit an Empaneled Centre:** Once you've confirmed your eligibility, you'll need to visit an empaneled Ayushman Bharat-PMJAY centre. These centres are often located at government hospitals, Community Health Centres (CHCs), or designated CSCs. \n\n**3. Provide Necessary Documents:** At the centre, you will be required to provide certain documents for verification. These typically include:\n    *   **Proof of Identity:** Aadhaar Card is the most common and preferred document. Other government-issued IDs like Voter ID, PAN Card, or Ration Card may also be accepted. 🆔\n    *   **Proof of Address:** If your address is different from your ID proof, you might need a separate address proof. 🏠\n    *   **SECC 2011 Data:** If your name is in the SECC 2011 list, you might need to provide details related to that. \n    *   **Ration Card:** This is often used to verify family members. 📜\n\n**4. Verification Process:** The officials at the centre will verify your details and documents. They will check your eligibility against the SECC 2011 database. \n\n**5. Biometric Authentication:** For security and to prevent fraud, biometric authentication (fingerprint or iris scan) might be required. \n\n**6. Card Issuance:** Once your verification is complete and successful, your Ayushman Bharat Health Card will be generated. You will receive your card on the spot or it will be mailed to your registered address. The card will contain your unique AB PM-JAY ID, which you'll need to present at any empaneled hospital to avail of services. 💳\n\n**Important Note:** The process is completely free of cost. Be wary of any agents or individuals asking for money to issue your card. Always rely on official channels and government-approved centres. 🚫💰\n\n**For those who are eligible but not yet registered:**\n\nIf you are eligible but your name is not in the SECC 2011 list, you can still approach the nearest CSC or government hospital. They will guide you through the process of getting your eligibility verified and your card issued. The government is continuously working to expand the reach of this scheme. 🌐"
+      "heading": "How to Apply for Your Ayushman Bharat Health Card: A Step-by-Step Guide! 🚶‍♀️🚶‍♂️",
+      "content": "Once you've confirmed your eligibility, the next step is to get your hands on this invaluable card! The application process is designed to be straightforward and accessible. \n\n**Here's how you can apply:**\n\n1.  **Visit a CSC or Empanelled Hospital:** The most common way to apply is by visiting your nearest Common Service Centre (CSC) or any hospital empanelled under the Ayushman Bharat scheme. \n2.  **Carry Necessary Documents:** You'll need to carry your proof of identity (like Aadhaar card, Voter ID, Ration Card, etc.) and proof of address. If you're applying through a CSC, they will guide you through the process. \n3.  **Verification Process:** The CSC agent or hospital representative will verify your details against the SECC 2011 database. They will help you fill out the application form and upload the necessary documents. \n4.  **Biometric Verification (if required):** In some cases, biometric verification (fingerprint or iris scan) might be required to confirm your identity. \n5.  **Receive Your Golden Card:** Once your application is approved, you will be issued your Ayushman Bharat Health Card. This card contains your unique identification number and other essential details. \n\n**Important Note:** There is no fee to apply for the Ayushman Bharat Health Card. Be wary of any individuals or agents asking for money. The scheme is completely free for eligible beneficiaries. 🙅‍♂️"
     },
     {
-      "heading": "Key Benefits of the Ayushman Bharat Health Card: Your Health, Secured! ✅",
-      "content": "The Ayushman Bharat Health Card is more than just an identification document; it's a gateway to a comprehensive healthcare package that can significantly ease your financial burden. Here are the incredible benefits you can enjoy:\n\n*   **Up to ₹5 Lakh Health Cover per Family per Year:** This is the star attraction! 🌟 Eligible families receive an annual health cover of up to ₹5 lakh. This means you can get treatment for a wide range of medical conditions without worrying about the hefty hospital bills. 🤑\n*   **Cashless and Paperless Treatment:** Say goodbye to the hassle of managing bills and reimbursements. With your Ayushman Bharat Health Card, you can avail of cashless treatment at any of the empanelled public and private hospitals across India. Just present your card, and the hospital will handle the rest. 🏦\n*   **Wide Network of Hospitals:** The scheme has a vast network of over 28,000 empaneled hospitals (both public and private) across the country. This ensures that you have access to quality healthcare services wherever you are. 🗺️\n*   **Pre-hospitalization and Post-hospitalization Expenses Covered:** The benefits aren't limited to just the hospital stay. The scheme also covers pre-hospitalization expenses (up to 3 days before admission) and post-hospitalization expenses (up to 15 days after discharge), including diagnostics and medicines. 💊\n*   **Covers a Wide Range of Medical Procedures:** The Ayushman Bharat scheme covers over 1,900 medical packages, including surgeries, medical and diagnostic care, day care procedures, and more. This includes treatments for critical illnesses like cancer, heart diseases, kidney failures, diabetes, and infectious diseases. 💉\n*   **No Family Size Limit:** The cover is on a family floater basis, meaning the ₹5 lakh cover is for the entire family, irrespective of its size. This is a huge advantage for larger families. 👨‍👩‍👧‍👦\n*   **Portability:** You can avail of the benefits in any state or union territory in India. Your card is valid nationwide. 🌍\n*   **Focus on Secondary and Tertiary Care:** The scheme primarily focuses on providing access to secondary and tertiary care services, which are often the most expensive. This ensures that critical medical needs are met. 📈\n*   **Empowerment and Financial Security:** Ultimately, the Ayushman Bharat Health Card empowers individuals and families by providing them with financial security and peace of mind when it comes to their health. It reduces the risk of falling into debt due to medical emergencies. 🙏\n\nThis scheme is a testament to the government's commitment to ensuring that every Indian has access to quality healthcare, regardless of their economic background. It's a significant step towards achieving Universal Health Coverage in India. 🇮🇳"
+      "heading": "The Amazing Benefits of the Ayushman Bharat Health Card: More Than Just a Card! ✨",
+      "content": "This card is a game-changer, and its benefits are truly remarkable. Let's explore what makes it so special: \n\n*   **Cashless Treatment:** This is the star attraction! 🤑 With your Ayushman Bharat Health Card, you can avail of cashless and paperless treatment at any empanelled public or private hospital across India. No more scrambling for funds or taking out loans for medical emergencies! \n*   **Comprehensive Coverage:** The scheme provides a cover of up to ₹5 lakh per family per year for secondary and tertiary care hospitalisation. This means a wide range of medical treatments and procedures are covered. 🏥 \n*   **No Age Limit:** There is no upper age limit for beneficiaries. Everyone in the eligible family can benefit from the scheme. \n*   **Pre- and Post-Hospitalisation Expenses:** The scheme also covers expenses incurred before and after hospitalisation, such as diagnostics, medicines, and travel expenses, for up to 15 days. 💊✈️ \n*   **Portability:** Your card is portable! You can avail of benefits in any empanelled hospital across India, regardless of which state you belong to. This is a huge relief for those who travel or migrate for work. 🌍 \n*   **Family Floater Basis:** The benefit of ₹5 lakh is on a family floater basis, meaning the entire family can utilize the cover as needed. \n*   **Focus on Secondary and Tertiary Care:** The scheme focuses on providing access to quality secondary and tertiary care, which are often the most expensive. \n*   **Empowerment and Dignity:** By reducing the financial burden of healthcare, the Ayushman Bharat Health Card empowers individuals and families, allowing them to seek timely medical attention without fear of financial ruin. It restores dignity and peace of mind. 🙏"
     },
     {
-      "heading": "Frequently Asked Questions (FAQs) About the Ayushman Bharat Health Card ❓",
-      "content": "We understand you might have a few lingering questions. Here are some of the most common ones answered:\n\n**Q1: Is the Ayushman Bharat Health Card mandatory for everyone?**\nA1: No, the card is for eligible beneficiaries identified based on the SECC 2011 data. However, if you are eligible, it is highly recommended to get the card to avail of the benefits.\n\n**Q2: Can I get the Ayushman Bharat Health Card if my name is not in the SECC 2011 list?**\nA2: If you are a poor and vulnerable family and believe you should be covered but your name is not in the SECC 2011 list, you can approach the nearest Common Service Centre (CSC) or government hospital. They will help you get your eligibility verified and potentially added to the list.\n\n**Q3: What if I lose my Ayushman Bharat Health Card?**\nA3: If you lose your card, you can apply for a duplicate card at the nearest CSC or by contacting the national helpline number 14555. You will need to provide your details for verification.\n\n**Q4: Does the Ayushman Bharat Health Card cover pre-existing diseases?**\nA4: Yes, the scheme covers pre-existing diseases. There is no waiting period for pre-existing conditions. You can avail of treatment for them from day one of your enrollment.\n\n**Q5: How do I find an empaneled hospital near me?**\nA5: You can find a list of empaneled hospitals on the official AB PM-JAY website (pmjay.gov.in) or by calling the national helpline number 14555. The website usually has a search function where you can filter by location and specialty.\n\n**Q6: Can I use my Ayushman Bharat Health Card in any hospital in India?**\nA6: You can use your card at any hospital that is empaneled under the Ayushman Bharat PM-JAY scheme. It's important to confirm with the hospital if they are empaneled before seeking treatment.\n\n**Q7: What is the role of the Common Service Centre (CSC) in this scheme?**\nA7: CSCs are crucial touchpoints for beneficiaries. They assist in checking eligibility, verifying documents, assisting with the application process, and issuing the Ayushman Bharat Health Card. They are often the most accessible point for many people, especially in rural areas."
+      "heading": "What Medical Treatments are Covered? Your Health Concerns Addressed! 🩺",
+      "content": "The Ayushman Bharat Health Card covers a vast array of medical treatments and procedures. The aim is to provide comprehensive care for a wide range of health conditions. Here are some of the key areas covered:\n\n*   **Oncology (Cancer Treatment):** Chemotherapy, radiation therapy, surgery, and palliative care. 🎗️\n*   **Cardiology (Heart Diseases):** Angioplasty, bypass surgery, valve replacement, and treatment for heart failure. ❤️\n*   **Nephrology (Kidney Diseases):** Dialysis, kidney transplant, and treatment for kidney failure. 💧\n*   **Neurology (Brain and Nervous System Disorders):** Treatment for stroke, epilepsy, Parkinson's disease, and neurosurgery. 🧠\n*   **Orthopaedics (Bone and Joint Disorders):** Joint replacement surgery, spine surgery, and treatment for fractures. 🦴\n*   **Maternity Care:** Antenatal and postnatal care, delivery expenses, and newborn care. 👶\n*   **Paediatrics (Child Health):** Treatment for common childhood illnesses, congenital disorders, and vaccinations. 🧸\n*   **Gastroenterology:** Treatment for liver diseases, digestive disorders, and gastrointestinal surgeries. 🍎\n*   **Ophthalmology:** Cataract surgery, glaucoma treatment, and other eye-related procedures. 👀\n*   **ENT (Ear, Nose, and Throat):** Surgeries for hearing loss, sinus issues, and throat problems. 👂\n*   **Dermatology:** Treatment for severe skin conditions and infections. 🌟\n*   **Emergency Care:** Treatment for accidents, trauma, and medical emergencies. 🚨\n\nThis is not an exhaustive list, and the scheme continuously updates its list of covered procedures. It's always advisable to check with the empanelled hospital or the official PM-JAY website for the most current information on covered treatments. The goal is to ensure that critical medical needs are met without financial strain. 🏦"
     },
     {
-      "heading": "Related Government Schemes & Articles 🤝",
-      "content": "The Ayushman Bharat Health Card is part of a larger vision for a healthier India. Here are some other important schemes and articles you might find useful:\n\n*   **Pradhan Mantri Suraksha Bima Yojana (PMSBY):** An accident insurance scheme. \n*   **Pradhan Mantri Jeevan Jyoti Bima Yojana (PMJJBY):** A life insurance scheme.\n*   **National Health Mission (NHM):** A broad umbrella for health programs in India.\n*   **Article: Understanding Health Insurance for Your Family 👨‍👩‍👧‍👦**\n*   **Article: Top 5 Health Insurance Myths Debunked! 🚫**"
-    }
-  ],
-  "faqs": [
-    {
-      "q": "Is the Ayushman Bharat Health Card mandatory for everyone?",
-      "a": "No, the card is for eligible beneficiaries identified based on the SECC 2011 data. However, if you are eligible, it is highly recommended to get the card to avail of the benefits."
+      "heading": "Finding an Empanelled Hospital: Where Can You Get Treated? 🏥",
+      "content": "The Ayushman Bharat Health Card's true power lies in its network of empanelled hospitals. These are hospitals, both public and private, that have partnered with the scheme to provide cashless treatment to beneficiaries. \n\n**How to find an empanelled hospital:**\n\n1.  **Official PM-JAY Website:** The most reliable way is to visit the official PM-JAY website (pmjay.gov.in). They have a dedicated section to search for empanelled hospitals by state, district, and specialty. \n2.  **Ayushman Bharat Helpline:** You can call the toll-free helpline numbers (14555 or 1800-111-565) and ask for assistance in finding a hospital near you. \n3.  **CSC Centers:** Your local Common Service Centre can also provide you with a list of empanelled hospitals in your area. \n4.  **Ask at the Hospital:** If you visit a hospital, you can inquire at the reception or the Ayushman Bharat help desk if they are empanelled under the scheme. \n\nIt's crucial to ensure that the hospital you choose is indeed empanelled before availing of any treatment to guarantee cashless services. The scheme aims to have a widespread network to ensure accessibility for all beneficiaries. 🌐"
     },
     {
-      "q": "Can I get the Ayushman Bharat Health Card if my name is not in the SECC 2011 list?",
-      "a": "If you are a poor and vulnerable family and believe you should be covered but your name is not in the SECC 2011 list, you can approach the nearest Common Service Centre (CSC) or government hospital. They will help you get your eligibility verified and potentially added to the list."
-    },
-    {
-      "q": "What if I lose my Ayushman Bharat Health Card?",
-      "a": "If you lose your card, you can apply for a duplicate card at the nearest CSC or by contacting the national helpline number 14555. You will need to provide your details for verification."
-    },
-    {
-      "q": "Does the Ayushman Bharat Health Card cover pre-existing diseases?",
-      "a": "Yes, the scheme covers pre-existing diseases. There is no waiting period for pre-existing conditions. You can avail of treatment for them from day one of your enrollment."
-    },
-    {
-      "q": "How do I find an empaneled hospital near me?",
-      "a": "You can find a list of empaneled hospitals on the official AB PM-JAY website (pmjay.gov.in) or by calling the national helpline number 14555. The website usually has a search function where you can filter by location and specialty."
-    },
-    {
-      "q": "Can I use my Ayushman Bharat Health Card in any hospital in India?",
-      "a": "You can use your card at any hospital that is empaneled under the Ayushman Bharat PM-JAY scheme. It's important to confirm with the hospital if they are empaneled before seeking treatment."
-    },
-    {
-      "q": "What is the role of the Common Service Centre (CSC) in this scheme?",
-      "a": "CSCs are crucial touchpoints for beneficiaries. They assist in checking eligibility, verifying documents, assisting with the application process, and issuing the Ayushman Bharat Health Card. They are often the most accessible point for many people, especially in rural areas."
+      "heading": "Frequently Asked Questions (FAQs): Clearing All Your Doubts! ❓",
+      "content": [
+        {
+          "q": "Is the Ayushman Bharat Health Card free?",
+          "a": "Yes, the Ayushman Bharat Health Card is absolutely free for all eligible beneficiaries. There are no charges for application or for availing the benefits under the scheme. Be cautious of anyone asking for money."
+        },
+        {
+          "q": "Can I use my Ayushman Bharat Health Card in any hospital in India?",
+          "a": "You can use your card in any hospital that is empanelled under the Ayushman Bharat Pradhan Mantri Jan Arogya Yojana (AB-PMJAY) scheme. This includes both public and private hospitals across India."
+        },
+        {
+          "q": "What documents are needed to apply for the Ayushman Bharat Health Card?",
+          "a": "You will need your proof of identity (like Aadhaar card, Voter ID, Ration Card) and proof of address. The specific documents might vary slightly, so it's best to check with the CSC or empanelled hospital."
+        },
+        {
+          "q": "What is the coverage amount for the Ayushman Bharat Health Card?",
+          "a": "The scheme provides a cover of up to ₹5 lakh per family per year for secondary and tertiary care hospitalisation."
+        },
+        {
+          "q": "Does the scheme cover pre-existing diseases?",
+          "a": "Yes, the Ayushman Bharat scheme covers pre-existing diseases. There is no waiting period for pre-existing conditions."
+        },
+        {
+          "q": "How can I check if my family is eligible?",
+          "a": "You can check your eligibility by visiting the official PM-JAY website (pmjay.gov.in) and using the 'Am I Eligible?' tool, or by calling the toll-free helpline numbers 14555 or 1800-111-565."
+        }
+      ]
     }
   ],
   "relatedSchemes": [
-    "Pradhan Mantri Suraksha Bima Yojana (PMSBY)",
-    "Pradhan Mantri Jeevan Jyoti Bima Yojana (PMJJBY)",
-    "National Health Mission (NHM)"
+    {
+      "name": "Pradhan Mantri Suraksha Bima Yojana (PMSBY)",
+      "description": "An accident insurance scheme providing accidental death and disability cover."
+    },
+    {
+      "name": "Pradhan Mantri Jeevan Jyoti Bima Yojana (PMJJBY)",
+      "description": "A life insurance scheme offering life cover to account holders."
+    }
   ],
   "relatedArticles": [
-    "Understanding Health Insurance for Your Family 👨‍👩‍👧‍👦",
-    "Top 5 Health Insurance Myths Debunked! 🚫"
+    {
+      "title": "Understanding Health Insurance: A Beginner's Guide for Indians",
+      "url": "/understanding-health-insurance-beginners-guide-india"
+    },
+    {
+      "title": "Top 5 Health Insurance Myths Debunked!",
+      "url": "/health-insurance-myths-debunked-india"
+    }
   ],
   "tags": [
     "Ayushman Bharat",
-    "AB PM-JAY",
     "Health Card",
+    "PM-JAY",
     "Health Insurance India",
     "Government Schemes",
+    "Healthcare",
     "Affordable Healthcare",
-    "Medical Benefits",
+    "Cashless Treatment",
     "Eligibility",
     "Application Process",
-    "Indian Citizens"
+    "Benefits",
+    "India"
   ],
   "imageUrl": "https://images.pexels.com/photos/7736074/pexels-photo-7736074.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
   "country": "IN"
