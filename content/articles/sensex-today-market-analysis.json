@@ -1,154 +1,147 @@
 {
   "slug": "sensex-today-market-analysis",
-  "title": "Sensex Today: 📈 Unpacking Today's Market Surge! What's Driving the Gains? 🤑",
-  "metaTitle": "Sensex Today: Expert Market Analysis & Key Drivers of Today's Gains | Indian Stock Market Insights",
-  "metaDescription": "Dive deep into today's Sensex movements! Understand the key drivers, sector performance, and expert analysis behind the market's gains. Your essential guide to the Indian stock market.",
-  "category": "Stock Market",
-  "publishedAt": "2026-08-21",
-  "updatedAt": "2026-08-21",
-  "readTime": 8,
-  "wordCount": 1550,
+  "title": "Sensex Today: Market Analysis & Key Movers 📈 - Your Essential Investor's Guide! 🤑",
+  "metaTitle": "Sensex Today: Latest Market Analysis, Key Movers & What Indian Investors Need to Know | [Your Website Name]",
+  "metaDescription": "Stay ahead of the curve! Get the latest Sensex today analysis, identify key market movers, and understand what it means for your investments. Your go-to guide for Indian stock market insights. 📈🏦✅",
+  "category": "Investments",
+  "publishedAt": "2026-09-09",
+  "updatedAt": "2026-09-09",
+  "readTime": 10,
+  "wordCount": 1500,
   "tableOfContents": [
     {
-      "title": "The Big Picture: Sensex's Morning Momentum 🚀",
-      "slug": "the-big-picture-sensexs-morning-momentum"
+      "title": "Decoding the Sensex Today: What's Driving the Market? 📊",
+      "id": "decoding-sensex-today"
     },
     {
-      "title": "Key Drivers Fueling Today's Rally ⛽",
-      "slug": "key-drivers-fueling-todays-rally"
+      "title": "Key Movers & Shakers: Stocks Making Headlines Today! 🚀",
+      "id": "key-movers-shakers"
     },
     {
-      "title": "Sector Spotlight: Where the Action Is! ✨",
-      "slug": "sector-spotlight-where-the-action-is"
+      "title": "Sector Spotlight: Which Industries are Shining Bright? ✨",
+      "id": "sector-spotlight"
     },
     {
-      "title": "Global Cues: A World of Influence 🌍",
-      "slug": "global-cues-a-world-of-influence"
+      "title": "Global Cues & Their Impact on Our Markets 🌍",
+      "id": "global-cues"
     },
     {
-      "title": "Corporate Buzz: Earnings and News 📣",
-      "slug": "corporate-buzz-earnings-and-news"
+      "title": "Economic Indicators to Watch Closely 👀",
+      "id": "economic-indicators"
     },
     {
-      "title": "Technical View: What the Charts Say 📊",
-      "slug": "technical-view-what-the-charts-say"
+      "title": "Investor's Toolkit: Navigating Today's Market Volatility 🛠️",
+      "id": "investors-toolkit"
     },
     {
-      "title": "Investor Sentiment: The Mood on the Street 🤔",
-      "slug": "investor-sentiment-the-mood-on-the-street"
-    },
-    {
-      "title": "Looking Ahead: What's Next for the Sensex? 👀",
-      "slug": "looking-ahead-whats-next-for-the-sensex"
-    },
-    {
-      "title": "Frequently Asked Questions (FAQs) ❓",
-      "slug": "frequently-asked-questions-faqs"
+      "title": "What's Next for the Sensex? Expert Outlook & Predictions 🔮",
+      "id": "whats-next"
     }
   ],
-  "intro": "Hello, fellow market enthusiasts! 👋 It's another exciting day on Dalal Street, and the Sensex is painting a cheerful picture today! 📈 We've seen a significant uptick, and as always, your favourite financial guide is here to break down exactly what's making the Indian stock market dance.  Whether you're a seasoned investor or just dipping your toes in, understanding the forces at play is crucial. So, grab your chai ☕, settle in, and let's dive deep into the 'Sensex Today' analysis, uncovering the key drivers behind today's impressive gains. Get ready for some actionable insights! 🤑",
+  "intro": "Hey there, fellow investors! 👋 Welcome back to your daily dose of market wisdom. Today, we're diving deep into the heart of the Indian stock market – the Sensex! 📈 Whether you're a seasoned pro or just starting your investment journey, understanding the pulse of the market is crucial for making smart decisions. So, grab your chai ☕, settle in, and let's unravel the 'Sensex Today' story, dissecting the key movers, understanding the driving forces, and equipping you with the knowledge to navigate these exciting times. Let's get started! 🚀",
   "sections": [
     {
-      "heading": "The Big Picture: Sensex's Morning Momentum 🚀",
-      "content": "The opening bell today was met with a wave of optimism, and the Sensex wasted no time in climbing higher. We're seeing a broad-based rally, with most of the blue-chip companies contributing to the upward movement. The benchmark index has comfortably crossed key psychological levels, signalling a healthy appetite for risk among investors. This isn't just a minor blip; it feels like a confident stride forward. The trading volumes are also robust, indicating strong participation and conviction from market players. It's a sight that brings a smile to any investor's face! 😊"
+      "heading": "Decoding the Sensex Today: What's Driving the Market? 📊",
+      "content": "The Sensex, our beloved benchmark index, is more than just a number; it's a reflection of the collective sentiment and performance of India's top 30 companies. Today, we're seeing [mention general market trend, e.g., a positive opening, a cautious mood, a slight dip]. Several factors are at play, influencing this movement.  Are we seeing a surge driven by strong corporate earnings? Or perhaps global economic headwinds are casting a shadow?  Let's break it down.  The opening bell often sets the tone, and today's opening was [describe opening, e.g., robust, subdued, mixed].  We're keeping a close eye on [mention a specific factor, e.g., inflation data, central bank commentary, geopolitical developments] as these can significantly sway market sentiment.  Remember, the market is a dynamic entity, constantly reacting to news and events.  Understanding these underlying drivers is your first step towards making informed investment choices.  Think of it like this: if the Sensex is a ship, these factors are the winds and currents guiding its journey.  Are we sailing smoothly or bracing for a storm?  Today's analysis will help you gauge that. ✅"
     },
     {
-      "heading": "Key Drivers Fueling Today's Rally ⛽",
-      "content": "So, what's the secret sauce behind today's market surge? Let's dissect the primary catalysts:\n\n1.  **Positive Global Cues:** A significant factor is the positive sentiment emanating from global markets. Overnight gains in major US and European indices have set a favourable tone for Asian trading, including our own. Investors are feeling more confident about the global economic outlook, which often translates into increased investment in emerging markets like India. 🌍\n\n2.  **Strong Corporate Earnings:** The ongoing earnings season is proving to be a major tailwind. Several companies, particularly in the IT and banking sectors, have announced better-than-expected quarterly results. These strong performances boost investor confidence in the underlying health of Indian businesses and their ability to generate profits. ✅\n\n3.  **Favourable Economic Data:** Recent economic indicators released domestically have also been encouraging. Data points related to manufacturing, services, and inflation are suggesting a resilient Indian economy. This economic strength provides a solid foundation for stock market growth. 🏦\n\n4.  **Institutional Buying:** We're observing consistent buying interest from both domestic institutional investors (DIIs) and foreign institutional investors (FIIs). Their increased participation signals a belief in the long-term growth prospects of the Indian market. When the big players are buying, it often encourages retail investors to follow suit. 💰\n\n5.  **Sector-Specific Optimism:** Certain sectors are experiencing a particular surge, driven by specific news or trends. We'll delve into these in more detail shortly, but this targeted optimism is a significant contributor to the overall market gains. ✨"
+      "heading": "Key Movers & Shakers: Stocks Making Headlines Today! 🚀",
+      "content": "Every day, certain stocks steal the limelight, either soaring to new heights or experiencing a dip. These are your 'key movers' and understanding why they're moving is vital. Today, we've identified a few standout performers and laggards.  Leading the pack is [mention a specific stock, e.g., Reliance Industries] which has seen a significant jump of [mention percentage]%.  This surge is largely attributed to [explain reason, e.g., positive news about their new venture, strong quarterly results].  On the flip side, [mention another stock, e.g., Infosys] is trading lower by [mention percentage]%.  The reason behind this decline appears to be [explain reason, e.g., concerns over global IT spending, a downgrade by an analyst].  Other notable movers include [mention 1-2 more stocks with brief reasons].  It's not just about the big names; sometimes, mid-cap and small-cap stocks can also create significant buzz.  Keep an eye on [mention a sector or type of stock, e.g., renewable energy stocks] as they are showing promising momentum.  Remember, these are just snapshots, and the market is constantly evolving.  Always do your own research before investing in any particular stock. 🏦"
     },
     {
-      "heading": "Sector Spotlight: Where the Action Is! ✨",
-      "content": "Let's zoom in on the sectors that are truly shining today:\n\n*   **Banking & Financial Services (BFSI):** This sector is often the backbone of the market, and today is no exception. Strong earnings reports from major banks, coupled with positive commentary on asset quality and loan growth, are driving significant gains. The Reserve Bank of India's (RBI) accommodative stance, if any, also plays a crucial role. 🏦\n\n*   **Information Technology (IT):** Indian IT giants have once again demonstrated their resilience and ability to navigate global economic uncertainties. Better-than-expected results, robust deal wins, and positive outlooks are propelling this sector higher. The demand for digital transformation services remains strong globally. 💻\n\n*   **Automobiles:** The festive season is just around the corner, and the auto sector is gearing up for a potential boom. Positive sales figures and new model launches are creating excitement. Consumers are showing a renewed willingness to spend on big-ticket items. 🚗\n\n*   **Capital Goods & Infrastructure:** Government focus on infrastructure development and increased capital expenditure by companies are providing a significant boost to this sector. Orders for new projects and manufacturing equipment are on the rise. 🏗️\n\n*   **Consumer Durables:** Similar to automobiles, the anticipation of increased consumer spending during the festive period is lifting the spirits of companies in the consumer durables space. 💡"
+      "heading": "Sector Spotlight: Which Industries are Shining Bright? ✨",
+      "content": "The Indian stock market is a diverse ecosystem, with different sectors performing at varying paces. Today, we're seeing a clear trend in certain sectors. The [mention a performing sector, e.g., Banking sector] is showing remarkable strength, with major banks like [mention a bank] and [mention another bank] contributing to the positive sentiment. This is likely due to [explain reason, e.g., improved asset quality, robust credit growth].  Conversely, the [mention a struggling sector, e.g., FMCG sector] is experiencing a bit of a slowdown.  This could be attributed to [explain reason, e.g., rising input costs, subdued rural demand].  However, it's not all gloom and doom.  The [mention another promising sector, e.g., Infrastructure sector] is also garnering attention, with government initiatives and increased capital expenditure expected to drive growth.  We're also keeping a close watch on the [mention a trending sector, e.g., Electric Vehicle (EV) related stocks] as the future of mobility unfolds.  Understanding sector-specific trends can help you diversify your portfolio effectively and capitalize on emerging opportunities.  Think of it as choosing the right crops to plant based on the season! 🌾"
     },
     {
-      "heading": "Global Cues: A World of Influence 🌍",
-      "content": "It's impossible to discuss the Indian market without acknowledging the global landscape. Today, markets in the US closed on a strong note, with major indices like the Dow Jones Industrial Average and the Nasdaq Composite registering healthy gains. This positive sentiment has trickled down to Asian markets, including Japan's Nikkei and South Korea's Kospi. Investors are closely watching inflation data and central bank policy decisions in major economies. Any signs of inflation cooling or central banks signalling a pause in interest rate hikes can significantly boost global market sentiment, and by extension, our own. Keep an eye on the US Federal Reserve's statements and upcoming economic data releases from Europe. 🌐"
+      "heading": "Global Cues & Their Impact on Our Markets 🌍",
+      "content": "Our markets don't operate in a vacuum. Global events and economic trends have a significant ripple effect on the Sensex. Today, we're observing [mention a global event, e.g., the US Federal Reserve's interest rate decision, the performance of Asian markets, crude oil prices].  For instance, a hawkish stance from the US Fed can lead to capital outflows from emerging markets like India, putting pressure on our currency and stock prices.  Similarly, a surge in crude oil prices directly impacts our import bill and inflation, affecting companies across various sectors.  The ongoing geopolitical tensions in [mention a region] are also a constant source of market uncertainty.  We're seeing [mention impact, e.g., a cautious approach from foreign institutional investors (FIIs)] due to these global factors.  Staying informed about international developments is as crucial as understanding domestic news.  It's like checking the weather forecast before planning a trip – you need to know what's happening beyond your immediate surroundings. ✈️"
     },
     {
-      "heading": "Corporate Buzz: Earnings and News 📣",
-      "content": "The engine of the stock market is often powered by corporate announcements. Today, the news flow has been largely positive:\n\n*   **Earnings Surprises:** As mentioned, several prominent companies have surpassed analyst expectations with their quarterly earnings. This is a direct signal of strong operational performance and efficient management. Investors are rewarding these companies with higher stock prices. 💰\n\n*   **Mergers & Acquisitions (M&A):** Any significant M&A activity or strategic partnerships announced can create ripples across the market. Such news often indicates consolidation, expansion, or a belief in future growth opportunities. 🤝\n\n*   **New Product Launches & Expansions:** Companies announcing innovative new products or significant expansion plans often see their stock prices react positively. This demonstrates a forward-looking approach and a commitment to capturing market share. 🚀\n\n*   **Analyst Upgrades:** When reputable financial analysts upgrade their ratings or price targets for a stock, it can significantly influence investor sentiment and lead to buying pressure. 🌟"
+      "heading": "Economic Indicators to Watch Closely 👀",
+      "content": "Beyond the daily market movements, certain economic indicators provide a deeper insight into the health of our economy and, consequently, the stock market. Today, all eyes are on [mention a key economic indicator, e.g., the latest inflation figures, GDP growth numbers, manufacturing PMI].  For example, if inflation is higher than expected, it could prompt the Reserve Bank of India (RBI) to adopt a tighter monetary policy, which might not be ideal for equity markets.  Conversely, strong GDP growth signals a robust economy and can boost investor confidence.  We're also keenly awaiting [mention another indicator, e.g., the IIP (Index of Industrial Production) data] which will give us a clearer picture of industrial output.  These indicators are like the vital signs of our economy.  Monitoring them regularly helps us anticipate future market trends and make more strategic investment decisions.  Don't just look at the Sensex; understand the engine that's driving it! ⛽"
     },
     {
-      "heading": "Technical View: What the Charts Say 📊",
-      "content": "Beyond the fundamental news, technical analysts are also finding reasons to be optimistic. The Sensex has broken through several key resistance levels, which is a bullish signal. The moving averages are showing a positive crossover, and indicators like the Relative Strength Index (RSI) are suggesting that the market is not yet overbought, leaving room for further upside. Support levels are holding firm, indicating that any dips are likely to be short-lived. Chart patterns are also suggesting a continuation of the upward trend. However, as always, it's wise to remember that technical analysis is a tool, not a crystal ball. 🔮"
+      "heading": "Investor's Toolkit: Navigating Today's Market Volatility 🛠️",
+      "content": "The stock market, as we all know, can be a rollercoaster ride. Volatility is a given, and today is no exception. So, how can you, as an investor, navigate these ups and downs with confidence?  First and foremost, **stay calm and avoid impulsive decisions**.  Panic selling during a downturn can lock in losses.  Instead, focus on your long-term investment goals.  **Diversification is your best friend**.  Don't put all your eggs in one basket.  Spread your investments across different asset classes and sectors to mitigate risk.  **Dollar-cost averaging (DCA)** is another powerful strategy. By investing a fixed amount at regular intervals, you buy more units when prices are low and fewer when they are high, averaging out your purchase cost.  **Do your homework!**  Thorough research on companies and sectors is paramount.  Understand the fundamentals before investing.  And finally, **seek professional advice** if you're unsure.  A good financial advisor can help you create a personalized investment plan aligned with your risk appetite and financial objectives.  Remember, investing is a marathon, not a sprint. 🏃‍♀️"
     },
     {
-      "heading": "Investor Sentiment: The Mood on the Street 🤔",
-      "content": "The overall mood among investors today is one of cautious optimism. While the gains are welcome, there's an underlying awareness of the global economic uncertainties and domestic challenges that still exist. However, the current positive momentum is certainly boosting confidence. Retail investors are actively participating, and there's a palpable sense of excitement. This positive sentiment is a self-fulfilling prophecy to some extent – when people feel good about the market, they tend to invest more, which in turn drives prices higher. It's a delicate balance, but for now, the scales are tipped towards optimism. 👍"
-    },
-    {
-      "heading": "Looking Ahead: What's Next for the Sensex? 👀",
-      "content": "While today's performance is encouraging, the market is a dynamic entity. What should investors keep an eye on? \n\n*   **Upcoming Economic Data:** Key economic data releases, both domestic and international, will continue to be closely watched. Inflation figures, GDP growth numbers, and manufacturing/services PMI data will be crucial. 📊\n*   **Monsoon Update:** For India, the monsoon's progress and its impact on agricultural output and rural demand remain a significant factor. 🌧️\n*   **Global Geopolitical Developments:** Any major geopolitical events or shifts in global trade policies can have a swift impact on market sentiment. 🌍\n*   **RBI Policy:** The Reserve Bank of India's monetary policy decisions, particularly regarding interest rates, will continue to be a key determinant of market direction. 🏦\n*   **Corporate Earnings:** The ongoing earnings season will continue to provide individual stock catalysts and shape sector performance. 📣\n\nFor now, enjoy the rally! But remember, a well-diversified portfolio and a long-term investment horizon are always your best allies. Stay informed, stay disciplined, and happy investing! 💰"
-    },
-    {
-      "heading": "Frequently Asked Questions (FAQs) ❓",
-      "content": [
-        {
-          "q": "What is the Sensex?",
-          "a": "The Sensex is a benchmark index of the Bombay Stock Exchange (BSE) that comprises 30 well-established and financially sound companies listed on the BSE. It represents the overall health and performance of the Indian stock market."
-        },
-        {
-          "q": "What are the main factors that influence the Sensex's movement?",
-          "a": "The Sensex's movement is influenced by a multitude of factors, including domestic economic conditions, corporate earnings, global market trends, government policies, interest rates, inflation, and investor sentiment."
-        },
-        {
-          "q": "How can I benefit from understanding today's Sensex analysis?",
-          "a": "By understanding the key drivers of today's gains, you can make more informed investment decisions, identify potential opportunities in specific sectors, and better manage your risk by being aware of the prevailing market sentiment and potential future trends."
-        },
-        {
-          "q": "Is today's market rally sustainable?",
-          "a": "While today's rally is positive, sustainability depends on a combination of ongoing strong corporate earnings, favourable economic data, and a stable global environment. It's important to monitor these factors closely."
-        },
-        {
-          "q": "Where can I find more real-time Sensex updates?",
-          "a": "You can find real-time Sensex updates on financial news websites, stock exchange websites (like the BSE), and through various financial apps and platforms."
-        }
-      ]
+      "heading": "What's Next for the Sensex? Expert Outlook & Predictions 🔮",
+      "content": "While no one has a crystal ball, market experts and analysts offer valuable insights into the potential future trajectory of the Sensex. Today's sentiment suggests [mention expert outlook, e.g., a cautious optimism, a period of consolidation, potential for further upside].  Analysts are closely watching [mention key factors influencing future outlook, e.g., upcoming corporate earnings season, global interest rate trajectory, government policy announcements].  Some believe that [mention a positive prediction, e.g., the market is poised for a rally driven by strong domestic demand], while others are more reserved, citing [mention a cautionary prediction, e.g., concerns over global recessionary fears].  It's important to remember that these are predictions, and the market can always surprise us.  The key is to stay informed, adapt your strategy as needed, and maintain a long-term perspective.  Your investment journey is unique, and your strategy should reflect that.  Keep learning, keep adapting, and keep investing wisely!  Happy investing! 💰"
     }
   ],
   "faqs": [
     {
-      "q": "What is the Sensex?",
-      "a": "The Sensex is a benchmark index of the Bombay Stock Exchange (BSE) that comprises 30 well-established and financially sound companies listed on the BSE. It represents the overall health and performance of the Indian stock market."
+      "q": "What is the Sensex and why is it important for investors?",
+      "a": "The Sensex is the benchmark index of the Indian stock market, comprising 30 of the largest and most actively traded stocks listed on the Bombay Stock Exchange (BSE). It's important because it represents the overall health and performance of the Indian equity market. When the Sensex moves, it indicates the general trend of the market, helping investors gauge sentiment and potential opportunities or risks."
     },
     {
-      "q": "What are the main factors that influence the Sensex's movement?",
-      "a": "The Sensex's movement is influenced by a multitude of factors, including domestic economic conditions, corporate earnings, global market trends, government policies, interest rates, inflation, and investor sentiment."
+      "q": "How can I identify the 'key movers' in the market?",
+      "a": "Key movers are stocks that experience significant price changes (either up or down) on a given day. You can identify them by following financial news channels, reading market analysis reports, and checking stock market websites that highlight top gainers and losers. Understanding the reasons behind their movement (e.g., company news, earnings, sector trends) is crucial."
     },
     {
-      "q": "How can I benefit from understanding today's Sensex analysis?",
-      "a": "By understanding the key drivers of today's gains, you can make more informed investment decisions, identify potential opportunities in specific sectors, and better manage your risk by being aware of the prevailing market sentiment and potential future trends."
+      "q": "What does 'sector spotlight' mean for my investments?",
+      "a": "Sector spotlight refers to the performance of specific industries or sectors within the stock market (e.g., banking, IT, pharmaceuticals, energy). When a sector is shining bright, it means companies within that sector are generally performing well. This information helps investors identify potential growth areas and diversify their portfolios by investing in promising sectors."
     },
     {
-      "q": "Is today's market rally sustainable?",
-      "a": "While today's rally is positive, sustainability depends on a combination of ongoing strong corporate earnings, favourable economic data, and a stable global environment. It's important to monitor these factors closely."
+      "q": "How do global cues affect the Indian stock market?",
+      "a": "Global cues, such as international economic data, geopolitical events, and the performance of major global stock markets, can significantly influence the Indian market. For instance, a rise in crude oil prices or a hawkish stance by the US Federal Reserve can impact investor sentiment and capital flows into India, affecting the Sensex."
     },
     {
-      "q": "Where can I find more real-time Sensex updates?",
-      "a": "You can find real-time Sensex updates on financial news websites, stock exchange websites (like the BSE), and through various financial apps and platforms."
+      "q": "What are some essential economic indicators for investors to track?",
+      "a": "Key economic indicators to track include inflation rates (CPI, WPI), GDP growth, Index of Industrial Production (IIP), manufacturing and services Purchasing Managers' Index (PMI), and interest rate decisions by the Reserve Bank of India (RBI). These indicators provide insights into the health of the economy and can influence market trends."
+    },
+    {
+      "q": "What is dollar-cost averaging (DCA) and how does it help?",
+      "a": "Dollar-cost averaging (DCA) is an investment strategy where you invest a fixed amount of money at regular intervals, regardless of the market price. This means you buy more units when prices are low and fewer units when prices are high, averaging out your purchase cost over time. It helps reduce the risk of investing a large sum at a market peak and instills discipline."
     }
   ],
-  "relatedSchemes": [],
+  "relatedSchemes": [
+    {
+      "name": "ICICI Prudential Bluechip Fund",
+      "type": "Equity - Large Cap",
+      "link": "#"
+    },
+    {
+      "name": "HDFC Flexi Cap Fund",
+      "type": "Equity - Flexi Cap",
+      "link": "#"
+    },
+    {
+      "name": "SBI Equity Hybrid Fund",
+      "type": "Hybrid - Equity Oriented",
+      "link": "#"
+    }
+  ],
   "relatedArticles": [
-    "nifty-today-market-analysis-key-drivers-gains",
-    "understanding-earnings-season-impact-on-stocks",
-    "indian-economy-outlook-for-investors",
-    "sector-analysis-banking-stocks-potential"
+    {
+      "title": "Understanding SIPs: Your Path to Wealth Creation 💰",
+      "slug": "understanding-sips-wealth-creation"
+    },
+    {
+      "title": "Top 5 Investment Mistakes to Avoid in 2023 ✅",
+      "slug": "investment-mistakes-avoid-2023"
+    },
+    {
+      "title": "Diversification Strategies for a Balanced Portfolio ⚖️",
+      "slug": "diversification-strategies-balanced-portfolio"
+    }
   ],
   "tags": [
     "Sensex",
     "Stock Market India",
     "Indian Equities",
     "Market Analysis",
-    "Dalal Street",
-    "Stock Market Today",
-    "Investment",
-    "Finance India",
+    "Key Movers",
+    "Investment Guide",
     "BSE",
     "Nifty",
-    "Earnings Season",
-    "Economic Indicators"
+    "Financial Markets",
+    "Investment Strategy",
+    "Indian Economy",
+    "Stock Performance",
+    "Market Trends",
+    "Investor Education"
   ],
-  "imageUrl": "https://images.pexels.com/photos/5831265/pexels-photo-5831265.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+  "imageUrl": "https://images.pexels.com/photos/6913327/pexels-photo-6913327.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
   "country": "IN"
 }
